@@ -1,19 +1,22 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { SaveProjectDto } from '../types/project'
-import type { SaveNoteDto } from '../types/note'
+import { PROJECT_CHANNELS, NOTE_CHANNELS } from '../ipc/channels'
+import type { CreateProjectDto, UpdateProjectDto } from '../types/project'
+import type { CreateNoteDto, UpdateNoteDto } from '../types/note'
 
 contextBridge.exposeInMainWorld('api', {
   project: {
-    list: () => ipcRenderer.invoke('project:list'),
-    get: (id: string) => ipcRenderer.invoke('project:get', id),
-    save: (payload: SaveProjectDto) => ipcRenderer.invoke('project:save', payload),
-    delete: (id: string) => ipcRenderer.invoke('project:delete', id),
+    list: () => ipcRenderer.invoke(PROJECT_CHANNELS.LIST),
+    get: (id: string) => ipcRenderer.invoke(PROJECT_CHANNELS.GET, id),
+    create: (dto: CreateProjectDto) => ipcRenderer.invoke(PROJECT_CHANNELS.CREATE, dto),
+    update: (dto: UpdateProjectDto) => ipcRenderer.invoke(PROJECT_CHANNELS.UPDATE, dto),
+    delete: (id: string) => ipcRenderer.invoke(PROJECT_CHANNELS.DELETE, id),
   },
   note: {
-    list: (projectId: string) => ipcRenderer.invoke('note:list', projectId),
-    get: (id: string) => ipcRenderer.invoke('note:get', id),
-    save: (payload: SaveNoteDto) => ipcRenderer.invoke('note:save', payload),
-    delete: (id: string) => ipcRenderer.invoke('note:delete', id),
+    list: (projectId: string) => ipcRenderer.invoke(NOTE_CHANNELS.LIST, projectId),
+    get: (id: string) => ipcRenderer.invoke(NOTE_CHANNELS.GET, id),
+    create: (dto: CreateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.CREATE, dto),
+    update: (dto: UpdateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.UPDATE, dto),
+    delete: (id: string) => ipcRenderer.invoke(NOTE_CHANNELS.DELETE, id),
   },
   platform: process.platform,
 })
