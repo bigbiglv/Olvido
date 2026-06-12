@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { reactiveOmit } from '@vueuse/core'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { HTMLAttributes } from 'vue'
 
 import {
@@ -49,7 +48,6 @@ const props = withDefaults(
   },
 )
 
-const { t } = useI18n()
 const textareaProps = reactiveOmit(
   props,
   'class',
@@ -73,7 +71,7 @@ const resolvedPlaceholder = computed(() => {
     return props.placeholder
   }
 
-  return props.label ? `${t('form.placeholder.input')}${props.label}` : t('form.placeholder.input')
+  return props.label ? `请输入${props.label}` : '请输入'
 })
 </script>
 

@@ -140,7 +140,7 @@ onMounted(() => {
           :class="activeTab === 'edit' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200'"
           @click="activeTab = 'edit'"
         >
-          {{ $t('taskly.editTab') }}
+          编辑
           <span v-if="activeTab === 'edit'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full"></span>
         </button>
         <button
@@ -148,13 +148,13 @@ onMounted(() => {
           :class="activeTab === 'preview' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200'"
           @click="activeTab = 'preview'"
         >
-          {{ $t('taskly.previewTab') }}
+          预览
           <span v-if="activeTab === 'preview'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full"></span>
         </button>
       </div>
       
       <div class="text-xs text-slate-400 dark:text-zinc-500 font-medium">
-        {{ $t('taskly.markdownFormat') }}
+        Markdown 格式
       </div>
     </div>
 

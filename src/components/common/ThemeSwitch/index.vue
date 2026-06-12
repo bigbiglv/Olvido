@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
-import { useI18n } from 'vue-i18n'
-
 import { Monitor, Moon, Sun } from 'lucide-vue-next'
 
 import { cn } from '@/lib/utils'
@@ -10,7 +8,6 @@ import { themeOptions } from '@/theme'
 import type { ThemeMode, ThemeName } from '@/theme'
 
 const appStore = useAppStore()
-const { t } = useI18n()
 
 const themeModeOptions: Array<{
   value: ThemeMode
@@ -31,14 +28,14 @@ const themeModeOptions: Array<{
 ]
 
 const themeModeLabels = computed<Record<ThemeMode, string>>(() => ({
-  light: t('components.themeSwitch.modes.light'),
-  dark: t('components.themeSwitch.modes.dark'),
-  system: t('components.themeSwitch.modes.system'),
+  light: '浅色',
+  dark: '深色',
+  system: '跟随系统',
 }))
 
 const themeLabels = computed<Record<ThemeName, string>>(() => ({
-  violet: t('components.themeSwitch.themes.violet'),
-  blue: t('components.themeSwitch.themes.blue'),
+  violet: '紫色',
+  blue: '蓝色',
 }))
 
 const localizedThemeModeOptions = computed(() =>
@@ -63,7 +60,7 @@ const localizedThemeOptions = computed(() =>
         v-for="option in localizedThemeModeOptions"
         :key="option.value"
         type="button"
-        :aria-label="t('components.themeSwitch.aria.switchMode', { mode: option.label })"
+        :aria-label="`切换到 ${option.label}`"
         :aria-pressed="appStore.themeMode === option.value"
         :class="
           cn(
@@ -85,7 +82,7 @@ const localizedThemeOptions = computed(() =>
         v-for="option in localizedThemeOptions"
         :key="option.name"
         type="button"
-        :aria-label="t('components.themeSwitch.aria.switchTheme', { theme: option.label })"
+        :aria-label="`切换到 ${option.label}`"
         :aria-pressed="appStore.themeName === option.name"
         :class="
           cn(

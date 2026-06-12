@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, toRef } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { Dialog, DialogContent } from '../ui'
 import type { DialogInstance } from '../types'
@@ -18,7 +17,6 @@ const props = defineProps<{
   isTopmost: boolean
 }>()
 
-const { t } = useI18n()
 const dialogInstance = props.instance
 const isTopmost = toRef(props, 'isTopmost')
 
@@ -116,7 +114,7 @@ onMounted(async () => {
     <DialogContent
       :show-overlay="dialogInstance.settings.mask"
       :show-close="false"
-      :close-label="t('components.dialog.close')"
+      close-label="关闭"
       :style="contentStyle"
       :class="contentClass"
       @escape-key-down="!dialogInstance.settings.closeOnEsc && preventBlockedClose($event)"

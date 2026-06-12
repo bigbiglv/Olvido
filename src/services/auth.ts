@@ -1,6 +1,5 @@
 import type { AxiosResponse } from 'axios'
 
-import { i18n } from '@/i18n'
 import { http } from './http'
 
 import type { AuthSessionPayload, AuthUser } from '@/stores/auth'
@@ -21,7 +20,7 @@ function unwrapResponse<T>(response: AxiosResponse<ApiResponse<T>>) {
   const { data } = response
 
   if (data.code !== 0) {
-    throw new Error(data.message || i18n.global.t('request.failed'))
+    throw new Error(data.message || '请求失败')
   }
 
   return data.data

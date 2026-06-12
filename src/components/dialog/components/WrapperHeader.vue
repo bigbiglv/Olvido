@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { Maximize2, Minimize2, X } from 'lucide-vue-next'
 
 import { Button } from '@/components/ui/button'
@@ -21,7 +20,6 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const { t } = useI18n()
 
 const headerClass = computed(() => [
   'shrink-0 select-none border-b border-border px-6 py-4',
@@ -44,14 +42,14 @@ const headerInnerClass = computed(() => [
             v-if="instance.slots.title"
           />
           <template v-else>
-            {{ instance.settings.title || t('components.dialog.title') }}
+            {{ instance.settings.title || '对话框' }}
           </template>
         </DialogTitle>
         <DialogDescription v-if="instance.settings.description" class="mt-1">
           {{ instance.settings.description }}
         </DialogDescription>
         <DialogDescription v-else class="sr-only">
-          {{ instance.settings.title || t('components.dialog.title') }}
+          {{ instance.settings.title || '对话框' }}
         </DialogDescription>
       </div>
 
@@ -65,7 +63,7 @@ const headerInnerClass = computed(() => [
           variant="ghost"
           size="icon"
           :aria-label="
-            instance.isFullscreen ? t('components.dialog.restore') : t('components.dialog.maximize')
+            instance.isFullscreen ? '还原' : '最大化'
           "
           @click="emit('toggleFullscreen')"
         >
@@ -75,7 +73,7 @@ const headerInnerClass = computed(() => [
         <Button
           variant="ghost"
           size="icon"
-          :aria-label="t('components.dialog.close')"
+          aria-label="关闭"
           @click="emit('cancel')"
         >
           <X :size="24" />

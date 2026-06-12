@@ -1,12 +1,9 @@
 import { defineStore } from 'pinia'
 
-import { detectBrowserLocale } from '@/i18n/detect-locale'
-import { setI18nLocale, type Locale } from '@/i18n'
 import { applyTheme, isThemeMode, isThemeName, subscribeSystemThemeChange } from '@/theme'
 import type { ThemeMode, ThemeName } from '@/theme'
 
 interface AppState {
-  locale: Locale
   themeName: ThemeName
   themeMode: ThemeMode
 }
@@ -15,18 +12,10 @@ let stopSystemThemeSync: (() => void) | undefined
 
 export const useAppStore = defineStore('app', {
   state: (): AppState => ({
-    locale: detectBrowserLocale(),
     themeName: 'violet',
     themeMode: 'system',
   }),
   actions: {
-    setLocale(locale: Locale) {
-      this.locale = locale
-      setI18nLocale(locale)
-    },
-    setupLocaleSync() {
-      setI18nLocale(this.locale)
-    },
     setThemeName(themeName: ThemeName) {
       this.themeName = themeName
       this.applyTheme()
@@ -67,6 +56,6 @@ export const useAppStore = defineStore('app', {
   },
   persist: {
     key: 'frameai-app',
-    pick: ['locale', 'themeName', 'themeMode'],
+    pick: ['themeName', 'themeMode'],
   },
 })

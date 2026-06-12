@@ -1,6 +1,5 @@
 import js from '@eslint/js'
 import json from '@eslint/json'
-import vueI18n from '@intlify/eslint-plugin-vue-i18n'
 import eslintConfigPrettier from 'eslint-config-prettier'
 import pluginVue from 'eslint-plugin-vue'
 import tseslint from 'typescript-eslint'
@@ -54,39 +53,11 @@ export default tseslint.config(
   {
     files: sourceFiles,
     plugins: {
-      '@intlify/vue-i18n': vueI18n,
       vue: pluginVue,
     },
     rules: {
       'vue/multi-word-component-names': 'off',
       'vue/no-v-html': 'error',
-      '@intlify/vue-i18n/no-dynamic-keys': 'error',
-      '@intlify/vue-i18n/no-missing-keys': 'error',
-      '@intlify/vue-i18n/no-missing-keys-in-other-locales': 'error',
-      '@intlify/vue-i18n/no-raw-text': [
-        'error',
-        {
-          ignorePattern:
-            '^(?:[\\d\\s.,:;!?%+\\-*/=()[\\]{}<>#&|~^\'"`]+|[A-Z][A-Z0-9]*(?:[._-][A-Z0-9]+)*|\\.[A-Za-z0-9_-]+|\\d+(?:\\.\\d+)?(?:px|rem|em|ms|s|KB|MB|GB|%)?)$',
-        },
-      ],
-      '@intlify/vue-i18n/no-unknown-locale': 'error',
-      '@intlify/vue-i18n/no-unused-keys': [
-        'warn',
-        {
-          extensions: ['.ts', '.vue'],
-        },
-      ],
-    },
-    settings: {
-      'vue-i18n': {
-        localeDir: {
-          pattern: './src/i18n/locales/*/**/*.json',
-          localeKey: 'path',
-          localePattern: /src[\\/]i18n[\\/]locales[\\/](?<locale>[A-Za-z0-9-_]+)[\\/].+\.json$/,
-        },
-        messageSyntaxVersion: '^11.0.0',
-      },
     },
   },
   eslintConfigPrettier,

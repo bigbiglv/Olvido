@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { LoaderCircle } from 'lucide-vue-next'
 
 import { Button } from '@/components/ui/button'
@@ -16,7 +15,7 @@ const emit = defineEmits<{
   submit: []
 }>()
 
-const { t } = useI18n()
+
 </script>
 
 <template>
@@ -31,7 +30,7 @@ const { t } = useI18n()
         v-bind="instance.settings.cancelButtonProps"
         @click="emit('cancel')"
       >
-        {{ instance.settings.cancelText || t('components.dialog.cancel') }}
+        {{ instance.settings.cancelText || '取消' }}
       </Button>
       <Button
         v-bind="instance.settings.okButtonProps"
@@ -39,7 +38,7 @@ const { t } = useI18n()
         @click="emit('submit')"
       >
         <LoaderCircle v-if="instance.confirmLoading" class="size-4 animate-spin" />
-        {{ instance.settings.okText || t('components.dialog.ok') }}
+        {{ instance.settings.okText || '确定' }}
       </Button>
     </template>
   </DialogFooter>

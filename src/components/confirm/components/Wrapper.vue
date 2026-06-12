@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { LoaderCircle } from 'lucide-vue-next'
 
 import { Button } from '@/components/ui/button'
@@ -22,7 +21,6 @@ const props = defineProps<{
   isTopmost: boolean
 }>()
 
-const { t } = useI18n()
 const confirmInstance = props.instance
 const baseZIndex = computed(() => 70 + props.index * 2)
 const overlayStyle = computed(() => ({ zIndex: baseZIndex.value }))
@@ -86,10 +84,10 @@ function handlePointerDownOutside(event: Event) {
     >
       <AlertDialogHeader>
         <AlertDialogTitle>
-          {{ instance.options.title || t('components.confirm.title') }}
+          {{ instance.options.title || '确认' }}
         </AlertDialogTitle>
         <AlertDialogDescription>
-          {{ instance.options.description || t('components.confirm.description') }}
+          {{ instance.options.description || '确定要执行此操作吗？' }}
         </AlertDialogDescription>
       </AlertDialogHeader>
 
@@ -100,7 +98,7 @@ function handlePointerDownOutside(event: Event) {
           :disabled="instance.confirmLoading"
           @click="cancel"
         >
-          {{ instance.options.cancelText || t('components.confirm.cancel') }}
+          {{ instance.options.cancelText || '取消' }}
         </Button>
         <Button
           :variant="confirmVariant"
@@ -109,7 +107,7 @@ function handlePointerDownOutside(event: Event) {
           @click="submit"
         >
           <LoaderCircle v-if="instance.confirmLoading" class="size-4 animate-spin" />
-          {{ instance.options.okText || t('components.confirm.ok') }}
+          {{ instance.options.okText || '确定' }}
         </Button>
       </AlertDialogFooter>
     </AlertDialogContent>

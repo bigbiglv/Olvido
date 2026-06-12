@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { reactiveOmit } from '@vueuse/core'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { HTMLAttributes } from 'vue'
 
 import {
@@ -59,7 +58,6 @@ const props = withDefaults(
   },
 )
 
-const { t } = useI18n()
 const selectProps = reactiveOmit(
   props,
   'class',
@@ -88,8 +86,8 @@ const resolvedPlaceholder = computed(() => {
   }
 
   return props.label
-    ? `${t('form.placeholder.select')}${props.label}`
-    : t('form.placeholder.select')
+    ? `请选择${props.label}`
+    : '请选择'
 })
 </script>
 
