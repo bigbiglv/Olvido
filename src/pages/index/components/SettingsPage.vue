@@ -14,7 +14,7 @@ const store = useDocumentsStore()
           系统设置
         </h1>
         <p class="text-sm text-slate-500 dark:text-zinc-400 mt-2">
-          管理您的偏好设置和应用程序配置
+          管理您的偏好设置 and 应用程序配置
         </p>
       </div>
 
