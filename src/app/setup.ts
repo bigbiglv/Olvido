@@ -4,7 +4,6 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 import { router } from '@/router'
-import { setupHttpInterceptors } from '@/services/http'
 import { useAppStore } from '@/stores/app'
 
 export function setupApp(app: App) {
@@ -16,6 +15,5 @@ export function setupApp(app: App) {
   const appStore = useAppStore()
 
   appStore.setupThemeSync()
-  setupHttpInterceptors()
   app.use(router)
 }
