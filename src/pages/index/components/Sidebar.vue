@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useDocumentsStore } from '@/stores/documents'
+import { Dialog } from '@/components/dialog'
+import SettingsPage from './SettingsPage.vue'
 import {
   BookOpen,
   Folder,
@@ -10,8 +11,6 @@ import {
   CheckSquare,
 } from 'lucide-vue-next'
 
-const route = useRoute()
-const router = useRouter()
 const store = useDocumentsStore()
 
 // State for project addition inline
@@ -25,9 +24,19 @@ function handleAddProject() {
     store.addProject(name)
     newProjectName.value = ''
     showAddProject.value = false
-    // Navigate to new project
-    router.push(`/project/${name}`)
+    // Set current project
+    store.selectProject(name)
   }
+}
+
+// Open Settings dialog programmatically
+function openSettings() {
+  Dialog.show(SettingsPage, {}, {
+    title: '系统设置',
+    footer: false,
+    width: 680,
+    height: 520,
+  })
 }
 </script>
 
@@ -48,18 +57,18 @@ function handleAddProject() {
         <div class="px-3 text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
           全局
         </div>
-        <RouterLink
-          to="/notebook"
-          class="flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all"
+        <button
+          class="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left cursor-pointer border-0"
           :class="
-            route.name === 'notebook' || route.name === 'notebook-detail'
+            store.currentProject === null
               ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
               : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
           "
+          @click="store.selectProject(null)"
         >
           <BookOpen class="size-4.5" />
           <span>笔记本</span>
-        </RouterLink>
+        </button>
       </div>
 
       <!-- 项目 Group -->
@@ -69,7 +78,7 @@ function handleAddProject() {
             项目
           </span>
           <button
-            class="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer"
+            class="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer border-0 bg-transparent"
             title="新建项目"
             @click="showAddProject = !showAddProject"
           >
@@ -93,38 +102,33 @@ function handleAddProject() {
 
         <!-- Project List -->
         <div class="space-y-1">
-          <RouterLink
+          <button
             v-for="proj in store.projects"
             :key="proj"
-            :to="`/project/${proj}`"
-            class="flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all"
+            class="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left cursor-pointer border-0"
             :class="
-              (route.name === 'project' || route.name === 'project-detail') && route.params.projectName === proj
+              store.currentProject === proj
                 ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
                 : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
             "
+            @click="store.selectProject(proj)"
           >
             <Folder class="size-4.5 opacity-70" />
             <span class="truncate">{{ proj }}</span>
-          </RouterLink>
+          </button>
         </div>
       </div>
     </nav>
 
     <!-- Bottom Settings Link -->
     <div class="p-4 border-t border-slate-200/60 dark:border-zinc-800/60 bg-white/10 dark:bg-transparent">
-      <RouterLink
-        to="/settings"
-        class="flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all"
-        :class="
-          route.name === 'settings'
-            ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
-            : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
-        "
+      <button
+        class="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100 cursor-pointer border-0 bg-transparent"
+        @click="openSettings"
       >
         <Settings class="size-4.5" />
         <span>设置</span>
-      </RouterLink>
+      </button>
     </div>
   </aside>
 </template>

@@ -75,7 +75,13 @@ function formatDocTime(dateStr: string | Date) {
           ></span>
         </button>
       </div>
-      <Button>已完成</Button>
+      <Button
+        :variant="store.currentCategory === '已完成' ? 'default' : 'outline'"
+        size="sm"
+        @click="store.selectCategory('已完成')"
+      >
+        已完成
+      </Button>
     </div>
 
     <!-- Scrollable List -->
