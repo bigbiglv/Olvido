@@ -1,0 +1,75 @@
+name: Auto Build & Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: pnpm prisma:generate
+
+      - name: Calculate Next Version Tag
+        id: tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST_TAG=$(gh release list --limit 1 | awk '{print $1}')
+          if [ -z "$LATEST_TAG" ]; then
+            NEXT_TAG="v1.0.0"
+          else
+            VERSION=${LATEST_TAG#v}
+            if [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+              MAJOR="${BASH_REMATCH[1]}"
+              MINOR="${BASH_REMATCH[2]}"
+              PATCH="${BASH_REMATCH[3]}"
+              PATCH=$((PATCH + 1))
+              NEXT_TAG="v$MAJOR.$MINOR.$PATCH"
+            else
+              NEXT_TAG="v1.0.0"
+            fi
+          fi
+          echo "tag=$NEXT_TAG" >> $GITHUB_OUTPUT
+          echo "Calculated next version: $NEXT_TAG"
+
+      - name: Build Electron App
+        run: pnpm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release & Upload Installer
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Release ${{ steps.tag.outputs.tag }}
+          draft: false
+          prerelease: false
+          files: |
+            release/*.exe
+          token: ${{ secrets.GITHUB_TOKEN }}
