@@ -27,3 +27,11 @@
 - [framework-vue.md](./framework-vue.md)：查阅 Vue3/Vite 相关代码规范。
 - [ui-design-system.md](./ui-design-system.md)：查阅 Tailwind CSS v4 与交互设计规范。
 - [testing-qa.md](./testing-qa.md)：查阅性能约束与常见问题。
+
+---
+
+## 4. AI 行为与交互规范 (AI Behavior & Interaction Rules)
+AI Agent 在此项目进行开发、规划或沟通时，必须无条件遵循以下规则：
+- **全中文撰写**：AI 与用户的沟通、生成的所有方案（如使用 `/writing-plans` 产生的计划书）、任务列表 (`task.md`) 和改动总结 (`walkthrough.md`)，**必须且只能使用中文简体**进行撰写（除代码中的变量、文件名、路径和终端命令外）。
+- **绝不自动提交 Git**：AI Agent 绝不允许自动执行 `git commit`。所有代码修改必须留在工作区/暂存区，由用户人工审查后再手动进行 Git 提交。
+
