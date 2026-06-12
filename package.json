@@ -28,7 +28,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^1.0.0",
-    "mockjs": "^1.1.0",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "reka-ui": "^2.9.7",
@@ -45,7 +44,6 @@
     "@eslint/json": "^1.2.0",
     "@intlify/eslint-plugin-vue-i18n": "^4.3.0",
     "@tailwindcss/vite": "^4.3.0",
-    "@types/mockjs": "^1.0.10",
     "@types/node": "^24.12.3",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/tsconfig": "^0.9.1",
@@ -69,6 +67,10 @@
     "appId": "com.olvido.app",
     "productName": "Olvido",
     "asar": true,
+    "asarUnpack": [
+      "**/node_modules/@prisma/engines/**/*",
+      "**/node_modules/.prisma/**/*"
+    ],
     "directories": {
       "output": "release"
     },

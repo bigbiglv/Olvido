@@ -7,30 +7,37 @@ let prisma: PrismaClient
 
 export function initDatabase() {
   const isDev = !app.isPackaged
-  const dbDir = app.getPath('userData')
-  const dbPath = path.join(dbDir, 'database.db')
+  let dbPath: string
 
-  console.log('SQLite Database Path:', dbPath)
+  if (isDev) {
+    // 开发环境下直接使用项目根目录下的 prisma/dev.db，避免空库且方便开发查看
+    dbPath = path.join(app.getAppPath(), 'prisma', 'dev.db')
+  } else {
+    const dbDir = app.getPath('userData')
+    dbPath = path.join(dbDir, 'database.db')
 
-  // Ensure directory exists
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true })
-  }
+    // Ensure directory exists
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true })
+    }
 
-  // Handle production database template provisioning
-  if (!fs.existsSync(dbPath) && !isDev) {
-    const templatePath = path.join(process.resourcesPath, 'database.db')
-    if (fs.existsSync(templatePath)) {
-      try {
-        fs.copyFileSync(templatePath, dbPath)
-        console.log('Provisioned database from template:', templatePath)
-      } catch (err) {
-        console.error('Failed to copy database template:', err)
+    // Handle production database template provisioning
+    if (!fs.existsSync(dbPath)) {
+      const templatePath = path.join(process.resourcesPath, 'database.db')
+      if (fs.existsSync(templatePath)) {
+        try {
+          fs.copyFileSync(templatePath, dbPath)
+          console.log('Provisioned database from template:', templatePath)
+        } catch (err) {
+          console.error('Failed to copy database template:', err)
+        }
+      } else {
+        console.warn('Production database template not found at:', templatePath)
       }
-    } else {
-      console.warn('Production database template not found at:', templatePath)
     }
   }
+
+  console.log('SQLite Database Path:', dbPath)
 
   prisma = new PrismaClient({
     datasources: {

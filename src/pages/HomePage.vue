@@ -1,290 +1,331 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { LogOut } from 'lucide-vue-next'
-import { useAuthStore } from '@/stores/auth'
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import * as z from 'zod'
-import { h, onMounted, ref } from 'vue'
-import Editor from '@/components/Editor/index.vue'
+import { computed, watch, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useDocumentsStore } from '@/stores/documents'
+import MarkdownSplitEditor from '@/components/Editor/MarkdownSplitEditor.vue'
+import {
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Database,
+  Edit2,
+  FileText,
+  FileX,
+  FilePlus,
+  Trash2,
+  CheckSquare,
+} from 'lucide-vue-next'
 
-import { Form, FormInput, FormSelect, FormSwitch, FormTextarea } from '@/components/form'
-import { Dialog, Layout, useDialog } from '@/components/dialog'
-
+const route = useRoute()
 const router = useRouter()
-const authStore = useAuthStore()
+const store = useDocumentsStore()
 
-async function handleLogout() {
-  await authStore.logout()
-  await router.replace('/login')
+const categoryTabs: ('日常' | '需求' | '已完成')[] = ['日常', '需求', '已完成']
+
+// Debounced save timeout
+let saveTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Select document & navigate
+function handleSelectDocument(docId: string) {
+  store.selectedDocumentId = docId
+  navigateToDocument(docId)
 }
 
-// === 表单 Demo ===
-const formSchema = toTypedSchema(z.object({
-  username: z.string().min(2, '用户名至少2个字符').max(20, '用户名最多20个字符'),
-  role: z.string().min(1, '请选择角色'),
-  notify: z.boolean().default(false),
-  bio: z.string().optional(),
-}))
-
-const { handleSubmit, resetForm } = useForm({
-  validationSchema: formSchema,
-  initialValues: {
-    username: '',
-    role: '',
-    notify: false,
-    bio: ''
-  }
-})
-
-const onSubmit = handleSubmit((values) => {
-  Dialog.show({
-    component: h(Layout, null, {
-      title: () => '表单提交成功',
-      default: () => h('div', { class: 'p-6 text-slate-700' }, [
-        h('pre', { class: 'bg-slate-100 p-4 rounded-md text-sm whitespace-pre-wrap font-mono' }, JSON.stringify(values, null, 2))
-      ]),
-      footer: () => h('div', { class: 'flex justify-end p-4 border-t border-slate-100' }, [
-        h('button', {
-          class: 'px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition',
-          onClick: () => Dialog.closeAll()
-        }, '确认')
-      ])
-    }),
-    options: { width: 500, defaultMaximized: false }
-  })
-})
-
-// === 弹窗 Demo ===
-const DemoModal = {
-  setup() {
-    const { cancel, submit } = useDialog()
-    return () => h(Layout, null, {
-      title: () => '示例弹窗',
-      default: () => h('div', { class: 'p-6 text-slate-600' }, '这是一个通过 Dialog.show() 动态调用的弹窗组件。通过代码方式轻松控制弹窗状态。'),
-      footer: () => h('div', { class: 'flex justify-end gap-3 p-4 border-t border-slate-100' }, [
-        h('button', {
-          class: 'px-4 py-2 bg-slate-100 rounded-md hover:bg-slate-200 text-slate-700 transition',
-          onClick: () => cancel()
-        }, '取消'),
-        h('button', {
-          class: 'px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition',
-          onClick: () => submit(true)
-        }, '确定')
-      ])
-    })
-  }
-}
-
-function openDemoDialog() {
-  Dialog.show({
-    component: DemoModal,
-    options: { width: 480, defaultMaximized: false }
-  }).then((res) => {
-    if (res) {
-      console.log('用户点击了确定')
-    }
-  })
-}
-
-// === Milkdown & SQLite Integration ===
-const isElectron = typeof window !== 'undefined' && window.electronAPI !== undefined
-const dbStatus = ref('未连接')
-const documents = ref<any[]>([])
-const selectedDocContent = ref('# 欢迎使用 Milkdown 编辑器\n\n您可以在这里实时编辑 Markdown 内容，配合 SQLite 数据库实现数据持久化。')
-
-async function loadDocuments() {
-  if (isElectron) {
-    dbStatus.value = '正在连接 SQLite 数据库...'
-    try {
-      documents.value = await window.electronAPI.getDocuments()
-      dbStatus.value = `已连接 SQLite (当前有 ${documents.value.length} 个文档)`
-    } catch (err: any) {
-      console.error(err)
-      dbStatus.value = `连接失败: ${err.message || err}`
-    }
+function navigateToDocument(docId: string) {
+  if (store.currentProject) {
+    router.push(`/project/${store.currentProject}/${docId}`)
   } else {
-    dbStatus.value = '网页预览模式 (自动使用 Mock 数据)'
-    documents.value = [
-      { id: '1', title: 'Milkdown 说明书', content: '# 欢迎使用 Milkdown 编辑器\n\n您可以在这里实时编辑 Markdown 内容，配合 SQLite 数据库实现数据持久化。', updatedAt: new Date().toISOString() },
-    ]
+    router.push(`/notebook/${docId}`)
   }
 }
 
-async function handleSaveDemo() {
-  if (isElectron) {
-    try {
-      // 自动提取第一行作为标题，去掉 markdown 符号
-      const firstLine = selectedDocContent.value.split('\n')[0] || ''
-      const title = firstLine.replace(/[#*`_\s]/g, '') || '无标题文档'
+// Watch selectedDocumentId changes from store to update URL if they don't match
+watch(
+  () => store.selectedDocumentId,
+  (newId) => {
+    if (newId && route.params.docId !== newId) {
+      navigateToDocument(newId)
+    }
+  }
+)
+
+// Handle content and title updates with auto-save
+function handleContentUpdate(newContent: string) {
+  if (!store.selectedDocument) return
+  
+  // Set temporary local value
+  store.selectedDocument.content = newContent
+  
+  // Debounce save to database
+  if (saveTimeout) clearTimeout(saveTimeout)
+  saveTimeout = setTimeout(async () => {
+    if (store.selectedDocument) {
+      // Auto-extract first header as title if user writes one
+      let title = store.selectedDocument.title
+      if (newContent.trim().startsWith('# ')) {
+        const firstLine = newContent.split('\n')[0]
+        const extracted = firstLine.replace(/^#\s+/, '').trim()
+        if (extracted) {
+          title = extracted
+          store.selectedDocument.title = title
+        }
+      }
       
-      await window.electronAPI.saveDocument({
-        title,
-        content: selectedDocContent.value,
+      await store.saveDocument(store.selectedDocument.id, {
+        content: newContent,
+        title: title
       })
-      await loadDocuments()
-    } catch (err) {
-      console.error('保存失败:', err)
     }
-  } else {
-    console.log('在浏览器端模拟保存:', selectedDocContent.value)
-    // 模拟更新 Mock 列表
-    const firstLine = selectedDocContent.value.split('\n')[0] || ''
-    const title = firstLine.replace(/[#*`_\s]/g, '') || '无标题文档'
-    documents.value = [
-      { id: '1', title, content: selectedDocContent.value, updatedAt: new Date().toISOString() }
-    ]
-  }
+  }, 500)
 }
 
-onMounted(() => {
-  loadDocuments()
+function handleTitleUpdate(event: Event) {
+  const newTitle = (event.target as HTMLInputElement).value.trim()
+  if (!store.selectedDocument || !newTitle) return
+  
+  store.selectedDocument.title = newTitle
+  
+  if (saveTimeout) clearTimeout(saveTimeout)
+  saveTimeout = setTimeout(async () => {
+    if (store.selectedDocument) {
+      await store.saveDocument(store.selectedDocument.id, {
+        title: newTitle
+      })
+    }
+  }, 500)
+}
+
+// Toggle completion checkbox in list
+async function toggleCompletion(doc: DocumentItem, event: Event) {
+  event.stopPropagation() // Prevent selecting the item when checking/unchecking
+  const newCompleted = !doc.completed
+  await store.saveDocument(doc.id, { completed: newCompleted })
+  
+  // Re-evaluate selection
+  store.selectDefaultDocument()
+}
+
+// Helper to format date/time
+function formatDocTime(dateStr: string | Date) {
+  const date = new Date(dateStr)
+  const today = new Date()
+  
+  if (date.toDateString() === today.toDateString()) {
+    // Show HH:MM
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+  if (date.toDateString() === yesterday.toDateString()) {
+    return '昨天'
+  }
+  
+  // Show MM-DD
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${month}-${day}`
+}
+
+function formatFullDateTime(dateStr: string | Date) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  return `${y}-${m}-${d} ${time}`
+}
+
+// Word & Character count calculation
+const wordCount = computed(() => {
+  const content = store.selectedDocument?.content || ''
+  return content.split(/\s+/).filter(Boolean).length
+})
+
+const charCount = computed(() => {
+  const content = store.selectedDocument?.content || ''
+  return content.length
+})
+
+// Clean up auto-save timeouts
+onBeforeUnmount(() => {
+  if (saveTimeout) clearTimeout(saveTimeout)
 })
 </script>
 
 <template>
-  <main class="min-h-screen bg-slate-50 flex flex-col items-center py-10 text-slate-900 px-4 overflow-y-auto">
-    <div class="max-w-5xl w-full flex flex-col gap-8">
-      
-      <!-- 头部卡片 -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div>
-          <h1 class="text-3xl font-bold mb-2 text-indigo-950">Frontend Template</h1>
-          <p class="text-slate-500">一个极简的 Vue 3 基础工程脚手架模板</p>
-        </div>
-        <div class="flex items-center gap-4">
-          <div class="flex flex-col text-right">
-            <span class="text-sm text-slate-500">当前登录用户</span>
-            <span class="font-medium text-slate-900">{{ authStore.user?.nickname ?? authStore.user?.username ?? '测试用户' }}</span>
-          </div>
+  <div class="h-full flex min-w-0 overflow-hidden divide-x divide-slate-200 dark:divide-zinc-800">
+    <!-- Middle Document List Column -->
+    <div class="w-80 flex flex-col h-full bg-white dark:bg-zinc-900 shrink-0 select-none">
+      <!-- Tabs header -->
+      <div class="px-5 py-3 border-b border-slate-200/80 dark:border-zinc-800/80 flex items-center justify-between">
+        <div class="flex gap-4">
           <button
-            class="inline-flex h-9 items-center gap-2 rounded-md bg-slate-50 border border-slate-200 px-4 text-sm font-medium text-slate-600 shadow-sm transition hover:text-indigo-600 hover:border-indigo-200"
-            type="button"
-            @click="handleLogout"
+            v-for="tab in categoryTabs"
+            :key="tab"
+            class="relative pb-2 text-sm font-semibold transition cursor-pointer"
+            :class="
+              store.currentCategory === tab
+                ? 'text-indigo-600 dark:text-indigo-400 font-bold'
+                : 'text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300'
+            "
+            @click="store.selectCategory(tab)"
           >
-            <LogOut class="size-4" />
-            退出
+            {{ tab === '日常' ? $t('taskly.categoryDaily') : tab === '需求' ? $t('taskly.categoryRequirement') : $t('taskly.categoryCompleted') }}
+            <span
+              v-if="store.currentCategory === tab"
+              class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full"
+            ></span>
           </button>
         </div>
       </div>
 
-      <!-- Milkdown & SQLite 演示区域 -->
-      <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
-          <div>
-            <h2 class="text-xl font-bold text-slate-800">Markdown 编辑器 (Milkdown) & 数据库 (SQLite)</h2>
-            <p class="text-xs text-slate-400 mt-1">环境状态: <span class="font-semibold" :class="isElectron ? 'text-green-600' : 'text-amber-600'">{{ dbStatus }}</span></p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              @click="loadDocuments"
-              class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition cursor-pointer"
-            >
-              刷新数据
-            </button>
-            <button
-              @click="handleSaveDemo"
-              class="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition shadow-sm cursor-pointer"
-            >
-              保存当前内容
-            </button>
-          </div>
+      <!-- Scrollable List -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-1">
+        <div v-if="store.filteredDocuments.length === 0" class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4">
+          <FileX class="size-8 opacity-40 mb-2" />
+          <span class="text-xs">{{ $t('taskly.noDocumentsFound') }}</span>
         </div>
 
-        <div class="grid md:grid-cols-[200px_1fr] gap-6 min-h-[350px]">
-          <!-- 左侧历史列表 -->
-          <div class="border-r border-slate-100 pr-4 space-y-2">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">已存文档</h3>
-            <div v-if="documents.length === 0" class="text-xs text-slate-400 py-4">暂无数据</div>
-            <button
-              v-for="doc in documents"
-              :key="doc.id"
-              @click="selectedDocContent = doc.content"
-              class="w-full text-left p-2 rounded-lg hover:bg-slate-50 transition text-sm flex flex-col gap-1 cursor-pointer"
+        <button
+          v-for="doc in store.filteredDocuments"
+          :key="doc.id"
+          class="w-full text-left p-3 rounded-xl transition-all border flex flex-col gap-1.5 cursor-pointer"
+          :class="
+            store.selectedDocumentId === doc.id
+              ? 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700/60 shadow-sm'
+              : 'bg-transparent border-transparent hover:bg-slate-50/50 dark:hover:bg-zinc-800/30'
+          "
+          @click="handleSelectDocument(doc.id)"
+        >
+          <div class="flex items-start justify-between gap-3 w-full">
+            <span
+              class="font-semibold text-sm truncate flex-1"
+              :class="store.selectedDocumentId === doc.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-zinc-200'"
             >
-              <span class="font-medium text-slate-700 truncate">{{ doc.title || '未命名文档' }}</span>
-              <span class="text-[10px] text-slate-400">{{ new Date(doc.updatedAt).toLocaleTimeString() }}</span>
+              {{ doc.title || $t('taskly.untitledDocument') }}
+            </span>
+            <span class="text-xs text-slate-400 dark:text-zinc-500 font-medium whitespace-nowrap pt-0.5">
+              {{ formatDocTime(doc.updatedAt) }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs text-slate-400 dark:text-zinc-500 truncate max-w-[180px]">
+              {{ doc.content.replace(/[#*`_\-\[\]]/g, '').trim() || $t('taskly.noContent') }}
+            </span>
+
+            <!-- Completion checkbox -->
+            <button
+              class="size-5 rounded-md flex items-center justify-center border transition-all cursor-pointer"
+              :class="
+                doc.completed
+                  ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-sm shadow-emerald-100 dark:shadow-none'
+                  : 'border-slate-300 dark:border-zinc-700 text-transparent hover:border-slate-400 dark:hover:border-zinc-500 hover:text-slate-300 dark:hover:text-zinc-600'
+              "
+              @click="toggleCompletion(doc, $event)"
+            >
+              <CheckCircle2 class="size-3.5 fill-current" />
             </button>
           </div>
-          <!-- 右侧编辑区 -->
-          <div class="p-2 border border-slate-200 rounded-xl bg-slate-50/50">
-            <Editor v-model="selectedDocContent" />
-          </div>
-        </div>
-      </section>
-
-      <div class="grid md:grid-cols-[1fr_minmax(0,400px)] gap-8 items-start">
-        <!-- 表单组件演示 -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-          <h2 class="text-xl font-bold mb-6 border-b border-slate-100 pb-4 text-slate-800">表单组件 (Form)</h2>
-          <Form @submit="onSubmit" class="space-y-6">
-            <FormInput
-              name="username"
-              label="用户名"
-              placeholder="请输入用户名"
-            />
-            
-            <FormSelect
-              name="role"
-              label="系统角色"
-              placeholder="请选择角色"
-              :options="[
-                { label: '系统管理员', value: 'admin' },
-                { label: '普通用户', value: 'user' },
-                { label: '受限访客', value: 'guest' }
-              ]"
-            />
-            
-            <FormSwitch
-              name="notify"
-              label="开启消息通知"
-              description="当有新消息时我们将通过邮件实时通知您，重要消息不遗漏。"
-            />
-
-            <FormTextarea
-              name="bio"
-              label="个人简介"
-              placeholder="简单介绍一下自己，不超过 200 字..."
-              :rows="3"
-            />
-            
-            <div class="pt-4 flex gap-3 border-t border-slate-100">
-              <button
-                type="button"
-                @click="resetForm()"
-                class="px-5 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition"
-              >
-                重置
-              </button>
-              <button
-                type="submit"
-                class="px-5 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-sm"
-              >
-                提交表单
-              </button>
-            </div>
-          </Form>
-        </section>
-
-        <!-- 弹窗组件演示 -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-          <h2 class="text-xl font-bold mb-6 border-b border-slate-100 pb-4 text-slate-800">弹窗组件 (Dialog)</h2>
-          <div class="space-y-4">
-            <p class="text-slate-600 text-sm leading-relaxed mb-6">
-              基础脚手架提供了编程式调用的 <code>Dialog.show()</code> API。<br/><br/>
-              你可以直接传入自定义的 Vue 组件进行渲染，或者使用原生的渲染函数 (h) 进行快捷创建，完美支持响应式和生命周期。
-            </p>
-            
-            <button
-              @click="openDemoDialog"
-              class="w-full inline-flex justify-center items-center px-5 py-2.5 text-sm font-medium bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition"
-            >
-              打开示例弹窗
-            </button>
-          </div>
-        </section>
+        </button>
       </div>
-
     </div>
-  </main>
+
+    <!-- Right Workspace Column (Editor Panel + Bottom Status Bar) -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50/20 dark:bg-zinc-900/10">
+      <template v-if="store.selectedDocument">
+        <!-- Editor Header Panel -->
+        <div class="px-8 py-5 border-b border-slate-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900 flex flex-col gap-2 shrink-0">
+          <div class="flex items-center gap-3 w-full">
+            <Edit2 class="size-5 text-indigo-500 select-none shrink-0" />
+            <!-- Document Title Input -->
+            <input
+              type="text"
+              :value="store.selectedDocument.title"
+              :placeholder="$t('taskly.untitledDocument')"
+              class="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-50 border-0 p-0 focus:outline-none focus:ring-0 focus:border-0 bg-transparent flex-1"
+              @input="handleTitleUpdate"
+            />
+          </div>
+
+          <!-- Metadata -->
+          <div class="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-slate-400 dark:text-zinc-500 font-medium select-none">
+            <span class="flex items-center gap-1">
+              <Calendar class="size-3.5" />
+              {{ $t('taskly.createdAtLabel', { date: formatFullDateTime(store.selectedDocument.createdAt) }) }}
+            </span>
+            <span class="flex items-center gap-1">
+              <Clock class="size-3.5" />
+              {{ $t('taskly.autosaveAtLabel', { time: store.lastSavedTime || formatDocTime(store.selectedDocument.updatedAt) }) }}
+            </span>
+            <span class="h-1.5 size-1.5 rounded-full bg-emerald-500"></span>
+            <span class="text-emerald-600 dark:text-emerald-400">{{ $t('taskly.savedLabel') }}</span>
+          </div>
+        </div>
+
+        <!-- Markdown Split Editor Pane -->
+        <div class="flex-1 overflow-hidden p-6 min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
+          <MarkdownSplitEditor
+            :model-value="store.selectedDocument.content"
+            @update:model-value="handleContentUpdate"
+          />
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <footer class="h-11 border-t border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 flex items-center px-8 justify-between select-none text-xs text-slate-400 dark:text-zinc-500 font-medium shrink-0">
+          <!-- Left side: DB status -->
+          <div class="flex items-center gap-2">
+            <Database class="size-3.5 text-slate-400" />
+            <span>{{ store.dbStatus }}</span>
+          </div>
+
+          <!-- Middle side: Characters & Words counts -->
+          <div class="flex items-center gap-4">
+            <span class="flex items-center gap-1">
+              <FileText class="size-3.5" />
+              {{ $t('taskly.wordsLabel', { count: wordCount }) }}
+            </span>
+            <span>|</span>
+            <span>{{ $t('taskly.charsLabel', { count: charCount }) }}</span>
+          </div>
+
+          <!-- Right side: Actions like delete -->
+          <div class="flex items-center">
+            <button
+              class="flex items-center gap-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800"
+              :title="$t('taskly.deleteLabel')"
+              @click="store.deleteDocument(store.selectedDocument.id)"
+            >
+              <Trash2 class="size-3.5" />
+              <span>{{ $t('taskly.deleteLabel') }}</span>
+            </button>
+          </div>
+        </footer>
+      </template>
+
+      <!-- Blank Slate Placeholder -->
+      <template v-else>
+        <div class="flex-1 flex flex-col items-center justify-center bg-white dark:bg-zinc-900/40 p-8 select-none">
+          <div class="flex flex-col items-center max-w-sm text-center">
+            <div class="size-16 rounded-2xl bg-indigo-50 dark:bg-zinc-800 flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-6 shadow-sm border border-slate-100 dark:border-zinc-700/50">
+              <CheckSquare class="size-8" />
+            </div>
+            <h2 class="text-xl font-bold text-slate-800 dark:text-zinc-100 mb-2">{{ $t('taskly.welcomeTitle') }}</h2>
+            <p class="text-sm text-slate-400 dark:text-zinc-500 leading-relaxed mb-6">
+              {{ $t('taskly.welcomeDesc') }}
+            </p>
+            <button
+              class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 dark:shadow-none transition cursor-pointer"
+              @click="store.createDocument('新文档', '# 新文档\n\n在此开始编写内容...')"
+            >
+              <FilePlus class="size-4.5" />
+              <span>{{ $t('taskly.createFirstDocButton') }}</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
 </template>

@@ -9,7 +9,7 @@ const sourceFiles = ['**/*.{js,cjs,mjs,ts,tsx,vue}']
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'node_modules', 'coverage'],
+    ignores: ['dist', 'dist-electron', 'node_modules', 'coverage'],
   },
   {
     ...js.configs.recommended,

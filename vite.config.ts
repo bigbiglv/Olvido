@@ -13,6 +13,13 @@ export default defineConfig({
     electron({
       main: {
         entry: 'electron/main.ts',
+        vite: {
+          build: {
+            rollupOptions: {
+              external: ['@prisma/client', '.prisma/client'],
+            },
+          },
+        },
       },
       preload: {
         input: 'electron/preload.ts',

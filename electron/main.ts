@@ -47,7 +47,7 @@ function registerIpcHandlers() {
   })
 
   // Save (create or update) document
-  ipcMain.handle('db:save-document', async (_event, doc: { id?: string; title: string; content: string }) => {
+  ipcMain.handle('db:save-document', async (_event, doc: { id?: string; title: string; content: string; category?: string; project?: string | null; completed?: boolean }) => {
     try {
       if (doc.id) {
         return await prisma.document.update({
@@ -55,6 +55,9 @@ function registerIpcHandlers() {
           data: {
             title: doc.title,
             content: doc.content,
+            category: doc.category,
+            project: doc.project,
+            completed: doc.completed,
           },
         })
       } else {
@@ -62,6 +65,9 @@ function registerIpcHandlers() {
           data: {
             title: doc.title,
             content: doc.content,
+            category: doc.category || "日常",
+            project: doc.project || null,
+            completed: doc.completed || false,
           },
         })
       }
