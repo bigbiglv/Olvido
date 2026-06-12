@@ -8,26 +8,42 @@ generator client {
 }
 
 model Project {
+  // 普通项目使用 cuid()，全局项目固定为 "global"
   id        String   @id
+  // 项目名称
   name      String
+  // 排序序号，用于拖拽排序
   sort      Int      @default(0)
+  // 创建时间
   createdAt DateTime @default(now())
+  // 更新时间
   updatedAt DateTime @updatedAt
+  // 关联的笔记列表
   notes     Note[]
 }
 
 model Note {
-  id          String   @id @default(cuid())
-  projectId   String
-  title       String
-  content     String
-  deadline    DateTime?
-  isArchived  Boolean  @default(false)
-  sort        Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  // 笔记唯一ID
+  id         String    @id @default(cuid())
+  // 关联的项目ID（如果是 global 即为全局笔记，否则为项目笔记）
+  projectId  String
+  // 笔记标题
+  title      String
+  // 笔记内容，保存 Markdown 原文作为唯一数据源
+  content    String
+  // 截止日期（为 null 则是普通笔记，有值则是需求笔记）
+  deadline   DateTime?
+  // 归档状态，用于未来归档功能
+  isArchived Boolean   @default(false)
+  // 排序序号，用于拖拽排序
+  sort       Int       @default(0)
+  // 创建时间
+  createdAt  DateTime  @default(now())
+  // 更新时间
+  updatedAt  DateTime  @updatedAt
 
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // 关联项目，项目删除时级联删除笔记
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
 }
