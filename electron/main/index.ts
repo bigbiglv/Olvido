@@ -1,8 +1,9 @@
 import { app, BrowserWindow } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { initDatabase } from '../prisma/client'
-import { registerDocumentIpc } from '../ipc/document.ipc'
+import { initDatabase, ensureGlobalProject } from '../prisma/client'
+import { registerProjectIpc } from '../ipc/project.ipc'
+import { registerNoteIpc } from '../ipc/note.ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -48,8 +49,10 @@ app.on('activate', () => {
   }
 })
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   initDatabase()
-  registerDocumentIpc()
+  await ensureGlobalProject()
+  registerProjectIpc()
+  registerNoteIpc()
   createWindow()
 })

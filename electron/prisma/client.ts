@@ -57,3 +57,25 @@ export function getPrisma() {
   }
   return prisma
 }
+
+export async function ensureGlobalProject() {
+  if (!prisma) return
+
+  try {
+    const globalProject = await prisma.project.findUnique({
+      where: { id: 'global' },
+    })
+
+    if (!globalProject) {
+      await prisma.project.create({
+        data: {
+          id: 'global',
+          name: '全局',
+        },
+      })
+      console.log('Created default global project.')
+    }
+  } catch (error) {
+    console.error('Failed to ensure global project:', error)
+  }
+}

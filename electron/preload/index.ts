@@ -1,11 +1,19 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { SaveDocumentDto } from '../types/document'
+import type { SaveProjectDto } from '../types/project'
+import type { SaveNoteDto } from '../types/note'
 
-contextBridge.exposeInMainWorld('electronAPI', {
-  getDocuments: () => ipcRenderer.invoke('db:get-documents'),
-  getDocument: (id: string) => ipcRenderer.invoke('db:get-document', id),
-  saveDocument: (document: SaveDocumentDto) =>
-    ipcRenderer.invoke('db:save-document', document),
-  deleteDocument: (id: string) => ipcRenderer.invoke('db:delete-document', id),
+contextBridge.exposeInMainWorld('api', {
+  project: {
+    list: () => ipcRenderer.invoke('project:list'),
+    get: (id: string) => ipcRenderer.invoke('project:get', id),
+    save: (payload: SaveProjectDto) => ipcRenderer.invoke('project:save', payload),
+    delete: (id: string) => ipcRenderer.invoke('project:delete', id),
+  },
+  note: {
+    list: (projectId: string) => ipcRenderer.invoke('note:list', projectId),
+    get: (id: string) => ipcRenderer.invoke('note:get', id),
+    save: (payload: SaveNoteDto) => ipcRenderer.invoke('note:save', payload),
+    delete: (id: string) => ipcRenderer.invoke('note:delete', id),
+  },
   platform: process.platform,
 })
