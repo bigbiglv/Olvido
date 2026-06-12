@@ -9,30 +9,15 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: windows-latest
-
+  draft-release:
+    runs-on: ubuntu-latest
+    outputs:
+      next_tag: ${{ steps.tag.outputs.tag }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Generate Prisma Client
-        run: pnpm prisma:generate
 
       - name: Calculate Next Version Tag
         id: tag
@@ -58,18 +43,47 @@ jobs:
           echo "tag=$NEXT_TAG" >> $GITHUB_OUTPUT
           echo "Calculated next version: $NEXT_TAG"
 
+  build-and-release:
+    needs: draft-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: pnpm prisma:generate
+
       - name: Build Electron App
         run: pnpm run build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create GitHub Release & Upload Installer
+      - name: Upload Installer to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: Release ${{ steps.tag.outputs.tag }}
+          tag_name: ${{ needs.draft-release.outputs.next_tag }}
+          name: Release ${{ needs.draft-release.outputs.next_tag }}
           draft: false
           prerelease: false
           files: |
             release/*.exe
+            release/*.dmg
+            release/*.zip
           token: ${{ secrets.GITHUB_TOKEN }}
