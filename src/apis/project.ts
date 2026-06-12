@@ -1,23 +1,21 @@
 import type { CreateProjectDto, UpdateProjectDto } from '../../electron/types/project'
 
-export const projectApi = {
-  list() {
-    return window.api.project.list()
-  },
+export function apiListProjects() {
+  return window.api.project.list()
+}
 
-  get(id: string) {
-    return window.api.project.get(id)
-  },
+export function apiGetProject(id: string) {
+  return window.api.project.get(id)
+}
 
-  create(data: CreateProjectDto) {
-    return window.api.project.create(data)
-  },
+export function apiCreateProject(data: CreateProjectDto) {
+  return window.api.project.create(data)
+}
 
-  update(data: UpdateProjectDto) {
-    return window.api.project.update(data)
-  },
+export function apiUpdateProject(data: UpdateProjectDto) {
+  return window.api.project.update(data)
+}
 
-  delete(id: string) {
-    return window.api.project.delete(id)
-  },
+export function apiDeleteProject(id: string) {
+  return window.api.project.delete(id)
 }
