@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+# Ensure only one release build runs at a time to prevent race conditions in version tags
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -25,6 +30,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Fetch latest release tag
           LATEST_TAG=$(gh release list --limit 1 | awk '{print $1}')
           if [ -z "$LATEST_TAG" ]; then
             NEXT_TAG="v1.0.0"
@@ -69,6 +75,20 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm prisma:generate
+
+      - name: Update package.json Version
+        shell: bash
+        run: |
+          VERSION_NAME="${{ needs.draft-release.outputs.next_tag }}"
+          # Strip leading 'v'
+          VERSION_NUM=${VERSION_NAME#v}
+          echo "Updating package.json version to $VERSION_NUM"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$VERSION_NUM';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2), 'utf8');
+          "
 
       - name: Build Electron App
         run: pnpm run build
