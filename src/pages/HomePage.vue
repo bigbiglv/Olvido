@@ -172,7 +172,7 @@ onBeforeUnmount(() => {
             "
             @click="store.selectCategory(tab)"
           >
-            {{ tab === '日常' ? $t('taskly.categoryDaily') : tab === '需求' ? $t('taskly.categoryRequirement') : $t('taskly.categoryCompleted') }}
+            {{ tab }}
             <span
               v-if="store.currentCategory === tab"
               class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full"
@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
       <div class="flex-1 overflow-y-auto p-4 space-y-1">
         <div v-if="store.filteredDocuments.length === 0" class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4">
           <FileX class="size-8 opacity-40 mb-2" />
-          <span class="text-xs">{{ $t('taskly.noDocumentsFound') }}</span>
+          <span class="text-xs">未找到文档</span>
         </div>
 
         <button
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
               class="font-semibold text-sm truncate flex-1"
               :class="store.selectedDocumentId === doc.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-zinc-200'"
             >
-              {{ doc.title || $t('taskly.untitledDocument') }}
+              {{ doc.title || '无标题文档' }}
             </span>
             <span class="text-xs text-slate-400 dark:text-zinc-500 font-medium whitespace-nowrap pt-0.5">
               {{ formatDocTime(doc.updatedAt) }}
@@ -213,7 +213,7 @@ onBeforeUnmount(() => {
 
           <div class="flex items-center justify-between w-full">
             <span class="text-xs text-slate-400 dark:text-zinc-500 truncate max-w-[180px]">
-              {{ doc.content.replace(/[#*`_\-\[\]]/g, '').trim() || $t('taskly.noContent') }}
+              {{ doc.content.replace(/[#*`_\-\[\]]/g, '').trim() || '无内容' }}
             </span>
 
             <!-- Completion checkbox -->
@@ -244,7 +244,7 @@ onBeforeUnmount(() => {
             <input
               type="text"
               :value="store.selectedDocument.title"
-              :placeholder="$t('taskly.untitledDocument')"
+              placeholder="无标题文档"
               class="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-50 border-0 p-0 focus:outline-none focus:ring-0 focus:border-0 bg-transparent flex-1"
               @input="handleTitleUpdate"
             />
@@ -254,14 +254,14 @@ onBeforeUnmount(() => {
           <div class="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-slate-400 dark:text-zinc-500 font-medium select-none">
             <span class="flex items-center gap-1">
               <Calendar class="size-3.5" />
-              {{ $t('taskly.createdAtLabel', { date: formatFullDateTime(store.selectedDocument.createdAt) }) }}
+              创建于 {{ formatFullDateTime(store.selectedDocument.createdAt) }}
             </span>
             <span class="flex items-center gap-1">
               <Clock class="size-3.5" />
-              {{ $t('taskly.autosaveAtLabel', { time: store.lastSavedTime || formatDocTime(store.selectedDocument.updatedAt) }) }}
+              自动保存于 {{ store.lastSavedTime || formatDocTime(store.selectedDocument.updatedAt) }}
             </span>
             <span class="h-1.5 size-1.5 rounded-full bg-emerald-500"></span>
-            <span class="text-emerald-600 dark:text-emerald-400">{{ $t('taskly.savedLabel') }}</span>
+            <span class="text-emerald-600 dark:text-emerald-400">已保存</span>
           </div>
         </div>
 
@@ -285,21 +285,21 @@ onBeforeUnmount(() => {
           <div class="flex items-center gap-4">
             <span class="flex items-center gap-1">
               <FileText class="size-3.5" />
-              {{ $t('taskly.wordsLabel', { count: wordCount }) }}
+              {{ wordCount }} 词
             </span>
             <span>|</span>
-            <span>{{ $t('taskly.charsLabel', { count: charCount }) }}</span>
+            <span>{{ charCount }} 字</span>
           </div>
 
           <!-- Right side: Actions like delete -->
           <div class="flex items-center">
             <button
               class="flex items-center gap-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800"
-              :title="$t('taskly.deleteLabel')"
+              title="删除"
               @click="store.deleteDocument(store.selectedDocument.id)"
             >
               <Trash2 class="size-3.5" />
-              <span>{{ $t('taskly.deleteLabel') }}</span>
+              <span>删除</span>
             </button>
           </div>
         </footer>
@@ -312,16 +312,16 @@ onBeforeUnmount(() => {
             <div class="size-16 rounded-2xl bg-indigo-50 dark:bg-zinc-800 flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-6 shadow-sm border border-slate-100 dark:border-zinc-700/50">
               <CheckSquare class="size-8" />
             </div>
-            <h2 class="text-xl font-bold text-slate-800 dark:text-zinc-100 mb-2">{{ $t('taskly.welcomeTitle') }}</h2>
+            <h2 class="text-xl font-bold text-slate-800 dark:text-zinc-100 mb-2">欢迎使用</h2>
             <p class="text-sm text-slate-400 dark:text-zinc-500 leading-relaxed mb-6">
-              {{ $t('taskly.welcomeDesc') }}
+              选择或创建一个文档开始记录。
             </p>
             <button
               class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 dark:shadow-none transition cursor-pointer"
               @click="store.createDocument('新文档', '# 新文档\n\n在此开始编写内容...')"
             >
               <FilePlus class="size-4.5" />
-              <span>{{ $t('taskly.createFirstDocButton') }}</span>
+              <span>创建您的第一个文档</span>
             </button>
           </div>
         </div>

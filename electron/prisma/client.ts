@@ -3,7 +3,8 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { PrismaClient } from '@prisma/client'
 
-let prisma: PrismaClient
+// Global singleton instance
+export let prisma: PrismaClient
 
 export function initDatabase() {
   const isDev = !app.isPackaged

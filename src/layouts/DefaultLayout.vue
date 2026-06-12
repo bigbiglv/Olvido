@@ -76,7 +76,7 @@ function handleAddProject() {
         <div class="flex size-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200/50 dark:shadow-none">
           <CheckSquare class="size-5" />
         </div>
-        <span class="text-xl font-bold tracking-tight text-slate-800 dark:text-zinc-100">{{ $t('taskly.brandName') }}</span>
+        <span class="text-xl font-bold tracking-tight text-slate-800 dark:text-zinc-100">Olvido</span>
       </div>
 
       <!-- Sidebar Navigation -->
@@ -84,7 +84,7 @@ function handleAddProject() {
         <!-- 全局 Group -->
         <div class="space-y-2">
           <div class="px-3 text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
-            {{ $t('taskly.globalSection') }}
+            全局
           </div>
           <RouterLink
             to="/notebook"
@@ -96,7 +96,7 @@ function handleAddProject() {
             "
           >
             <BookOpen class="size-4.5" />
-            <span>{{ $t('taskly.notebook') }}</span>
+            <span>笔记本</span>
           </RouterLink>
         </div>
 
@@ -104,11 +104,11 @@ function handleAddProject() {
         <div class="space-y-2">
           <div class="flex items-center justify-between px-3">
             <span class="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
-              {{ $t('taskly.projects') }}
+              项目
             </span>
             <button
               class="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer"
-              :title="$t('taskly.projectNamePlaceholder').includes('Project') ? 'New Project' : '新建项目'"
+              title="新建项目"
               @click="showAddProject = !showAddProject"
             >
               <Plus class="size-4.5" />
@@ -121,7 +121,7 @@ function handleAddProject() {
               ref="newProjectInput"
               v-model="newProjectName"
               type="text"
-              :placeholder="$t('taskly.projectNamePlaceholder')"
+              placeholder="项目名称"
               class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-zinc-200"
               autofocus
               @keyup.enter="handleAddProject"
@@ -161,7 +161,7 @@ function handleAddProject() {
           "
         >
           <Settings class="size-4.5" />
-          <span>{{ $t('taskly.settings') }}</span>
+          <span>设置</span>
         </RouterLink>
       </div>
     </aside>
@@ -182,14 +182,14 @@ function handleAddProject() {
                 class="w-full pl-9 pr-10 py-1.5 text-sm rounded-xl border border-slate-200 dark:border-zinc-700/80 bg-slate-50/50 dark:bg-zinc-800/30 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-zinc-200 transition"
               />
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 select-none">
-                {{ $t('taskly.searchShortcut') }}
+                Ctrl+K
               </span>
             </div>
           </template>
           <template v-else>
             <div class="flex items-center gap-1.5 text-slate-400 dark:text-zinc-500 text-sm font-semibold">
               <Sparkles class="size-4.5 text-violet-500" />
-              <span>{{ $t('taskly.settingsConsole') }}</span>
+              <span>设置控制台</span>
             </div>
           </template>
         </div>
@@ -202,7 +202,7 @@ function handleAddProject() {
             @click="handleCreateNew"
           >
             <Plus class="size-4" />
-            <span>{{ $t('taskly.newButton') }}</span>
+            <span>新建</span>
           </button>
         </div>
       </header>
