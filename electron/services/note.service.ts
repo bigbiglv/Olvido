@@ -1,5 +1,5 @@
 import { prisma } from '../prisma/client'
-import type { SaveNoteDto } from '../types/note'
+import type { CreateNoteDto, UpdateNoteDto } from '../types/note'
 
 export class NoteService {
   async getNotesByProject(projectId: string) {
@@ -28,34 +28,39 @@ export class NoteService {
     }
   }
 
-  async saveNote(data: SaveNoteDto) {
+  async createNote(data: CreateNoteDto) {
     try {
-      if (data.id) {
-        return await prisma.note.update({
-          where: { id: data.id },
-          data: {
-            title: data.title,
-            content: data.content,
-            deadline: data.deadline,
-            isArchived: data.isArchived,
-            sort: data.sort,
-            projectId: data.projectId,
-          },
-        })
-      } else {
-        return await prisma.note.create({
-          data: {
-            title: data.title,
-            content: data.content,
-            deadline: data.deadline,
-            isArchived: data.isArchived ?? false,
-            sort: data.sort ?? 0,
-            projectId: data.projectId,
-          },
-        })
-      }
+      return await prisma.note.create({
+        data: {
+          title: data.title,
+          content: data.content,
+          deadline: data.deadline,
+          isArchived: data.isArchived ?? false,
+          sort: data.sort ?? 0,
+          projectId: data.projectId,
+        },
+      })
     } catch (error) {
-      console.error('Failed to save note:', error)
+      console.error('Failed to create note:', error)
+      throw error
+    }
+  }
+
+  async updateNote(data: UpdateNoteDto) {
+    try {
+      return await prisma.note.update({
+        where: { id: data.id },
+        data: {
+          title: data.title,
+          content: data.content,
+          deadline: data.deadline,
+          isArchived: data.isArchived,
+          sort: data.sort,
+          projectId: data.projectId,
+        },
+      })
+    } catch (error) {
+      console.error(`Failed to update note ${data.id}:`, error)
       throw error
     }
   }

@@ -1,5 +1,5 @@
 import { prisma } from '../prisma/client'
-import type { SaveProjectDto } from '../types/project'
+import type { CreateProjectDto, UpdateProjectDto } from '../types/project'
 
 export class ProjectService {
   async getProjects() {
@@ -24,22 +24,32 @@ export class ProjectService {
     }
   }
 
-  async saveProject(data: SaveProjectDto) {
+  async createProject(data: CreateProjectDto) {
     try {
-      return await prisma.project.upsert({
-        where: { id: data.id },
-        update: {
-          name: data.name,
-          sort: data.sort,
-        },
-        create: {
+      return await prisma.project.create({
+        data: {
           id: data.id,
           name: data.name,
           sort: data.sort ?? 0,
         },
       })
     } catch (error) {
-      console.error('Failed to save project:', error)
+      console.error('Failed to create project:', error)
+      throw error
+    }
+  }
+
+  async updateProject(data: UpdateProjectDto) {
+    try {
+      return await prisma.project.update({
+        where: { id: data.id },
+        data: {
+          name: data.name,
+          sort: data.sort,
+        },
+      })
+    } catch (error) {
+      console.error(`Failed to update project ${data.id}:`, error)
       throw error
     }
   }
