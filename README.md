@@ -27,7 +27,13 @@ pnpm format:check
 Olvido/
   .env / .env.*       环境变量配置
   AGENTS/             AI Agent 规则与配置目录
-  electron/           Electron 主进程 (main) 与预加载 (preload) 脚本源码
+  electron/           Electron 后端服务层
+    ipc/              IPC 路由控制器
+    main/             主进程入口与生命周期管理
+    preload/          预加载脚本暴露 API 给前端
+    prisma/           Prisma Client 初始化与配置
+    services/         核心业务逻辑层
+    types/            后端数据接口类型定义
   prisma/             Prisma ORM schema 定义与数据库迁移文件
   public/             公共静态资源目录
   scripts/            项目构建与检查脚本
