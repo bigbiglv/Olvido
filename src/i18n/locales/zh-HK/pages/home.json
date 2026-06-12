@@ -1,0 +1,51 @@
+{
+  "pages": {
+    "home": {
+      "stage": "基礎工程初始化",
+      "hero": {
+        "title": "AI 短劇生成平台基礎工程",
+        "description": "目前只完成通用項目結構、基礎配置和應用外殼，後續可以在這個基礎上繼續拆登入、創作台、模板庫和生成流程。"
+      },
+      "actions": {
+        "startCreation": "開始創作",
+        "viewTemplates": "查看模板",
+        "importScript": "導入劇本",
+        "learnFlow": "了解流程"
+      },
+      "preview": {
+        "title": "主題效果預覽",
+        "description": "這些 shadcn 風格組件會跟隨 light / dark / 品牌主題變化",
+        "framework": "Vue 3"
+      },
+      "tabs": {
+        "components": "組件",
+        "tokens": "Token",
+        "settings": "設定"
+      },
+      "features": {
+        "aiCreation": {
+          "title": "AI 智能創作",
+          "description": "為後續劇本生成、分鏡拆解和短劇成片流程預留入口。"
+        },
+        "textToDrama": {
+          "title": "文字到短劇",
+          "description": "先保留核心工作台骨架，業務表單和生成鏈路後續逐步補齊。"
+        },
+        "assetManagement": {
+          "title": "作品資產管理",
+          "description": "預留短劇項目、素材和模板的模組邊界。"
+        }
+      },
+      "settings": {
+        "generationFlowTitle": "智能生成鏈路",
+        "generationFlowDescription": "Switch 使用 primary / input token",
+        "generationFlowAriaLabel": "智能生成鏈路",
+        "semanticColorDescription": "Card、Tabs、Badge、Button、Switch 均使用語義化顏色"
+      },
+      "footer": {
+        "confirmTheme": "確認主題",
+        "previewState": "預覽狀態"
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "劇創 AI",
+    "slogan": "AI 短劇創作平台"
+  },
+  "fallback": {
+    "missingMessage": "文案暫不可用"
+  },
+  "form": {
+    "placeholder": {
+      "input": "請輸入",
+      "select": "請選擇"
+    }
+  },
+  "request": {
+    "failed": "請求失敗"
+  }
+}

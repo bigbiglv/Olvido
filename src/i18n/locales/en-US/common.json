@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "Drama AI",
+    "slogan": "AI short drama creation platform"
+  },
+  "fallback": {
+    "missingMessage": "Content unavailable"
+  },
+  "form": {
+    "placeholder": {
+      "input": "Please enter",
+      "select": "Please select"
+    }
+  },
+  "request": {
+    "failed": "Request failed"
+  }
+}

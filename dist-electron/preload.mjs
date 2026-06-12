@@ -1,0 +1,1 @@
+let e=require(`electron`);e.contextBridge.exposeInMainWorld(`electronAPI`,{getDocuments:()=>e.ipcRenderer.invoke(`db:get-documents`),getDocument:t=>e.ipcRenderer.invoke(`db:get-document`,t),saveDocument:t=>e.ipcRenderer.invoke(`db:save-document`,t),deleteDocument:t=>e.ipcRenderer.invoke(`db:delete-document`,t),platform:process.platform});

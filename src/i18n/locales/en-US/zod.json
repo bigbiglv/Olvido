@@ -1,0 +1,38 @@
+{
+  "zod": {
+    "custom": "{field} is invalid",
+    "default": "{field} is invalid",
+    "exact": {
+      "array": "{field} must contain exactly {minimum} items",
+      "date": "{field} must equal the specified time",
+      "number": "{field} must equal {minimum}",
+      "set": "{field} must contain exactly {minimum} items",
+      "string": "{field} must contain exactly {minimum} characters"
+    },
+    "field": "Field",
+    "invalidDate": "{field} must be a valid date",
+    "invalidEnum": "Please select a valid {field}",
+    "invalidString": {
+      "default": "{field} has an invalid format",
+      "email": "{field} must be a valid email",
+      "url": "{field} must be a valid URL",
+      "uuid": "{field} must be a valid UUID"
+    },
+    "invalidType": "{field} has an invalid format",
+    "required": "{field} is required",
+    "tooBig": {
+      "array": "{field} must contain at most {maximum} items",
+      "date": "{field} must not be later than the specified time",
+      "number": "{field} must be at most {maximum}",
+      "set": "{field} must contain at most {maximum} items",
+      "string": "{field} must contain at most {maximum} characters"
+    },
+    "tooSmall": {
+      "array": "{field} must contain at least {minimum} items",
+      "date": "{field} must not be earlier than the specified time",
+      "number": "{field} must be at least {minimum}",
+      "set": "{field} must contain at least {minimum} items",
+      "string": "{field} must contain at least {minimum} characters"
+    }
+  }
+}

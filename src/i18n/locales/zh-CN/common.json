@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "剧创 AI",
+    "slogan": "AI 短剧创作平台"
+  },
+  "fallback": {
+    "missingMessage": "文案暂不可用"
+  },
+  "form": {
+    "placeholder": {
+      "input": "请输入",
+      "select": "请选择"
+    }
+  },
+  "request": {
+    "failed": "请求失败"
+  }
+}

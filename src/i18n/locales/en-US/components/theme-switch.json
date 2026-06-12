@@ -1,0 +1,19 @@
+{
+  "components": {
+    "themeSwitch": {
+      "modes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "themes": {
+        "violet": "Violet",
+        "blue": "Blue"
+      },
+      "aria": {
+        "switchMode": "Switch to {mode} mode",
+        "switchTheme": "Switch to {theme} theme"
+      }
+    }
+  }
+}
