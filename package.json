@@ -78,6 +78,12 @@
       "dist",
       "dist-electron"
     ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
     "win": {
       "target": [
         "nsis"

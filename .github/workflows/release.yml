@@ -30,9 +30,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Fetch latest release tag
-          LATEST_TAG=$(gh release list --limit 1 | awk '{print $1}')
-          if [ -z "$LATEST_TAG" ]; then
+          # Fetch latest release tag using JSON to avoid formatting issues
+          LATEST_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" == "null" ]; then
             NEXT_TAG="v1.0.0"
           else
             VERSION=${LATEST_TAG#v}
