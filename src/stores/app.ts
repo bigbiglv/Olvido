@@ -54,8 +54,4 @@ export const useAppStore = defineStore('app', {
       }
     },
   },
-  persist: {
-    key: 'frameai-app',
-    pick: ['themeName', 'themeMode'],
-  },
 })

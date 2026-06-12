@@ -243,8 +243,4 @@ export const useDocumentsStore = defineStore('documents', {
       this.selectDefaultDocument()
     },
   },
-  persist: {
-    key: 'taskly-documents-store',
-    pick: ['projects'],
-  },
 })
