@@ -17,7 +17,7 @@ export function registerProjectIpc() {
       return await projectService.getProjects()
     } catch (error) {
       console.error('IPC project:list error:', error)
-      throw new Error('获取项目列表失败')
+      throw new Error('获取项目列表失败', { cause: error })
     }
   })
 
@@ -27,7 +27,7 @@ export function registerProjectIpc() {
       return await projectService.getProject(id)
     } catch (error) {
       console.error(`IPC project:get error for ID ${id}:`, error)
-      throw new Error('获取项目失败')
+      throw new Error('获取项目失败', { cause: error })
     }
   })
 
@@ -37,7 +37,7 @@ export function registerProjectIpc() {
       return await projectService.createProject(dto)
     } catch (error) {
       console.error('IPC project:create error:', error)
-      throw new Error('创建项目失败')
+      throw new Error('创建项目失败', { cause: error })
     }
   })
 
@@ -47,7 +47,7 @@ export function registerProjectIpc() {
       return await projectService.updateProject(dto)
     } catch (error) {
       console.error(`IPC project:update error for ID ${dto.id}:`, error)
-      throw new Error('更新项目失败')
+      throw new Error('更新项目失败', { cause: error })
     }
   })
 
@@ -57,7 +57,7 @@ export function registerProjectIpc() {
       return await projectService.deleteProject(id)
     } catch (error) {
       console.error(`IPC project:delete error for ID ${id}:`, error)
-      throw new Error('删除项目失败')
+      throw new Error('删除项目失败', { cause: error })
     }
   })
 }

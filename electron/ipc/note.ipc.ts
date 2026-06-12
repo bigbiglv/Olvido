@@ -17,7 +17,7 @@ export function registerNoteIpc() {
       return await noteService.getNotesByProject(projectId)
     } catch (error) {
       console.error(`IPC note:list error for project ${projectId}:`, error)
-      throw new Error('获取笔记列表失败')
+      throw new Error('获取笔记列表失败', { cause: error })
     }
   })
 
@@ -27,7 +27,7 @@ export function registerNoteIpc() {
       return await noteService.getNote(id)
     } catch (error) {
       console.error(`IPC note:get error for ID ${id}:`, error)
-      throw new Error('获取笔记失败')
+      throw new Error('获取笔记失败', { cause: error })
     }
   })
 
@@ -37,7 +37,7 @@ export function registerNoteIpc() {
       return await noteService.createNote(dto)
     } catch (error) {
       console.error('IPC note:create error:', error)
-      throw new Error('创建笔记失败')
+      throw new Error('创建笔记失败', { cause: error })
     }
   })
 
@@ -47,7 +47,7 @@ export function registerNoteIpc() {
       return await noteService.updateNote(dto)
     } catch (error) {
       console.error(`IPC note:update error for ID ${dto.id}:`, error)
-      throw new Error('更新笔记失败')
+      throw new Error('更新笔记失败', { cause: error })
     }
   })
 
@@ -57,7 +57,7 @@ export function registerNoteIpc() {
       return await noteService.deleteNote(id)
     } catch (error) {
       console.error(`IPC note:delete error for ID ${id}:`, error)
-      throw new Error('删除笔记失败')
+      throw new Error('删除笔记失败', { cause: error })
     }
   })
 }
