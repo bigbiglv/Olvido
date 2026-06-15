@@ -12,6 +12,10 @@ watch(
   () => store.visible,
   async (visible) => {
     if (visible) {
+      // 1. 第一帧先直接定位到鼠标位置，防止初次渲染的闪烁或从左上角/旧位置飞入
+      computedX.value = store.x
+      computedY.value = store.y
+
       await nextTick()
       if (!menuRef.value) return
 
@@ -56,7 +60,7 @@ watch(
         v-if="store.visible"
         id="global-context-menu-container"
         ref="menuRef"
-        class="fixed z-[9999] min-w-[180px] bg-popover/90 backdrop-blur-md text-popover-foreground rounded-lg border border-border/80 shadow-lg p-1.5 outline-none select-none transition-all"
+        class="fixed z-[9999] min-w-[180px] bg-popover/90 backdrop-blur-md text-popover-foreground rounded-lg border border-border/80 shadow-lg p-1.5 outline-none select-none transition-[opacity,transform] duration-100 ease-out origin-top-left"
         :style="{
           left: computedX + 'px',
           top: computedY + 'px'
