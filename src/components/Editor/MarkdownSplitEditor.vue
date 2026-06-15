@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
+import { Crepe } from '@milkdown/crepe'
+import { replaceAll } from '@milkdown/kit/utils'
+import { Code } from 'lucide-vue-next'
+import '@milkdown/crepe/theme/common/style.css'
+import '@milkdown/crepe/theme/frame.css'
 
 interface Props {
   modelValue?: string
@@ -15,9 +20,13 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-const activeTab = ref<'edit' | 'preview'>('edit')
+const isSplitMode = ref(false)
+const editorRef = ref<HTMLDivElement | null>(null)
 const lineNumbersRef = ref<HTMLElement | null>(null)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+let crepe: Crepe | null = null
+const isUpdatingFromProp = ref(false)
 
 // Calculate line count for line numbers
 const lineCount = computed(() => {
@@ -39,169 +48,121 @@ watch(() => props.modelValue, () => {
   }, 0)
 })
 
-// Lightweight markdown-to-HTML parser
-const renderedHtml = computed(() => {
-  const md = props.modelValue
-  if (!md) return '<p class="text-slate-400 dark:text-zinc-500 italic">在此输入 Markdown 内容开始预览...</p>'
+const isTextareaActive = ref(false)
 
-  // Escape HTML tags to prevent XSS
-  let html = md
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+function handleTextareaInput(e: Event) {
+  isTextareaActive.value = true
+  const value = (e.target as HTMLTextAreaElement).value
+  emit('update:modelValue', value)
+}
 
-  // Code blocks: ```lang ... ```
-  html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (_, lang, code) => {
-    return `<pre class="bg-slate-50 dark:bg-zinc-800/80 p-4 rounded-xl font-mono text-sm overflow-x-auto my-4 border border-slate-100 dark:border-zinc-700/50"><code class="language-${lang}">${code}</code></pre>`
+function handleTextareaFocus() {
+  isTextareaActive.value = true
+}
+
+function handleTextareaBlur() {
+  isTextareaActive.value = false
+}
+
+onMounted(async () => {
+  if (!editorRef.value) return
+
+  crepe = new Crepe({
+    root: editorRef.value,
+    defaultValue: props.modelValue,
   })
 
-  // Inline code: `code`
-  html = html.replace(/`([^`\n]+)`/g, '<code class="bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded font-mono text-xs text-indigo-600 dark:text-indigo-400 border border-slate-200/50 dark:border-zinc-700/50">$1</code>')
+  crepe.on((listener) => {
+    listener.markdownUpdated((_ctx, markdown, prevMarkdown) => {
+      if (isTextareaActive.value) return
 
-  // Headers: #, ##, ###
-  html = html.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-slate-800 dark:text-zinc-100 mt-5 mb-2">$1</h3>')
-  html = html.replace(/^## (.*$)/gim, '<h2 class="text-xl font-extrabold text-slate-900 dark:text-zinc-50 border-b border-slate-100 dark:border-zinc-800/80 pb-1.5 mt-6 mb-3">$1</h2>')
-  html = html.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-black text-slate-900 dark:text-zinc-50 mt-8 mb-4">$1</h1>')
+      if (markdown !== prevMarkdown && !isUpdatingFromProp.value) {
+        emit('update:modelValue', markdown)
+      }
+    })
+  })
 
-  // Bold: **text**
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-slate-900 dark:text-zinc-50">$1</strong>')
-  // Italic: *text*
-  html = html.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>')
-
-  // Parse lines to build lists and handle task lists
-  const lines = html.split('\n')
-  let inList = false
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
-    
-    // Check Task Lists
-    const taskMatchUnchecked = line.match(/^[-*+]\s+\[\s+\]\s+(.*)$/)
-    const taskMatchChecked = line.match(/^[-*+]\s+\[x\]\s+(.*)$/)
-    const bulletMatch = line.match(/^[-*+]\s+(.*)$/)
-    
-    if (taskMatchUnchecked) {
-      const content = taskMatchUnchecked[1]
-      lines[i] = `<li class="list-none flex items-start gap-2 text-slate-700 dark:text-zinc-300 py-0.5"><input type="checkbox" disabled class="size-4 mt-1 rounded border-slate-300 dark:border-zinc-600 text-indigo-600"><span>${content}</span></li>`
-      if (!inList) {
-        lines[i] = '<ul class="space-y-1 my-3 pl-1">\n' + lines[i]
-        inList = true
-      }
-    } else if (taskMatchChecked) {
-      const content = taskMatchChecked[1]
-      lines[i] = `<li class="list-none flex items-start gap-2 text-slate-400 dark:text-zinc-500 line-through py-0.5"><input type="checkbox" disabled checked class="size-4 mt-1 rounded border-slate-300 dark:border-zinc-600 text-indigo-600"><span>${content}</span></li>`
-      if (!inList) {
-        lines[i] = '<ul class="space-y-1 my-3 pl-1">\n' + lines[i]
-        inList = true
-      }
-    } else if (bulletMatch) {
-      const content = bulletMatch[1]
-      lines[i] = `<li class="text-slate-700 dark:text-zinc-300 py-0.5">${content}</li>`
-      if (!inList) {
-        lines[i] = '<ul class="list-disc pl-6 space-y-1 my-3">\n' + lines[i]
-        inList = true
-      }
-    } else {
-      if (inList) {
-        lines[i] = '</ul>\n' + lines[i]
-        inList = false
-      }
-    }
+  try {
+    await crepe.create()
+  } catch (error) {
+    console.error('Failed to create Milkdown Crepe instance:', error)
   }
-  
-  if (inList) {
-    lines.push('</ul>')
-  }
-
-  // Handle double newlines for paragraphs
-  html = lines.join('\n')
-  const segments = html.split(/\n{2,}/)
-  for (let i = 0; i < segments.length; i++) {
-    const s = segments[i].trim()
-    if (s && !s.startsWith('<h') && !s.startsWith('<ul') && !s.startsWith('<pre') && !s.startsWith('</ul') && !s.startsWith('<li')) {
-      segments[i] = `<p class="leading-7 text-slate-600 dark:text-zinc-300 my-3">${s.replace(/\n/g, '<br>')}</p>`
-    }
-  }
-
-  return segments.join('\n')
 })
 
-onMounted(() => {
-  handleScroll()
+watch(() => props.modelValue, (newValue) => {
+  if (crepe && newValue !== crepe.getMarkdown()) {
+    isUpdatingFromProp.value = true
+    try {
+      crepe.editor.action(replaceAll(newValue))
+    } catch (error) {
+      console.error('Failed to update Milkdown content:', error)
+    } finally {
+      // Defensive timeout to reset the state lock and allow next user input
+      setTimeout(() => {
+        isUpdatingFromProp.value = false
+      }, 50)
+    }
+  }
 })
 </script>
 
 <template>
   <div class="flex flex-col h-full bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700/60 shadow-sm overflow-hidden">
-    <!-- Header Tabs -->
+    <!-- Header Control Bar -->
     <div class="flex items-center justify-between border-b border-slate-200 dark:border-zinc-700/60 px-6 py-2 bg-slate-50/50 dark:bg-zinc-900/40">
-      <div class="flex gap-4">
-        <button
-          class="relative py-2 text-sm font-semibold transition cursor-pointer"
-          :class="activeTab === 'edit' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200'"
-          @click="activeTab = 'edit'"
-        >
-          编辑
-          <span v-if="activeTab === 'edit'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full"></span>
-        </button>
-        <button
-          class="relative py-2 text-sm font-semibold transition cursor-pointer"
-          :class="activeTab === 'preview' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200'"
-          @click="activeTab = 'preview'"
-        >
-          预览
-          <span v-if="activeTab === 'preview'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full"></span>
-        </button>
-      </div>
+      <div></div>
       
-      <div class="text-xs text-slate-400 dark:text-zinc-500 font-medium">
-        Markdown 格式
+      <!-- Right Side Actions: Toggle Split Source Mode -->
+      <div class="flex items-center gap-2">
+        <button
+          class="flex items-center justify-center p-1.5 rounded-lg border text-slate-500 dark:text-zinc-400 transition duration-200 shadow-sm cursor-pointer size-8"
+          :class="isSplitMode 
+            ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:text-white dark:border-indigo-500 dark:hover:bg-indigo-600' 
+            : 'bg-white dark:bg-zinc-800 border-slate-200 dark:border-zinc-700/60 hover:bg-slate-100 dark:hover:bg-zinc-700'"
+          title="源码模式"
+          @click="isSplitMode = !isSplitMode"
+        >
+          <Code class="size-4" />
+        </button>
       </div>
     </div>
 
     <!-- Content Area -->
-    <div class="flex-1 flex overflow-hidden min-h-[300px]">
-      <!-- SPLIT MODE: Edit on left, Preview on right -->
-      <template v-if="activeTab === 'edit'">
-        <div class="grid grid-cols-2 divide-x divide-slate-200 dark:divide-zinc-700/60 w-full h-full">
-          <!-- Raw Editor Column -->
-          <div class="flex p-6 h-full overflow-hidden bg-white dark:bg-zinc-800">
-            <!-- Line Numbers -->
-            <div
-              ref="lineNumbersRef"
-              class="line-numbers text-right text-slate-300 dark:text-zinc-600 font-mono text-sm select-none pr-3 border-r border-slate-100 dark:border-zinc-800 mr-4 w-9 overflow-y-hidden"
-            >
-              <div v-for="n in lineCount" :key="n" class="h-6 leading-6">{{ n }}</div>
-            </div>
-            <!-- Textarea -->
-            <textarea
-              ref="textareaRef"
-              :value="modelValue"
-              placeholder="在此输入 Markdown 文档..."
-              class="flex-1 resize-none border-0 p-0 text-sm font-mono leading-6 text-slate-800 dark:text-zinc-100 bg-transparent focus:ring-0 focus:outline-none h-full overflow-y-auto"
-              @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
-              @scroll="handleScroll"
-            ></textarea>
-          </div>
-
-          <!-- HTML Preview Column -->
-          <div class="p-6 overflow-y-auto bg-slate-50/30 dark:bg-zinc-900/10 h-full">
-            <!-- eslint-disable vue/no-v-html -->
-            <div class="markdown-body prose dark:prose-invert max-w-none text-slate-800 dark:text-zinc-100 font-sans" v-html="renderedHtml"></div>
-            <!-- eslint-enable vue/no-v-html -->
-          </div>
+    <div class="flex-1 flex overflow-hidden min-h-[300px] bg-white dark:bg-zinc-800">
+      <div class="w-full h-full flex overflow-hidden">
+        <!-- Left Side: Milkdown WYSIWYG Editor (default preview mode) -->
+        <div 
+          class="h-full overflow-y-auto transition-all duration-300 ease-in-out min-w-0" 
+          :class="isSplitMode ? 'w-1/2 p-4' : 'w-full p-6'"
+        >
+          <div ref="editorRef" class="editor-container h-full"></div>
         </div>
-      </template>
 
-      <!-- PREVIEW MODE: Full-width Preview -->
-      <template v-else>
-        <div class="w-full h-full overflow-y-auto bg-white dark:bg-zinc-800 p-8 flex justify-center">
-          <div class="max-w-3xl w-full">
-            <!-- eslint-disable vue/no-v-html -->
-            <div class="markdown-body prose dark:prose-invert max-w-none text-slate-800 dark:text-zinc-100 font-sans" v-html="renderedHtml"></div>
-            <!-- eslint-enable vue/no-v-html -->
+        <!-- Right Side: Raw Markdown Source Editor -->
+        <div 
+          class="h-full overflow-hidden bg-slate-50/20 dark:bg-zinc-900/10 transition-all duration-300 ease-in-out flex min-w-0"
+          :class="isSplitMode ? 'w-1/2 opacity-100 p-4 border-l border-slate-200 dark:border-zinc-700/60' : 'w-0 opacity-0 pointer-events-none p-0 border-l-0'"
+        >
+          <!-- Line Numbers -->
+          <div
+            ref="lineNumbersRef"
+            class="line-numbers text-right text-slate-300 dark:text-zinc-600 font-mono text-sm select-none pr-3 border-r border-slate-100 dark:border-zinc-800 mr-4 w-9 overflow-y-hidden"
+          >
+            <div v-for="n in lineCount" :key="n" class="h-6 leading-6">{{ n }}</div>
           </div>
+          <!-- Textarea -->
+          <textarea
+            ref="textareaRef"
+            :value="modelValue"
+            placeholder="在此输入 Markdown 源码..."
+            class="flex-1 resize-none border-0 p-0 text-sm font-mono leading-6 text-slate-800 dark:text-zinc-100 bg-transparent focus:ring-0 focus:outline-none h-full overflow-y-auto"
+            @input="handleTextareaInput"
+            @focus="handleTextareaFocus"
+            @blur="handleTextareaBlur"
+            @scroll="handleScroll"
+          ></textarea>
         </div>
-      </template>
+      </div>
     </div>
   </div>
 </template>
@@ -237,5 +198,10 @@ div::-webkit-scrollbar-thumb {
 .dark textarea::-webkit-scrollbar-thumb,
 .dark div::-webkit-scrollbar-thumb {
   background: #3f3f46;
+}
+
+/* Deep Milkdown overrides to take full width */
+.editor-container :deep(.milkdown) {
+  max-width: 100%;
 }
 </style>
