@@ -49,7 +49,7 @@ declare global {
       }
       note: {
         /** 获取笔记列表 */
-        list: (projectId: string) => Promise<NoteDto[]>
+        list: (projectId: string, type?: 'daily' | 'requirement' | 'archived') => Promise<NoteDto[]>
         /** 获取笔记详情 */
         get: (id: string) => Promise<NoteDto | null>
         /** 创建笔记 */

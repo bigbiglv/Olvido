@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, inject, type Ref } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Dialog } from '@/components/dialog'
 import SettingsPage from './SettingsPage.vue'
@@ -20,6 +20,7 @@ import {
 } from 'lucide-vue-next'
 
 const store = useDocumentsStore()
+const documents = inject<Ref<DocumentItem[]>>('documents')
 
 /** 本地项目列表数据 */
 const projects = ref<ProjectDto[]>([])
@@ -96,7 +97,7 @@ async function fetchProjects() {
  * @param projectId 项目唯一标识（null 表示全局记事本）
  */
 function handleSelectProject(projectId: string | null) {
-  store.selectProject(projectId)
+  store.currentProject = projectId
 }
 
 /**
@@ -123,7 +124,7 @@ async function handleAddProject() {
       projects.value.push(newProj)
       newProjectName.value = ''
       showAddProject.value = false
-      store.selectProject(newProj.id)
+      store.currentProject = newProj.id
     } catch (error) {
       console.error('Failed to create project:', error)
     } finally {
@@ -141,7 +142,7 @@ async function handleAddProject() {
       projects.value.push(newProj)
       newProjectName.value = ''
       showAddProject.value = false
-      store.selectProject(newId)
+      store.currentProject = newId
     } finally {
       isAdding.value = false
       if (addTimeout) {
@@ -156,7 +157,10 @@ async function handleAddProject() {
  * 打开系统设置对话框
  */
 function handleOpenSettings() {
-  Dialog.show(SettingsPage, {}, {
+  Dialog.show(SettingsPage, {
+    dbStatus: store.dbStatus,
+    documentCount: documents?.value?.length || 0,
+  }, {
     title: '系统设置',
     footer: false,
     width: 680,
@@ -214,7 +218,7 @@ async function handleDeleteProject(proj: ProjectDto) {
       projects.value = projects.value.filter((p) => p.id !== proj.id)
       // 如果被删除的是当前选中的项目，重置为全局记事本
       if (store.currentProject === proj.id) {
-        store.selectProject(null)
+        store.currentProject = null
       }
     } catch (error) {
       console.error('Failed to delete project:', error)

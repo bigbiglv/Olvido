@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { inject, type ComputedRef } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, FileX } from 'lucide-vue-next'
@@ -6,14 +7,20 @@ import { Dialog } from '@/components/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CompletedDocsDialog from './CompletedDocsDialog.vue'
 
-const emit = defineEmits<{
-  (e: 'select', id: string): void
-}>()
-
 const store = useDocumentsStore()
 
+const filteredDocuments = inject<ComputedRef<DocumentItem[]>>('filteredDocuments')!
+const saveDocument = inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
+const deleteDocument = inject<(docId: string) => Promise<void>>('deleteDocument')!
+const loadDocuments = inject<() => Promise<void>>('loadDocuments')!
+const selectDefaultDocument = inject<() => void>('selectDefaultDocument')!
+
 function handleOpenCompleted() {
-  Dialog.show(CompletedDocsDialog, {}, {
+  Dialog.show(CompletedDocsDialog, {
+    saveDocument,
+    loadDocuments,
+    deleteDocument,
+  }, {
     title: '已完成的文档',
     footer: false,
     width: 600,
@@ -23,20 +30,15 @@ function handleOpenCompleted() {
 
 const categoryTabs: Array<'日常' | '需求'> = ['日常', '需求']
 
-// Select document & navigate via parent page
-function handleSelectDocument(docId: string) {
-  store.selectedDocumentId = docId
-  emit('select', docId)
-}
 
 // Toggle completion checkbox in list
 async function toggleCompletion(doc: DocumentItem, event: Event) {
   event.stopPropagation() // Prevent selecting the item when checking/unchecking
   const newCompleted = !doc.completed
-  await store.saveDocument(doc.id, { completed: newCompleted })
+  await saveDocument(doc.id, { completed: newCompleted })
 
   // Re-evaluate selection
-  store.selectDefaultDocument()
+  selectDefaultDocument()
 }
 
 // Helper to format date/time
@@ -71,7 +73,7 @@ function formatDocTime(dateStr: string | Date) {
       <Tabs
         :model-value="store.currentCategory"
         class="w-auto"
-        @update:model-value="(val) => store.selectCategory(val as any)"
+        @update:model-value="(val) => store.currentCategory = val as any"
       >
         <TabsList class="h-8 p-1">
           <TabsTrigger
@@ -96,7 +98,7 @@ function formatDocTime(dateStr: string | Date) {
     <!-- Scrollable List -->
     <div class="flex-1 overflow-y-auto p-4 space-y-1">
       <div
-        v-if="store.filteredDocuments.length === 0"
+        v-if="filteredDocuments.length === 0"
         class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4"
       >
         <FileX class="size-8 opacity-40 mb-2" />
@@ -104,7 +106,7 @@ function formatDocTime(dateStr: string | Date) {
       </div>
 
       <button
-        v-for="doc in store.filteredDocuments"
+        v-for="doc in filteredDocuments"
         :key="doc.id"
         class="w-full text-left p-3 rounded-xl transition-all border flex flex-col gap-1.5 cursor-pointer"
         :class="
@@ -112,7 +114,7 @@ function formatDocTime(dateStr: string | Date) {
             ? 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700/60 shadow-sm'
             : 'bg-transparent border-transparent hover:bg-slate-50/50 dark:hover:bg-zinc-800/30'
         "
-        @click="handleSelectDocument(doc.id)"
+        @click="store.selectedDocumentId = doc.id"
       >
         <div class="flex items-start justify-between gap-3 w-full">
           <span

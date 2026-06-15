@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, inject, type ComputedRef } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import MarkdownSplitEditor from '@/components/Editor/MarkdownSplitEditor.vue'
 import {
@@ -12,33 +12,36 @@ import {
 } from 'lucide-vue-next'
 
 const store = useDocumentsStore()
+const selectedDocument = inject<ComputedRef<DocumentItem | null>>('selectedDocument')!
+const saveDocument = inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
+const deleteDocument = inject<(docId: string) => Promise<void>>('deleteDocument')!
 
 // Debounced save timeout
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Handle content and title updates with auto-save
 function handleContentUpdate(newContent: string) {
-  if (!store.selectedDocument) return
+  if (!selectedDocument.value) return
 
   // Set temporary local value
-  store.selectedDocument.content = newContent
+  selectedDocument.value.content = newContent
 
   // Debounce save to database
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
-    if (store.selectedDocument) {
+    if (selectedDocument.value) {
       // Auto-extract first header as title if user writes one
-      let title = store.selectedDocument.title
+      let title = selectedDocument.value.title
       if (newContent.trim().startsWith('# ')) {
         const firstLine = newContent.split('\n')[0]
         const extracted = firstLine.replace(/^#\s+/, '').trim()
         if (extracted) {
           title = extracted
-          store.selectedDocument.title = title
+          selectedDocument.value.title = title
         }
       }
 
-      await store.saveDocument(store.selectedDocument.id, {
+      await saveDocument(selectedDocument.value.id, {
         content: newContent,
         title: title,
       })
@@ -48,14 +51,14 @@ function handleContentUpdate(newContent: string) {
 
 function handleTitleUpdate(event: Event) {
   const newTitle = (event.target as HTMLInputElement).value.trim()
-  if (!store.selectedDocument || !newTitle) return
+  if (!selectedDocument.value || !newTitle) return
 
-  store.selectedDocument.title = newTitle
+  selectedDocument.value.title = newTitle
 
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
-    if (store.selectedDocument) {
-      await store.saveDocument(store.selectedDocument.id, {
+    if (selectedDocument.value) {
+      await saveDocument(selectedDocument.value.id, {
         title: newTitle,
       })
     }
@@ -100,12 +103,12 @@ function formatFullDateTime(dateStr: string | Date) {
 
 // Word & Character count calculation
 const wordCount = computed(() => {
-  const content = store.selectedDocument?.content || ''
+  const content = selectedDocument.value?.content || ''
   return content.split(/\s+/).filter(Boolean).length
 })
 
 const charCount = computed(() => {
-  const content = store.selectedDocument?.content || ''
+  const content = selectedDocument.value?.content || ''
   return content.length
 })
 
@@ -116,7 +119,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <template v-if="store.selectedDocument">
+  <template v-if="selectedDocument">
     <!-- Editor Header Panel -->
     <div
       class="px-8 py-5 border-b border-slate-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900 flex flex-col gap-2 shrink-0"
@@ -126,7 +129,7 @@ onBeforeUnmount(() => {
         <!-- Document Title Input -->
         <input
           type="text"
-          :value="store.selectedDocument.title"
+          :value="selectedDocument.title"
           placeholder="无标题文档"
           class="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-50 border-0 p-0 focus:outline-none focus:ring-0 focus:border-0 bg-transparent flex-1"
           @input="handleTitleUpdate"
@@ -139,12 +142,12 @@ onBeforeUnmount(() => {
       >
         <span class="flex items-center gap-1">
           <Calendar class="size-3.5" />
-          创建于 {{ formatFullDateTime(store.selectedDocument.createdAt) }}
+          创建于 {{ formatFullDateTime(selectedDocument.createdAt) }}
         </span>
         <span class="flex items-center gap-1">
           <Clock class="size-3.5" />
           自动保存于
-          {{ store.lastSavedTime || formatDocTime(store.selectedDocument.updatedAt) }}
+          {{ store.lastSavedTime || formatDocTime(selectedDocument.updatedAt) }}
         </span>
         <span class="h-1.5 size-1.5 rounded-full bg-emerald-500"></span>
         <span class="text-emerald-600 dark:text-emerald-400">已保存</span>
@@ -154,7 +157,7 @@ onBeforeUnmount(() => {
     <!-- Markdown Split Editor Pane -->
     <div class="flex-1 overflow-hidden p-6 min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
       <MarkdownSplitEditor
-        :model-value="store.selectedDocument.content"
+        :model-value="selectedDocument.content"
         @update:model-value="handleContentUpdate"
       />
     </div>
@@ -184,7 +187,7 @@ onBeforeUnmount(() => {
         <button
           class="flex items-center gap-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800"
           title="删除"
-          @click="store.deleteDocument(store.selectedDocument.id)"
+          @click="deleteDocument(selectedDocument.id)"
         >
           <Trash2 class="size-3.5" />
           <span>删除</span>

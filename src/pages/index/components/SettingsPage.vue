@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import ThemeSwitch from '@/components/common/ThemeSwitch/index.vue'
-import { useDocumentsStore } from '@/stores/documents'
 import { Database, HardDrive, Info, Palette } from 'lucide-vue-next'
 
-const store = useDocumentsStore()
+defineProps<{
+  dbStatus: string
+  documentCount: number
+}>()
 </script>
 
 <template>
@@ -45,7 +47,7 @@ const store = useDocumentsStore()
             </span>
             <span class="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
               <span class="h-2 size-2 rounded-full bg-emerald-500"></span>
-              {{ store.dbStatus }}
+              {{ dbStatus }}
             </span>
           </div>
           <div class="flex justify-between items-center text-sm">
@@ -53,7 +55,7 @@ const store = useDocumentsStore()
               文档数量
             </span>
             <span class="font-medium text-slate-700 dark:text-zinc-200 font-mono">
-              {{ store.documents.length }} 篇
+              {{ documentCount }} 篇
             </span>
           </div>
           <div class="flex justify-between items-center text-sm">

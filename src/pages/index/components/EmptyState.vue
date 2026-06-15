@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useDocumentsStore } from '@/stores/documents'
+import { inject } from 'vue'
 import { FilePlus, CheckSquare } from 'lucide-vue-next'
 
-const store = useDocumentsStore()
+const createDocument = inject<(title: string, content: string) => Promise<void>>('createDocument')!
 </script>
 
 <template>
@@ -21,7 +21,7 @@ const store = useDocumentsStore()
       </p>
       <button
         class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 dark:shadow-none transition cursor-pointer"
-        @click="store.createDocument('新文档', '# 新文档\n\n在此开始编写内容...')"
+        @click="createDocument('新文档', '# 新文档\n\n在此开始编写内容...')"
       >
         <FilePlus class="size-4.5" />
         <span>创建您的第一个文档</span>

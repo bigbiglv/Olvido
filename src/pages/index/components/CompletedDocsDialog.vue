@@ -1,17 +1,56 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, inject, type Ref } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
 import { RotateCcw, Trash2, Search, Inbox } from 'lucide-vue-next'
+import { isElectron } from '@/utils/env'
+import { apiListNotes } from '@/apis/note'
+
+const props = defineProps<{
+  saveDocument: (docId: string, updates: Partial<DocumentItem>) => Promise<void>
+  loadDocuments: () => Promise<void>
+  deleteDocument: (docId: string) => Promise<void>
+}>()
 
 const store = useDocumentsStore()
+const mainDocuments = inject<Ref<DocumentItem[]>>('documents')
 const searchQuery = ref('')
+const allCompletedDocs = ref<DocumentItem[]>([])
+
+// Load completed documents
+async function loadCompletedDocs() {
+  if (isElectron) {
+    try {
+      const pid = store.currentProject || 'global'
+      const notes = await apiListNotes(pid, 'archived')
+      allCompletedDocs.value = notes
+        .map((note) => ({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          category: note.deadline ? '需求' : '日常',
+          project: note.projectId === 'global' ? null : note.projectId,
+          completed: note.isArchived,
+          createdAt: note.createdAt,
+          updatedAt: note.updatedAt,
+        }))
+    } catch (err) {
+      console.error('Failed to load completed documents:', err)
+    }
+  } else {
+    // Mock mode
+    allCompletedDocs.value = mainDocuments?.value.filter((d) => d.completed) || []
+  }
+}
+
+onMounted(() => {
+  loadCompletedDocs()
+})
 
 // Filter completed documents
 const completedDocs = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
-  return store.documents.filter((doc) => {
-    if (!doc.completed) return false
+  return allCompletedDocs.value.filter((doc) => {
     if (!query) return true
     return (
       doc.title.toLowerCase().includes(query) ||
@@ -23,16 +62,20 @@ const completedDocs = computed(() => {
 // Restore document (set completed = false)
 async function handleRestore(docId: string, event: Event) {
   event.stopPropagation()
-  await store.saveDocument(docId, { completed: false })
-  // Re-evaluate main list selection
-  store.selectDefaultDocument()
+  await props.saveDocument(docId, { completed: false })
+  // Remove from local list
+  allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
+  // Reload store documents to update the main DocumentList
+  await props.loadDocuments()
 }
 
 // Permanently delete document
 async function handleDelete(docId: string, event: Event) {
   event.stopPropagation()
   if (confirm('确定要永久删除此文档吗？此操作无法撤销。')) {
-    await store.deleteDocument(docId)
+    await props.deleteDocument(docId)
+    // Remove from local list
+    allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
   }
 }
 
