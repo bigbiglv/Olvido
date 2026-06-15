@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { inject, type ComputedRef } from 'vue'
+import { inject, onMounted, onUnmounted, type ComputedRef } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, FileX } from 'lucide-vue-next'
+import { FileX } from 'lucide-vue-next'
 import { Dialog } from '@/components/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CompletedDocsDialog from './CompletedDocsDialog.vue'
 import QuickAddDialog from './QuickAddDialog.vue'
+import ConvertToRequirementDialog from './ConvertToRequirementDialog.vue'
+import { contextMenuManager } from '@/context-menu/context-menu-manager'
+import DailyDocItem from './DailyDocItem.vue'
+import RequirementDocItem from './RequirementDocItem.vue'
 
 const store = useDocumentsStore()
 
@@ -47,17 +51,15 @@ async function handleQuickAdd() {
       // Auto switch category to daily to show the results
       store.currentCategory = '日常'
     }
-  } catch (err) {
+  } catch {
     // Dialog cancelled
   }
 }
 
 const categoryTabs: Array<'日常' | '需求'> = ['日常', '需求']
 
-
 // Toggle completion checkbox in list
-async function toggleCompletion(doc: DocumentItem, event: Event) {
-  event.stopPropagation() // Prevent selecting the item when checking/unchecking
+async function toggleCompletion(doc: DocumentItem) {
   const newCompleted = !doc.completed
   await saveDocument(doc.id, { completed: newCompleted })
 
@@ -65,27 +67,77 @@ async function toggleCompletion(doc: DocumentItem, event: Event) {
   selectDefaultDocument()
 }
 
-// Helper to format date/time
-function formatDocTime(dateStr: string | Date) {
-  const date = new Date(dateStr)
-  const today = new Date()
+// Right-click menu registration
+onMounted(() => {
+  contextMenuManager.register({
+    type: 'document',
+    getMenus: (context) => {
+      const doc = context.data as DocumentItem
+      const menus = [
+        {
+          id: 'complete',
+          label: '完成',
+          onClick: async () => {
+            await saveDocument(doc.id, { completed: true })
+            selectDefaultDocument()
+          },
+        },
+        {
+          id: 'delete',
+          label: '删除',
+          onClick: async () => {
+            if (confirm('确定要删除此文档吗？')) {
+              await deleteDocument(doc.id)
+            }
+          },
+        },
+      ]
 
-  if (date.toDateString() === today.toDateString()) {
-    // Show HH:MM
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
+      if (doc.category !== '需求') {
+        menus.push({
+          id: 'convert',
+          label: '转为需求',
+          onClick: async () => {
+            await handleConvertToRequirement(doc)
+          },
+        })
+      }
 
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
-  if (date.toDateString() === yesterday.toDateString()) {
-    return '昨天'
-  }
+      return menus
+    },
+  })
+})
 
-  // Show MM-DD
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${month}-${day}`
+onUnmounted(() => {
+  contextMenuManager.unregister('document')
+})
+
+function handleContextMenu(event: MouseEvent, doc: DocumentItem) {
+  contextMenuManager.show(event, doc)
 }
+
+async function handleConvertToRequirement(doc: DocumentItem) {
+  try {
+    const date = await Dialog.show<string>(ConvertToRequirementDialog, {}, {
+      title: '转为需求文档',
+      width: 400,
+      height: 220,
+      okText: '确定',
+      cancelText: '取消',
+    })
+    if (date) {
+      await saveDocument(doc.id, {
+        category: '需求',
+        deadline: date,
+      })
+      selectDefaultDocument()
+    }
+  } catch {
+    // Dialog cancelled
+  }
+}
+
+
 </script>
 
 <template>
@@ -138,54 +190,16 @@ function formatDocTime(dateStr: string | Date) {
         <span class="text-xs">未找到文档</span>
       </div>
 
-      <button
+      <component
+        :is="doc.category === '需求' ? RequirementDocItem : DailyDocItem"
         v-for="doc in filteredDocuments"
         :key="doc.id"
-        class="w-full text-left p-3 rounded-xl transition-all border flex flex-col gap-1.5 cursor-pointer"
-        :class="
-          store.selectedDocumentId === doc.id
-            ? 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700/60 shadow-sm'
-            : 'bg-transparent border-transparent hover:bg-slate-50/50 dark:hover:bg-zinc-800/30'
-        "
-        @click="store.selectedDocumentId = doc.id"
-      >
-        <div class="flex items-start justify-between gap-3 w-full">
-          <span
-            class="font-semibold text-sm truncate flex-1"
-            :class="
-              store.selectedDocumentId === doc.id
-                ? 'text-indigo-600 dark:text-indigo-400'
-                : 'text-slate-700 dark:text-zinc-200'
-            "
-          >
-            {{ doc.title || '无标题文档' }}
-          </span>
-          <span
-            class="text-xs text-slate-400 dark:text-zinc-500 font-medium whitespace-nowrap pt-0.5"
-          >
-            {{ formatDocTime(doc.updatedAt) }}
-          </span>
-        </div>
-
-        <div class="flex items-center justify-between w-full">
-          <span class="text-xs text-slate-400 dark:text-zinc-500 truncate max-w-[180px]">
-            {{ doc.content.replace(/[#*`_\-\[\]]/g, '').trim() || '无内容' }}
-          </span>
-
-          <!-- Completion checkbox -->
-          <button
-            class="size-5 rounded-md flex items-center justify-center border transition-all cursor-pointer"
-            :class="
-              doc.completed
-                ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-sm shadow-emerald-100 dark:shadow-none'
-                : 'border-slate-300 dark:border-zinc-700 text-transparent hover:border-slate-400 dark:hover:border-zinc-500 hover:text-slate-300 dark:hover:text-zinc-600'
-            "
-            @click="toggleCompletion(doc, $event)"
-          >
-            <CheckCircle2 class="size-3.5 fill-current" />
-          </button>
-        </div>
-      </button>
+        :doc="doc"
+        :is-selected="store.selectedDocumentId === doc.id"
+        @select="(id) => store.selectedDocumentId = id"
+        @toggle="toggleCompletion"
+        @contextmenu="handleContextMenu"
+      />
     </div>
   </div>
 </template>

@@ -33,6 +33,7 @@ async function loadCompletedDocs() {
           completed: note.isArchived,
           createdAt: note.createdAt,
           updatedAt: note.updatedAt,
+          deadline: note.deadline,
         }))
     } catch (err) {
       console.error('Failed to load completed documents:', err)

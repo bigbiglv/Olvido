@@ -22,6 +22,7 @@ declare global {
     completed: boolean
     createdAt: string | Date
     updatedAt: string | Date
+    deadline?: string | Date | null
   }
 
   interface ElectronAPI {

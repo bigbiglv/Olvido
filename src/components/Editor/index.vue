@@ -29,7 +29,6 @@ onMounted(async () => {
     defaultValue: modelValue,
     features: onlyOrderedList ? {
       [Crepe.Feature.Toolbar]: false,
-      [Crepe.Feature.BlockEdit]: false,
       [Crepe.Feature.ImageBlock]: false,
       [Crepe.Feature.Table]: false,
       [Crepe.Feature.Latex]: false,

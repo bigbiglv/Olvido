@@ -34,6 +34,7 @@ async function loadDocuments() {
         completed: note.isArchived,
         createdAt: note.createdAt,
         updatedAt: note.updatedAt,
+        deadline: note.deadline,
       }))
       store.dbStatus = '已连接 SQLite 数据库'
     } catch (err) {
@@ -125,7 +126,7 @@ function selectDefaultDocument() {
 
 // Create a new document
 async function createDocument(title = '无标题文档', content = '', category?: '日常' | '需求') {
-  const targetCategory = category || (store.currentCategory === '已完成' ? '日常' : store.currentCategory)
+  const targetCategory = category || store.currentCategory
   const newDoc = {
     title,
     content,
@@ -153,6 +154,7 @@ async function createDocument(title = '无标题文档', content = '', category?
         completed: created.isArchived,
         createdAt: created.createdAt,
         updatedAt: created.updatedAt,
+        deadline: created.deadline,
       }
       documents.value.unshift(saved)
       store.selectedDocumentId = saved.id
@@ -166,6 +168,7 @@ async function createDocument(title = '无标题文档', content = '', category?
       id: Math.random().toString(36).substr(2, 9),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      deadline: newDoc.category === '需求' ? new Date().toISOString() : null,
     }
     documents.value.unshift(mockSaved)
     store.selectedDocumentId = mockSaved.id
@@ -176,26 +179,42 @@ async function createDocument(title = '无标题文档', content = '', category?
 // Save a document
 async function saveDocument(docId: string, updates: Partial<DocumentItem>) {
   const docIndex = documents.value.findIndex((d) => d.id === docId)
-  if (docIndex === -1) return
 
-  const updatedDoc = {
-    ...documents.value[docIndex],
-    ...updates,
-    updatedAt: new Date().toISOString(),
+  let updatedDoc: DocumentItem | null = null
+  if (docIndex !== -1) {
+    updatedDoc = {
+      ...documents.value[docIndex],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
+    // Update state immediately for UX
+    documents.value[docIndex] = updatedDoc
   }
-
-  // Update state immediately for UX
-  documents.value[docIndex] = updatedDoc
 
   if (isElectron) {
     try {
-      const deadline = updatedDoc.category === '需求' ? (updatedDoc.createdAt ? new Date(updatedDoc.createdAt) : new Date()) : null
+      let deadline: Date | null | undefined = undefined
+      if (updatedDoc) {
+        deadline = updatedDoc.category === '需求'
+          ? (updatedDoc.deadline ? new Date(updatedDoc.deadline) : (updatedDoc.createdAt ? new Date(updatedDoc.createdAt) : new Date()))
+          : null
+      } else {
+        if (updates.category !== undefined || updates.deadline !== undefined) {
+          const cat = updates.category
+          const dl = updates.deadline
+          if (cat === '需求') {
+            deadline = dl ? new Date(dl) : new Date()
+          } else if (cat === '日常') {
+            deadline = null
+          }
+        }
+      }
       await apiUpdateNote({
-        id: updatedDoc.id,
-        title: updatedDoc.title,
-        content: updatedDoc.content,
-        projectId: updatedDoc.project || 'global',
-        isArchived: updatedDoc.completed,
+        id: docId,
+        title: updatedDoc?.title || updates.title,
+        content: updatedDoc?.content || updates.content,
+        projectId: updatedDoc ? (updatedDoc.project || 'global') : undefined,
+        isArchived: updatedDoc ? updatedDoc.completed : (updates.completed !== undefined ? updates.completed : undefined),
         deadline,
       })
       store.lastSavedTime = new Date().toLocaleTimeString()
@@ -229,11 +248,7 @@ const filteredDocuments = computed(() => {
   let docs = documents.value
 
   // Filter by category/completion
-  if (store.currentCategory === '已完成') {
-    docs = docs.filter((d) => d.completed)
-  } else {
-    docs = docs.filter((d) => !d.completed && d.category === store.currentCategory)
-  }
+  docs = docs.filter((d) => !d.completed && d.category === store.currentCategory)
 
   // Filter by search query
   if (store.searchQuery.trim()) {

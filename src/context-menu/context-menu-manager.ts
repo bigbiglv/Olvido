@@ -105,10 +105,11 @@ class ContextMenuManager {
       return {
         ...action,
         onClick: async () => {
+          this.hide() // 立即隐藏菜单
           try {
             await action.onClick?.()
-          } finally {
-            this.hide()
+          } catch (error) {
+            console.error('Error executing context menu action:', error)
           }
         },
       }
