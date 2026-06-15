@@ -2,12 +2,24 @@
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, FileX } from 'lucide-vue-next'
+import { Dialog } from '@/components/dialog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import CompletedDocsDialog from './CompletedDocsDialog.vue'
 
 const emit = defineEmits<{
   (e: 'select', id: string): void
 }>()
 
 const store = useDocumentsStore()
+
+function handleOpenCompleted() {
+  Dialog.show(CompletedDocsDialog, {}, {
+    title: '已完成的文档',
+    footer: false,
+    width: 600,
+    height: 480,
+  })
+}
 
 const categoryTabs: Array<'日常' | '需求'> = ['日常', '需求']
 
@@ -56,29 +68,26 @@ function formatDocTime(dateStr: string | Date) {
     <div
       class="px-5 py-3 border-b border-slate-200/80 dark:border-zinc-800/80 flex items-center justify-between"
     >
-      <div class="flex gap-4">
-        <button
-          v-for="tab in categoryTabs"
-          :key="tab"
-          class="relative pb-2 text-sm font-semibold transition cursor-pointer"
-          :class="
-            store.currentCategory === tab
-              ? 'text-indigo-600 dark:text-indigo-400 font-bold'
-              : 'text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300'
-          "
-          @click="store.selectCategory(tab)"
-        >
-          {{ tab }}
-          <span
-            v-if="store.currentCategory === tab"
-            class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full"
-          ></span>
-        </button>
-      </div>
+      <Tabs
+        :model-value="store.currentCategory"
+        class="w-auto"
+        @update:model-value="(val) => store.selectCategory(val as any)"
+      >
+        <TabsList class="h-8 p-1">
+          <TabsTrigger
+            v-for="tab in categoryTabs"
+            :key="tab"
+            :value="tab"
+            class="text-xs h-6 px-3 cursor-pointer data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:font-semibold text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300"
+          >
+            {{ tab }}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
       <Button
-        :variant="store.currentCategory === '已完成' ? 'default' : 'outline'"
+        variant="outline"
         size="sm"
-        @click="store.selectCategory('已完成')"
+        @click="handleOpenCompleted"
       >
         已完成
       </Button>
