@@ -7,16 +7,16 @@ import '@milkdown/crepe/theme/common/style.css'
 import '@milkdown/crepe/theme/frame.css'
 
 interface Props {
+  /** 编辑器的 markdown 内容 */
   modelValue?: string
 }
 
 interface Emits {
+  /** 更新 markdown 内容事件 */
   (e: 'update:modelValue', value: string): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: '',
-})
+const { modelValue = '' } = defineProps<Props>()
 
 const emit = defineEmits<Emits>()
 
@@ -30,7 +30,7 @@ const isUpdatingFromProp = ref(false)
 
 // Calculate line count for line numbers
 const lineCount = computed(() => {
-  const lines = props.modelValue.split('\n').length
+  const lines = modelValue.split('\n').length
   return lines > 0 ? lines : 1
 })
 
@@ -42,11 +42,14 @@ function handleScroll() {
 }
 
 // Ensure scroll is synchronized on value changes
-watch(() => props.modelValue, () => {
-  setTimeout(() => {
-    handleScroll()
-  }, 0)
-})
+watch(
+  () => modelValue,
+  () => {
+    setTimeout(() => {
+      handleScroll()
+    }, 0)
+  },
+)
 
 const isTextareaActive = ref(false)
 
@@ -69,7 +72,7 @@ onMounted(async () => {
 
   crepe = new Crepe({
     root: editorRef.value,
-    defaultValue: props.modelValue,
+    defaultValue: modelValue,
   })
 
   crepe.on((listener) => {
@@ -89,36 +92,45 @@ onMounted(async () => {
   }
 })
 
-watch(() => props.modelValue, (newValue) => {
-  if (crepe && newValue !== crepe.getMarkdown()) {
-    isUpdatingFromProp.value = true
-    try {
-      crepe.editor.action(replaceAll(newValue))
-    } catch (error) {
-      console.error('Failed to update Milkdown content:', error)
-    } finally {
-      // Defensive timeout to reset the state lock and allow next user input
-      setTimeout(() => {
-        isUpdatingFromProp.value = false
-      }, 50)
+watch(
+  () => modelValue,
+  (newValue) => {
+    if (crepe && newValue !== crepe.getMarkdown()) {
+      isUpdatingFromProp.value = true
+      try {
+        crepe.editor.action(replaceAll(newValue))
+      } catch (error) {
+        console.error('Failed to update Milkdown content:', error)
+      } finally {
+        // Defensive timeout to reset the state lock and allow next user input
+        setTimeout(() => {
+          isUpdatingFromProp.value = false
+        }, 50)
+      }
     }
-  }
-})
+  },
+)
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700/60 shadow-sm overflow-hidden">
+  <div
+    class="flex flex-col h-full bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700/60 shadow-sm overflow-hidden"
+  >
     <!-- Header Control Bar -->
-    <div class="flex items-center justify-between border-b border-slate-200 dark:border-zinc-700/60 px-6 py-2 bg-slate-50/50 dark:bg-zinc-900/40">
+    <div
+      class="flex items-center justify-between border-b border-slate-200 dark:border-zinc-700/60 px-6 py-2 bg-slate-50/50 dark:bg-zinc-900/40"
+    >
       <div></div>
-      
+
       <!-- Right Side Actions: Toggle Split Source Mode -->
       <div class="flex items-center gap-2">
         <button
           class="flex items-center justify-center p-1.5 rounded-lg border text-slate-500 dark:text-zinc-400 transition duration-200 shadow-sm cursor-pointer size-8"
-          :class="isSplitMode 
-            ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:text-white dark:border-indigo-500 dark:hover:bg-indigo-600' 
-            : 'bg-white dark:bg-zinc-800 border-slate-200 dark:border-zinc-700/60 hover:bg-slate-100 dark:hover:bg-zinc-700'"
+          :class="
+            isSplitMode
+              ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:text-white dark:border-indigo-500 dark:hover:bg-indigo-600'
+              : 'bg-white dark:bg-zinc-800 border-slate-200 dark:border-zinc-700/60 hover:bg-slate-100 dark:hover:bg-zinc-700'
+          "
           title="源码模式"
           @click="isSplitMode = !isSplitMode"
         >
@@ -131,17 +143,21 @@ watch(() => props.modelValue, (newValue) => {
     <div class="flex-1 flex overflow-hidden min-h-[300px] bg-white dark:bg-zinc-800">
       <div class="w-full h-full flex overflow-hidden">
         <!-- Left Side: Milkdown WYSIWYG Editor (default preview mode) -->
-        <div 
-          class="h-full overflow-y-auto transition-all duration-300 ease-in-out min-w-0" 
-          :class="isSplitMode ? 'w-1/2 p-4' : 'w-full p-6'"
+        <div
+          class="h-full overflow-y-auto transition-all duration-300 ease-in-out min-w-0"
+          :class="isSplitMode ? 'w-1/2 px-4 pb-4 pt-3' : 'w-full px-6 pb-6 pt-3'"
         >
           <div ref="editorRef" class="editor-container h-full"></div>
         </div>
 
         <!-- Right Side: Raw Markdown Source Editor -->
-        <div 
+        <div
           class="h-full overflow-hidden bg-slate-50/20 dark:bg-zinc-900/10 transition-all duration-300 ease-in-out flex min-w-0"
-          :class="isSplitMode ? 'w-1/2 opacity-100 p-4 border-l border-slate-200 dark:border-zinc-700/60' : 'w-0 opacity-0 pointer-events-none p-0 border-l-0'"
+          :class="
+            isSplitMode
+              ? 'w-1/2 opacity-100 p-4 border-l border-slate-200 dark:border-zinc-700/60'
+              : 'w-0 opacity-0 pointer-events-none p-0 border-l-0'
+          "
         >
           <!-- Line Numbers -->
           <div
@@ -174,17 +190,17 @@ textarea {
   border: none;
 }
 textarea::placeholder {
-  color: #94a3b8;
+  color: var(--color-slate-400);
 }
 .dark textarea::placeholder {
-  color: #52525b;
+  color: var(--color-zinc-600);
 }
 
 /* Scrollbar styling */
 textarea::-webkit-scrollbar,
 div::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 0.375rem;
+  height: 0.375rem;
 }
 textarea::-webkit-scrollbar-track,
 div::-webkit-scrollbar-track {
@@ -192,16 +208,25 @@ div::-webkit-scrollbar-track {
 }
 textarea::-webkit-scrollbar-thumb,
 div::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: var(--color-slate-300);
+  border-radius: 0.1875rem;
 }
 .dark textarea::-webkit-scrollbar-thumb,
 .dark div::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: var(--color-zinc-700);
 }
 
 /* Deep Milkdown overrides to take full width */
 .editor-container :deep(.milkdown) {
   max-width: 100%;
+}
+
+.editor-container :deep(.ProseMirror) {
+  padding: 0.5rem 1.5rem 1.5rem 4.5rem !important; /* 消除顶部过大边距，左侧预留 4.5rem 空间以容纳拖拽手柄，右侧和底部留 1.5rem */
+}
+
+/* 消除首行顶部过大的边距 */
+.editor-container :deep(.ProseMirror > *:first-child) {
+  margin-top: 0 !important;
 }
 </style>

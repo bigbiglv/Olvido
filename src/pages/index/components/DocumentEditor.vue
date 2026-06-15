@@ -1,23 +1,29 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, inject, type ComputedRef } from 'vue'
+import { computed, onBeforeUnmount, inject, ref, watch, type ComputedRef } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import MarkdownSplitEditor from '@/components/Editor/MarkdownSplitEditor.vue'
 import {
   Calendar,
   Clock,
-  Database,
   Edit2,
   FileText,
-  Trash2,
 } from 'lucide-vue-next'
 
 const store = useDocumentsStore()
 const selectedDocument = inject<ComputedRef<DocumentItem | null>>('selectedDocument')!
 const saveDocument = inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
-const deleteDocument = inject<(docId: string) => Promise<void>>('deleteDocument')!
 
 // Debounced save timeout
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
+const isSaving = ref(false)
+
+// Reset isSaving if selected document changes
+watch(() => selectedDocument.value?.id, () => {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+  }
+  isSaving.value = false
+})
 
 // Handle content and title updates with auto-save
 function handleContentUpdate(newContent: string) {
@@ -25,6 +31,7 @@ function handleContentUpdate(newContent: string) {
 
   // Set temporary local value
   selectedDocument.value.content = newContent
+  isSaving.value = true
 
   // Debounce save to database
   if (saveTimeout) clearTimeout(saveTimeout)
@@ -41,10 +48,14 @@ function handleContentUpdate(newContent: string) {
         }
       }
 
-      await saveDocument(selectedDocument.value.id, {
-        content: newContent,
-        title: title,
-      })
+      try {
+        await saveDocument(selectedDocument.value.id, {
+          content: newContent,
+          title: title,
+        })
+      } finally {
+        isSaving.value = false
+      }
     }
   }, 500)
 }
@@ -54,13 +65,18 @@ function handleTitleUpdate(event: Event) {
   if (!selectedDocument.value || !newTitle) return
 
   selectedDocument.value.title = newTitle
+  isSaving.value = true
 
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
     if (selectedDocument.value) {
-      await saveDocument(selectedDocument.value.id, {
-        title: newTitle,
-      })
+      try {
+        await saveDocument(selectedDocument.value.id, {
+          title: newTitle,
+        })
+      } finally {
+        isSaving.value = false
+      }
     }
   }, 500)
 }
@@ -149,8 +165,11 @@ onBeforeUnmount(() => {
           自动保存于
           {{ store.lastSavedTime || formatDocTime(selectedDocument.updatedAt) }}
         </span>
-        <span class="h-1.5 size-1.5 rounded-full bg-emerald-500"></span>
-        <span class="text-emerald-600 dark:text-emerald-400">已保存</span>
+        <span 
+          class="h-1.5 size-1.5 rounded-full transition-colors duration-300"
+          :class="isSaving ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'"
+          :title="isSaving ? '正在保存...' : '已保存'"
+        ></span>
       </div>
     </div>
 
@@ -164,15 +183,9 @@ onBeforeUnmount(() => {
 
     <!-- Bottom Status Bar -->
     <footer
-      class="h-11 border-t border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 flex items-center px-8 justify-between select-none text-xs text-slate-400 dark:text-zinc-500 font-medium shrink-0"
+      class="h-11 border-t border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 flex items-center px-8 justify-end select-none text-xs text-slate-400 dark:text-zinc-500 font-medium shrink-0"
     >
-      <!-- Left side: DB status -->
-      <div class="flex items-center gap-2">
-        <Database class="size-3.5 text-slate-400" />
-        <span>{{ store.dbStatus }}</span>
-      </div>
-
-      <!-- Middle side: Characters & Words counts -->
+      <!-- Right side: Characters & Words counts -->
       <div class="flex items-center gap-4">
         <span class="flex items-center gap-1">
           <FileText class="size-3.5" />
@@ -180,18 +193,6 @@ onBeforeUnmount(() => {
         </span>
         <span>|</span>
         <span>{{ charCount }} 字</span>
-      </div>
-
-      <!-- Right side: Actions like delete -->
-      <div class="flex items-center">
-        <button
-          class="flex items-center gap-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800"
-          title="删除"
-          @click="deleteDocument(selectedDocument.id)"
-        >
-          <Trash2 class="size-3.5" />
-          <span>删除</span>
-        </button>
       </div>
     </footer>
   </template>
