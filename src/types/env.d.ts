@@ -2,6 +2,7 @@
 
 import type { ProjectDto, CreateProjectDto, UpdateProjectDto } from '../../electron/types/project'
 import type { NoteDto, CreateNoteDto, UpdateNoteDto } from '../../electron/types/note'
+import type { SearchRequest, SearchResult } from '../features/search/types/search'
 
 declare global {
   interface ImportMetaEnv {
@@ -66,6 +67,10 @@ declare global {
         update: (dto: UpdateNoteDto) => Promise<NoteDto>
         /** 删除笔记 */
         delete: (id: string) => Promise<NoteDto>
+      }
+      search: {
+        /** 全文搜索列表 */
+        list: (request: SearchRequest) => Promise<SearchResult>
       }
       /** 当前运行平台 */
       platform: string

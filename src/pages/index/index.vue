@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, provide } from 'vue'
+import { ref, computed, watch, provide, onMounted, onUnmounted } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import Sidebar from './components/Sidebar.vue'
 import Header from './components/Header.vue'
@@ -7,7 +7,10 @@ import DocumentList from './components/DocumentList.vue'
 import DocumentEditor from './components/DocumentEditor.vue'
 import EmptyState from './components/EmptyState.vue'
 import { isElectron } from '@/utils/env'
-import { apiListNotes, apiCreateNote, apiUpdateNote, apiDeleteNote } from '@/apis/note'
+import { apiListNotes, apiCreateNote, apiUpdateNote, apiDeleteNote, apiGetNote } from '@/apis/note'
+import { Dialog } from '@/components/dialog'
+import { useSearchStore } from '@/features/search/stores/search.store'
+import SearchDialog from '@/features/search/components/SearchDialog.vue'
 
 const store = useDocumentsStore()
 const documents = ref<DocumentItem[]>([])
@@ -25,7 +28,7 @@ async function loadDocuments() {
         type = 'requirement'
       }
       const notes = await apiListNotes(pid, type)
-      documents.value = notes.map((note) => ({
+      const list = notes.map((note) => ({
         id: note.id,
         title: note.title,
         content: note.content,
@@ -36,6 +39,29 @@ async function loadDocuments() {
         updatedAt: note.updatedAt,
         deadline: note.deadline,
       }))
+
+      if (store.selectedDocumentId && !list.some((d) => d.id === store.selectedDocumentId)) {
+        try {
+          const note = await apiGetNote(store.selectedDocumentId)
+          if (note) {
+            list.push({
+              id: note.id,
+              title: note.title,
+              content: note.content,
+              category: note.deadline ? '需求' : '日常',
+              project: note.projectId === 'global' ? null : note.projectId,
+              completed: note.isArchived,
+              createdAt: note.createdAt,
+              updatedAt: note.updatedAt,
+              deadline: note.deadline,
+            })
+          }
+        } catch (err) {
+          console.error('Failed to append selected archived document:', err)
+        }
+      }
+
+      documents.value = list
       store.dbStatus = '已连接 SQLite 数据库'
     } catch (err) {
       console.error('Failed to load documents:', err)
@@ -257,13 +283,20 @@ const filteredDocuments = computed(() => {
   let docs = documents.value
 
   // Filter by category/completion
-  docs = docs.filter((d) => !d.completed && d.category === store.currentCategory)
+  // 如果是当前选中的文档，特例予以显示（以支持已归档文档的临时选中展示）
+  docs = docs.filter((d) => {
+    if (d.id === store.selectedDocumentId) return true
+    return !d.completed && d.category === store.currentCategory
+  })
 
   // Filter by search query
   if (store.searchQuery.trim()) {
     const query = store.searchQuery.toLowerCase()
     docs = docs.filter(
-      (d) => d.title.toLowerCase().includes(query) || d.content.toLowerCase().includes(query),
+      (d) =>
+        d.id === store.selectedDocumentId ||
+        d.title.toLowerCase().includes(query) ||
+        d.content.toLowerCase().includes(query),
     )
   }
 
@@ -284,6 +317,46 @@ watch(
 
 // Initialize
 loadDocuments()
+
+const searchStore = useSearchStore()
+
+function handleGlobalKeydown(e: KeyboardEvent) {
+  const isF = e.key === 'f' || e.key === 'F'
+  if (e.ctrlKey && isF) {
+    e.preventDefault()
+
+    if (searchStore.isOpen) {
+      if (e.shiftKey) {
+        searchStore.projectId = undefined
+      } else {
+        searchStore.projectId = store.currentProject || 'global'
+      }
+
+      const inputEl = document.querySelector('input[placeholder="输入关键词搜索..."]') as HTMLInputElement
+      if (inputEl) {
+        inputEl.focus()
+        inputEl.select()
+      }
+      return
+    }
+
+    if (e.shiftKey) {
+      searchStore.openGlobalSearch()
+    } else {
+      searchStore.openProjectSearch(store.currentProject)
+    }
+    Dialog.show(SearchDialog)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+})
+
 
 // Provide documents and functions
 provide('documents', documents)

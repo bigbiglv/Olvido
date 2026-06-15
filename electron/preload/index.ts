@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { PROJECT_CHANNELS, NOTE_CHANNELS } from '../ipc/channels'
 import type { CreateProjectDto, UpdateProjectDto } from '../types/project'
 import type { CreateNoteDto, UpdateNoteDto } from '../types/note'
+import type { SearchRequest } from '../types/search'
 
 contextBridge.exposeInMainWorld('api', {
   project: {
@@ -18,6 +19,9 @@ contextBridge.exposeInMainWorld('api', {
     create: (dto: CreateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.CREATE, dto),
     update: (dto: UpdateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.UPDATE, dto),
     delete: (id: string) => ipcRenderer.invoke(NOTE_CHANNELS.DELETE, id),
+  },
+  search: {
+    list: (request: SearchRequest) => ipcRenderer.invoke('search:list', request),
   },
   platform: process.platform,
 })
