@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Dialog } from '@/components/dialog'
 import SettingsPage from './SettingsPage.vue'
-import { apiListProjects, apiCreateProject } from '@/apis/project'
+import { apiListProjects, apiCreateProject, apiUpdateProject, apiDeleteProject } from '@/apis/project'
+import { confirm } from '@/components/confirm'
+import RenameProjectDialog from './RenameProjectDialog.vue'
 import type { ProjectDto } from '../../../../electron/types/project'
 import { isElectron } from '@/utils/env'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { contextMenuManager } from '@/context-menu/context-menu-manager'
 import {
   BookOpen,
   Folder,
@@ -31,10 +34,45 @@ const isAdding = ref(false)
 let addTimeout: number | undefined
 
 
-// 挂载时加载项目列表
+// 挂载时加载项目列表并注册右键菜单
 onMounted(async () => {
   await fetchProjects()
+
+  contextMenuManager.register({
+    type: 'project',
+    getMenus: (context) => {
+      const proj = context.data as ProjectDto
+      return [
+        {
+          id: 'rename',
+          label: '重命名',
+          onClick: () => {
+            handleRenameProject(proj)
+          },
+        },
+        {
+          id: 'delete',
+          label: '删除',
+          onClick: () => {
+            handleDeleteProject(proj)
+          },
+        },
+      ]
+    },
+  })
 })
+
+// 卸载时注销右键菜单
+onUnmounted(() => {
+  contextMenuManager.unregister('project')
+})
+
+/**
+ * 处理项目右键菜单展示
+ */
+function handleContextMenu(event: MouseEvent, proj: ProjectDto) {
+  contextMenuManager.show(event, proj)
+}
 
 /**
  * 从 SQLite 数据库中获取项目列表
@@ -125,6 +163,64 @@ function handleOpenSettings() {
     height: 520,
   })
 }
+
+/**
+ * 重命名项目操作
+ */
+async function handleRenameProject(proj: ProjectDto) {
+  try {
+    const newName = await Dialog.show<string>(
+      RenameProjectDialog,
+      { initialName: proj.name },
+      {
+        title: '重命名项目',
+        width: 400,
+        height: 200,
+        resizable: false,
+        draggable: true,
+      }
+    )
+    if (newName) {
+      if (isElectron) {
+        await apiUpdateProject({ id: proj.id, name: newName })
+      }
+      proj.name = newName
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Failed to rename project:', error)
+    }
+  }
+}
+
+/**
+ * 删除项目操作
+ */
+async function handleDeleteProject(proj: ProjectDto) {
+  const isConfirmed = await confirm({
+    title: '删除项目',
+    description: `确定要删除项目 "${proj.name}" 吗？此操作无法撤销，该项目下的所有笔记也将被一并删除。`,
+    destructive: true,
+    okText: '确定删除',
+    cancelText: '取消',
+  })
+
+  if (isConfirmed) {
+    try {
+      if (isElectron) {
+        await apiDeleteProject(proj.id)
+      }
+      // 从本地列表移除
+      projects.value = projects.value.filter((p) => p.id !== proj.id)
+      // 如果被删除的是当前选中的项目，重置为全局记事本
+      if (store.currentProject === proj.id) {
+        store.selectProject(null)
+      }
+    } catch (error) {
+      console.error('Failed to delete project:', error)
+    }
+  }
+}
 </script>
 
 <template>
@@ -205,6 +301,7 @@ function handleOpenSettings() {
           <Button
             v-for="proj in projects"
             :key="proj.id"
+            data-context-region="project"
             variant="ghost"
             class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left border-0"
             :class="
@@ -213,6 +310,7 @@ function handleOpenSettings() {
                 : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
             "
             @click="handleSelectProject(proj.id)"
+            @contextmenu="handleContextMenu($event, proj)"
           >
             <Folder class="size-4.5 opacity-70" />
             <span class="truncate">{{ proj.name }}</span>
