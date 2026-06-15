@@ -19,8 +19,7 @@ import {
   type FormValidationMode,
 } from '../validation'
 
-interface FormTextareaProps
-  extends Omit<TextareaProps, 'class' | 'defaultValue' | 'modelValue'> {
+interface FormTextareaProps extends Omit<TextareaProps, 'class' | 'defaultValue' | 'modelValue'> {
   class?: HTMLAttributes['class']
   description?: string
   label?: string
@@ -31,22 +30,19 @@ interface FormTextareaProps
   validationMode?: FormValidationMode
 }
 
-const props = withDefaults(
-  defineProps<FormTextareaProps>(),
-  {
-    class: undefined,
-    clearable: false,
-    description: undefined,
-    disabled: false,
-    label: undefined,
-    maxlength: undefined,
-    placeholder: undefined,
-    rows: 4,
-    showCount: false,
-    textareaClass: undefined,
-    validationMode: undefined,
-  },
-)
+const props = withDefaults(defineProps<FormTextareaProps>(), {
+  class: undefined,
+  clearable: false,
+  description: undefined,
+  disabled: false,
+  label: undefined,
+  maxlength: undefined,
+  placeholder: undefined,
+  rows: 4,
+  showCount: false,
+  textareaClass: undefined,
+  validationMode: undefined,
+})
 
 const textareaProps = reactiveOmit(
   props,

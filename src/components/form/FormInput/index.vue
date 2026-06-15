@@ -30,22 +30,19 @@ interface FormInputProps extends Omit<InputProps, 'class' | 'defaultValue' | 'mo
   validationMode?: FormValidationMode
 }
 
-const props = withDefaults(
-  defineProps<FormInputProps>(),
-  {
-    autocomplete: undefined,
-    class: undefined,
-    clearable: false,
-    description: undefined,
-    disabled: false,
-    inputClass: undefined,
-    label: undefined,
-    placeholder: undefined,
-    showPasswordToggle: false,
-    type: 'text',
-    validationMode: undefined,
-  },
-)
+const props = withDefaults(defineProps<FormInputProps>(), {
+  autocomplete: undefined,
+  class: undefined,
+  clearable: false,
+  description: undefined,
+  disabled: false,
+  inputClass: undefined,
+  label: undefined,
+  placeholder: undefined,
+  showPasswordToggle: false,
+  type: 'text',
+  validationMode: undefined,
+})
 
 const inputProps = reactiveOmit(
   props,

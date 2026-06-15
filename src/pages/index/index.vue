@@ -195,9 +195,14 @@ async function saveDocument(docId: string, updates: Partial<DocumentItem>) {
     try {
       let deadline: Date | null | undefined = undefined
       if (updatedDoc) {
-        deadline = updatedDoc.category === '需求'
-          ? (updatedDoc.deadline ? new Date(updatedDoc.deadline) : (updatedDoc.createdAt ? new Date(updatedDoc.createdAt) : new Date()))
-          : null
+        deadline =
+          updatedDoc.category === '需求'
+            ? updatedDoc.deadline
+              ? new Date(updatedDoc.deadline)
+              : updatedDoc.createdAt
+                ? new Date(updatedDoc.createdAt)
+                : new Date()
+            : null
       } else {
         if (updates.category !== undefined || updates.deadline !== undefined) {
           const cat = updates.category
@@ -213,8 +218,12 @@ async function saveDocument(docId: string, updates: Partial<DocumentItem>) {
         id: docId,
         title: updatedDoc?.title || updates.title,
         content: updatedDoc?.content || updates.content,
-        projectId: updatedDoc ? (updatedDoc.project || 'global') : undefined,
-        isArchived: updatedDoc ? updatedDoc.completed : (updates.completed !== undefined ? updates.completed : undefined),
+        projectId: updatedDoc ? updatedDoc.project || 'global' : undefined,
+        isArchived: updatedDoc
+          ? updatedDoc.completed
+          : updates.completed !== undefined
+            ? updates.completed
+            : undefined,
         deadline,
       })
       store.lastSavedTime = new Date().toLocaleTimeString()
@@ -254,9 +263,7 @@ const filteredDocuments = computed(() => {
   if (store.searchQuery.trim()) {
     const query = store.searchQuery.toLowerCase()
     docs = docs.filter(
-      (d) =>
-        d.title.toLowerCase().includes(query) ||
-        d.content.toLowerCase().includes(query)
+      (d) => d.title.toLowerCase().includes(query) || d.content.toLowerCase().includes(query),
     )
   }
 
@@ -272,7 +279,7 @@ watch(
   () => [store.currentProject, store.currentCategory],
   async () => {
     await loadDocuments()
-  }
+  },
 )
 
 // Initialize
@@ -301,9 +308,13 @@ provide('selectDefaultDocument', selectDefaultDocument)
 
       <!-- Main Content Area -->
       <div class="flex-1 overflow-hidden min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
-        <div class="h-full flex min-w-0 overflow-hidden divide-x divide-slate-200 dark:divide-zinc-800">
+        <div
+          class="h-full flex min-w-0 overflow-hidden divide-x divide-slate-200 dark:divide-zinc-800"
+        >
           <DocumentList />
-          <div class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50/20 dark:bg-zinc-900/10">
+          <div
+            class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50/20 dark:bg-zinc-900/10"
+          >
             <DocumentEditor v-if="selectedDocument" />
             <EmptyState v-else />
           </div>

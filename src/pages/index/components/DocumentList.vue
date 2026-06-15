@@ -15,34 +15,46 @@ import RequirementDocItem from './RequirementDocItem.vue'
 const store = useDocumentsStore()
 
 const filteredDocuments = inject<ComputedRef<DocumentItem[]>>('filteredDocuments')!
-const createDocument = inject<(title: string, content: string, category?: '日常' | '需求') => Promise<void>>('createDocument')!
-const saveDocument = inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
+const createDocument =
+  inject<(title: string, content: string, category?: '日常' | '需求') => Promise<void>>(
+    'createDocument',
+  )!
+const saveDocument =
+  inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
 const deleteDocument = inject<(docId: string) => Promise<void>>('deleteDocument')!
 const loadDocuments = inject<() => Promise<void>>('loadDocuments')!
 const selectDefaultDocument = inject<() => void>('selectDefaultDocument')!
 
 function handleOpenCompleted() {
-  Dialog.show(CompletedDocsDialog, {
-    saveDocument,
-    loadDocuments,
-    deleteDocument,
-  }, {
-    title: '已完成的文档',
-    footer: false,
-    width: 600,
-    height: 480,
-  })
+  Dialog.show(
+    CompletedDocsDialog,
+    {
+      saveDocument,
+      loadDocuments,
+      deleteDocument,
+    },
+    {
+      title: '已完成的文档',
+      footer: false,
+      width: 600,
+      height: 480,
+    },
+  )
 }
 
 async function handleQuickAdd() {
   try {
-    const titles = await Dialog.show<string[]>(QuickAddDialog, {}, {
-      title: '快速批量新增日常文档',
-      width: 550,
-      height: 420,
-      okText: '生成',
-      cancelText: '取消',
-    })
+    const titles = await Dialog.show<string[]>(
+      QuickAddDialog,
+      {},
+      {
+        title: '快速批量新增日常文档',
+        width: 550,
+        height: 420,
+        okText: '生成',
+        cancelText: '取消',
+      },
+    )
     if (titles && titles.length > 0) {
       // Reverse loop to keep the first input item at the top of the unshifted list and selected
       for (const title of [...titles].reverse()) {
@@ -118,13 +130,17 @@ function handleContextMenu(event: MouseEvent, doc: DocumentItem) {
 
 async function handleConvertToRequirement(doc: DocumentItem) {
   try {
-    const date = await Dialog.show<string>(ConvertToRequirementDialog, {}, {
-      title: '转为需求文档',
-      width: 400,
-      height: 220,
-      okText: '确定',
-      cancelText: '取消',
-    })
+    const date = await Dialog.show<string>(
+      ConvertToRequirementDialog,
+      {},
+      {
+        title: '转为需求文档',
+        width: 400,
+        height: 220,
+        okText: '确定',
+        cancelText: '取消',
+      },
+    )
     if (date) {
       await saveDocument(doc.id, {
         category: '需求',
@@ -136,8 +152,6 @@ async function handleConvertToRequirement(doc: DocumentItem) {
     // Dialog cancelled
   }
 }
-
-
 </script>
 
 <template>
@@ -149,7 +163,7 @@ async function handleConvertToRequirement(doc: DocumentItem) {
       <Tabs
         :model-value="store.currentCategory"
         class="w-auto"
-        @update:model-value="(val) => store.currentCategory = val as any"
+        @update:model-value="(val) => (store.currentCategory = val as any)"
       >
         <TabsList class="h-8 p-1">
           <TabsTrigger
@@ -163,20 +177,8 @@ async function handleConvertToRequirement(doc: DocumentItem) {
         </TabsList>
       </Tabs>
       <div class="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          @click="handleQuickAdd"
-        >
-          快速新增
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          @click="handleOpenCompleted"
-        >
-          已完成
-        </Button>
+        <Button variant="outline" size="sm" @click="handleQuickAdd"> 快速新增 </Button>
+        <Button variant="outline" size="sm" @click="handleOpenCompleted"> 已完成 </Button>
       </div>
     </div>
 
@@ -196,7 +198,7 @@ async function handleConvertToRequirement(doc: DocumentItem) {
         :key="doc.id"
         :doc="doc"
         :is-selected="store.selectedDocumentId === doc.id"
-        @select="(id) => store.selectedDocumentId = id"
+        @select="(id) => (store.selectedDocumentId = id)"
         @toggle="toggleCompletion"
         @contextmenu="handleContextMenu"
       />

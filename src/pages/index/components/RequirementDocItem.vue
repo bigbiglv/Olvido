@@ -34,11 +34,11 @@ const diffDays = computed(() => {
   if (!props.doc.deadline) return null
   const deadline = new Date(props.doc.deadline)
   if (isNaN(deadline.getTime())) return null // 容错：无效日期直接返回 null
-  
+
   const dDate = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate())
   const now = new Date()
   const tDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  
+
   const diffTime = dDate.getTime() - tDate.getTime()
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 })

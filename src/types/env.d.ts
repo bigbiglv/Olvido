@@ -28,7 +28,14 @@ declare global {
   interface ElectronAPI {
     getDocuments: () => Promise<DocumentItem[]>
     getDocument: (id: string) => Promise<DocumentItem | null>
-    saveDocument: (document: { id?: string; title: string; content: string; category?: string; project?: string | null; completed?: boolean }) => Promise<DocumentItem>
+    saveDocument: (document: {
+      id?: string
+      title: string
+      content: string
+      category?: string
+      project?: string | null
+      completed?: boolean
+    }) => Promise<DocumentItem>
     deleteDocument: (id: string) => Promise<DocumentItem>
     platform: string
   }

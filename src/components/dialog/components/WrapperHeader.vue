@@ -20,7 +20,6 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-
 const headerClass = computed(() => [
   'shrink-0 select-none border-b border-border px-6 py-4',
   props.canDrag ? 'cursor-move' : 'cursor-default',
@@ -62,20 +61,13 @@ const headerInnerClass = computed(() => [
           v-if="canFullscreen"
           variant="ghost"
           size="icon"
-          :aria-label="
-            instance.isFullscreen ? '还原' : '最大化'
-          "
+          :aria-label="instance.isFullscreen ? '还原' : '最大化'"
           @click="emit('toggleFullscreen')"
         >
           <Minimize2 v-if="instance.isFullscreen" :size="18" />
           <Maximize2 v-else :size="18" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="关闭"
-          @click="emit('cancel')"
-        >
+        <Button variant="ghost" size="icon" aria-label="关闭" @click="emit('cancel')">
           <X :size="24" />
         </Button>
       </div>

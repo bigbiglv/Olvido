@@ -13,8 +13,6 @@ import type { HTMLAttributes } from 'vue'
 
 import { cn } from '@/lib/utils'
 
-
-
 const props = withDefaults(
   defineProps<SelectTriggerProps & { class?: HTMLAttributes['class']; clearable?: boolean }>(),
   {
@@ -27,8 +25,6 @@ const props = withDefaults(
 const rootContext = injectSelectRootContext()
 const delegatedProps = reactiveOmit(props, 'class', 'clearable')
 const forwardedProps = useForwardProps(delegatedProps)
-
-
 
 const isDisabled = computed(() => Boolean(rootContext.disabled?.value || props.disabled))
 const hasValue = computed(() => {

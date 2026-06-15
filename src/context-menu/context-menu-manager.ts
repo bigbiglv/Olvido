@@ -144,7 +144,7 @@ class ContextMenuManager {
 
         this.hide()
       },
-      true
+      true,
     )
   }
 

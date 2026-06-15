@@ -13,5 +13,3 @@ import { ContextMenu } from '@/context-menu'
   <ConfirmContainer />
   <ContextMenu />
 </template>
-
-

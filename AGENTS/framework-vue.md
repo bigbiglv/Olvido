@@ -4,20 +4,22 @@
 
 - **Props 与 Emits 声明**：分离类型定义。必须优先使用独立的 `interface` 声明组件 Props 和 Emits 类型，禁止在 `defineProps<>` 或 `defineEmits<>` 中直接内联编写复杂的类型推导。**并且要求将所有的 `interface` 统一集中定义在 `<script setup>` 的最顶部，之后再统一调用 `defineProps` 和 `defineEmits`，严禁类型定义与宏调用穿插混排。**
 - **Props 默认值定义 (Vue 3.5+)**：本项目基于 Vue 3.5+，**绝对禁止使用 `withDefaults`** 宏。必须利用 Vue 3.5 响应式 Props 解构语法直接赋予默认值。
+
   ```typescript
   // ✅ 推荐规范：顶部集中声明所有类型，然后紧接宏调用与解构
   interface Props {
-    item: FeedItem;
-    isCommentsExpanded?: boolean;
-  }
-  
-  interface Emits {
-    (e: 'update:isCommentsExpanded', value: boolean): void;
+    item: FeedItem
+    isCommentsExpanded?: boolean
   }
 
-  const { item, isCommentsExpanded = false } = defineProps<Props>();
-  const emit = defineEmits<Emits>();
+  interface Emits {
+    (e: 'update:isCommentsExpanded', value: boolean): void
+  }
+
+  const { item, isCommentsExpanded = false } = defineProps<Props>()
+  const emit = defineEmits<Emits>()
   ```
+
 - **事件命名**：`defineEmits` 派发的自定义事件统一使用 `kebab-case` 短横线命名法（如 `toggle-dark-mode`、`update:isCommentsExpanded`、`not-interested`）。
 - **SFC 代码组织顺序**：严格按照 `<script setup lang="ts">` -> `<template>` -> `<style scoped>` 的顺序组织单文件组件。
 - **通用组件名与目录规范**：通用组件应以组件名命名文件夹，内部通常使用 `index.vue` 作为入口文件。若有其专属的子组件，需统一放在该目录下的 `components/` 文件夹中管理。

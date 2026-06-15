@@ -2,28 +2,27 @@
 import { computed, onBeforeUnmount, inject, ref, watch, type ComputedRef } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import MarkdownSplitEditor from '@/components/Editor/MarkdownSplitEditor.vue'
-import {
-  Calendar,
-  Clock,
-  Edit2,
-  FileText,
-} from 'lucide-vue-next'
+import { Calendar, Clock, Edit2, FileText } from 'lucide-vue-next'
 
 const store = useDocumentsStore()
 const selectedDocument = inject<ComputedRef<DocumentItem | null>>('selectedDocument')!
-const saveDocument = inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
+const saveDocument =
+  inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
 
 // Debounced save timeout
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
 const isSaving = ref(false)
 
 // Reset isSaving if selected document changes
-watch(() => selectedDocument.value?.id, () => {
-  if (saveTimeout) {
-    clearTimeout(saveTimeout)
-  }
-  isSaving.value = false
-})
+watch(
+  () => selectedDocument.value?.id,
+  () => {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout)
+    }
+    isSaving.value = false
+  },
+)
 
 // Handle content and title updates with auto-save
 function handleContentUpdate(newContent: string) {
@@ -165,7 +164,7 @@ onBeforeUnmount(() => {
           自动保存于
           {{ store.lastSavedTime || formatDocTime(selectedDocument.updatedAt) }}
         </span>
-        <span 
+        <span
           class="h-1.5 size-1.5 rounded-full transition-colors duration-300"
           :class="isSaving ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'"
           :title="isSaving ? '正在保存...' : '已保存'"

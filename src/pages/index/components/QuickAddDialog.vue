@@ -56,11 +56,10 @@ dialog.onConfirm(() => {
     <div class="text-xs text-slate-400 dark:text-zinc-500 font-medium">
       请输入有序列表（以 1. 2. 格式开始），每一行列表项的内容都将作为一个独立的日常文档生成。
     </div>
-    <div class="flex-1 overflow-hidden border border-slate-200 dark:border-zinc-700/60 rounded-xl bg-white dark:bg-zinc-800">
-      <Editor
-        v-model="markdownContent"
-        only-ordered-list
-      />
+    <div
+      class="flex-1 overflow-hidden border border-slate-200 dark:border-zinc-700/60 rounded-xl bg-white dark:bg-zinc-800"
+    >
+      <Editor v-model="markdownContent" only-ordered-list />
     </div>
   </div>
 </template>

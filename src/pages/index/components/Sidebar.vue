@@ -3,7 +3,12 @@ import { ref, onMounted, onUnmounted, inject, type Ref } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Dialog } from '@/components/dialog'
 import SettingsPage from './SettingsPage.vue'
-import { apiListProjects, apiCreateProject, apiUpdateProject, apiDeleteProject } from '@/apis/project'
+import {
+  apiListProjects,
+  apiCreateProject,
+  apiUpdateProject,
+  apiDeleteProject,
+} from '@/apis/project'
 import { confirm } from '@/components/confirm'
 import RenameProjectDialog from './RenameProjectDialog.vue'
 import type { ProjectDto } from '../../../../electron/types/project'
@@ -11,13 +16,7 @@ import { isElectron } from '@/utils/env'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { contextMenuManager } from '@/context-menu/context-menu-manager'
-import {
-  BookOpen,
-  Folder,
-  Plus,
-  Settings,
-  CheckSquare,
-} from 'lucide-vue-next'
+import { BookOpen, Folder, Plus, Settings, CheckSquare } from 'lucide-vue-next'
 
 const store = useDocumentsStore()
 const documents = inject<Ref<DocumentItem[]>>('documents')
@@ -33,7 +32,6 @@ const newProjectName = ref('')
 const isAdding = ref(false)
 /** 新建项目请求的超时定时器句柄 */
 let addTimeout: number | undefined
-
 
 // 挂载时加载项目列表并注册右键菜单
 onMounted(async () => {
@@ -157,15 +155,19 @@ async function handleAddProject() {
  * 打开系统设置对话框
  */
 function handleOpenSettings() {
-  Dialog.show(SettingsPage, {
-    dbStatus: store.dbStatus,
-    documentCount: documents?.value?.length || 0,
-  }, {
-    title: '系统设置',
-    footer: false,
-    width: 680,
-    height: 520,
-  })
+  Dialog.show(
+    SettingsPage,
+    {
+      dbStatus: store.dbStatus,
+      documentCount: documents?.value?.length || 0,
+    },
+    {
+      title: '系统设置',
+      footer: false,
+      width: 680,
+      height: 520,
+    },
+  )
 }
 
 /**
@@ -182,7 +184,7 @@ async function handleRenameProject(proj: ProjectDto) {
         height: 200,
         resizable: false,
         draggable: true,
-      }
+      },
     )
     if (newName) {
       if (isElectron) {

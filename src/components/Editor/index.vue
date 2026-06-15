@@ -27,15 +27,17 @@ onMounted(async () => {
   crepe = new Crepe({
     root: editorRef.value,
     defaultValue: modelValue,
-    features: onlyOrderedList ? {
-      [Crepe.Feature.Toolbar]: false,
-      [Crepe.Feature.ImageBlock]: false,
-      [Crepe.Feature.Table]: false,
-      [Crepe.Feature.Latex]: false,
-      [Crepe.Feature.CodeMirror]: false,
-      [Crepe.Feature.TopBar]: false,
-      [Crepe.Feature.LinkTooltip]: false,
-    } : undefined
+    features: onlyOrderedList
+      ? {
+          [Crepe.Feature.Toolbar]: false,
+          [Crepe.Feature.ImageBlock]: false,
+          [Crepe.Feature.Table]: false,
+          [Crepe.Feature.Latex]: false,
+          [Crepe.Feature.CodeMirror]: false,
+          [Crepe.Feature.TopBar]: false,
+          [Crepe.Feature.LinkTooltip]: false,
+        }
+      : undefined,
   })
 
   crepe.on((listener) => {
@@ -53,27 +55,34 @@ onMounted(async () => {
   }
 })
 
-watch(() => modelValue, (newValue) => {
-  if (crepe && newValue !== crepe.getMarkdown()) {
-    isUpdatingFromProp.value = true
-    try {
-      crepe.editor.action(replaceAll(newValue))
-    } catch (error) {
-      console.error('Failed to update Milkdown content:', error)
-    } finally {
-      // Defensive timeout to reset the state lock and allow next user input
-      setTimeout(() => {
-        isUpdatingFromProp.value = false
-      }, 50)
+watch(
+  () => modelValue,
+  (newValue) => {
+    if (crepe && newValue !== crepe.getMarkdown()) {
+      isUpdatingFromProp.value = true
+      try {
+        crepe.editor.action(replaceAll(newValue))
+      } catch (error) {
+        console.error('Failed to update Milkdown content:', error)
+      } finally {
+        // Defensive timeout to reset the state lock and allow next user input
+        setTimeout(() => {
+          isUpdatingFromProp.value = false
+        }, 50)
+      }
     }
-  }
-})
+  },
+)
 </script>
 
 <template>
-  <div class="milkdown-editor-wrapper w-full h-full" :class="onlyOrderedList ? 'min-h-[220px]' : 'min-h-[300px]'">
+  <div
+    class="milkdown-editor-wrapper w-full h-full"
+    :class="onlyOrderedList ? 'min-h-[220px]' : 'min-h-[300px]'"
+  >
     <div ref="editorRef" class="editor-container h-full"></div>
-  </div></template>
+  </div>
+</template>
 
 <style scoped>
 .milkdown-editor-wrapper {

@@ -16,10 +16,7 @@ export class NoteService {
       }
       return await prisma.note.findMany({
         where,
-        orderBy: [
-          { sort: 'asc' },
-          { updatedAt: 'desc' }
-        ]
+        orderBy: [{ sort: 'asc' }, { updatedAt: 'desc' }],
       })
     } catch (error) {
       console.error(`Failed to get notes for project ${projectId}:`, error)

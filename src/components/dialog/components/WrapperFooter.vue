@@ -14,8 +14,6 @@ const emit = defineEmits<{
   cancel: []
   submit: []
 }>()
-
-
 </script>
 
 <template>

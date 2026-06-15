@@ -80,16 +80,12 @@ function formatDocTime(dateStr: string | Date) {
       <span
         class="font-semibold text-sm truncate"
         :class="
-          isSelected
-            ? 'text-indigo-600 dark:text-indigo-400'
-            : 'text-slate-700 dark:text-zinc-200'
+          isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-zinc-200'
         "
       >
         {{ doc.title || '无标题文档' }}
       </span>
-      <span
-        class="text-xs text-slate-400 dark:text-zinc-500 font-medium whitespace-nowrap"
-      >
+      <span class="text-xs text-slate-400 dark:text-zinc-500 font-medium whitespace-nowrap">
         {{ formatDocTime(doc.updatedAt) }}
       </span>
     </div>

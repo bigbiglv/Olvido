@@ -29,17 +29,14 @@ interface FormSwitchProps extends Omit<SwitchProps, 'defaultValue' | 'modelValue
   validationMode?: FormValidationMode
 }
 
-const props = withDefaults(
-  defineProps<FormSwitchProps>(),
-  {
-    class: undefined,
-    description: undefined,
-    disabled: false,
-    label: undefined,
-    switchClass: undefined,
-    validationMode: undefined,
-  },
-)
+const props = withDefaults(defineProps<FormSwitchProps>(), {
+  class: undefined,
+  description: undefined,
+  disabled: false,
+  label: undefined,
+  switchClass: undefined,
+  validationMode: undefined,
+})
 
 const switchProps = reactiveOmit(
   props,

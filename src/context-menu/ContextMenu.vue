@@ -42,7 +42,7 @@ watch(
       computedX.value = targetX
       computedY.value = targetY
     }
-  }
+  },
 )
 </script>
 
@@ -63,7 +63,7 @@ watch(
         class="fixed z-[9999] min-w-[180px] bg-popover/90 backdrop-blur-md text-popover-foreground rounded-lg border border-border/80 shadow-lg p-1.5 outline-none select-none transition-[opacity,transform] duration-100 ease-out origin-top-left"
         :style="{
           left: computedX + 'px',
-          top: computedY + 'px'
+          top: computedY + 'px',
         }"
       >
         <div v-for="(item, index) in store.menus" :key="index">

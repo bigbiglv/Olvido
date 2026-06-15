@@ -23,18 +23,17 @@ async function loadCompletedDocs() {
     try {
       const pid = store.currentProject || 'global'
       const notes = await apiListNotes(pid, 'archived')
-      allCompletedDocs.value = notes
-        .map((note) => ({
-          id: note.id,
-          title: note.title,
-          content: note.content,
-          category: note.deadline ? '需求' : '日常',
-          project: note.projectId === 'global' ? null : note.projectId,
-          completed: note.isArchived,
-          createdAt: note.createdAt,
-          updatedAt: note.updatedAt,
-          deadline: note.deadline,
-        }))
+      allCompletedDocs.value = notes.map((note) => ({
+        id: note.id,
+        title: note.title,
+        content: note.content,
+        category: note.deadline ? '需求' : '日常',
+        project: note.projectId === 'global' ? null : note.projectId,
+        completed: note.isArchived,
+        createdAt: note.createdAt,
+        updatedAt: note.updatedAt,
+        deadline: note.deadline,
+      }))
     } catch (err) {
       console.error('Failed to load completed documents:', err)
     }
@@ -53,10 +52,7 @@ const completedDocs = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   return allCompletedDocs.value.filter((doc) => {
     if (!query) return true
-    return (
-      doc.title.toLowerCase().includes(query) ||
-      doc.content.toLowerCase().includes(query)
-    )
+    return doc.title.toLowerCase().includes(query) || doc.content.toLowerCase().includes(query)
   })
 })
 
@@ -95,9 +91,13 @@ function formatDate(dateStr: string | Date) {
 <template>
   <div class="flex flex-col h-[400px] -mx-6 -my-4">
     <!-- Search Bar -->
-    <div class="px-6 py-3 border-b border-slate-100 dark:border-zinc-800/60 flex items-center gap-3 bg-slate-50/50 dark:bg-zinc-900/30">
+    <div
+      class="px-6 py-3 border-b border-slate-100 dark:border-zinc-800/60 flex items-center gap-3 bg-slate-50/50 dark:bg-zinc-900/30"
+    >
       <div class="relative w-full">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-zinc-500" />
+        <Search
+          class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-zinc-500"
+        />
         <input
           v-model="searchQuery"
           type="text"

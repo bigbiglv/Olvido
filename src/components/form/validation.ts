@@ -3,9 +3,8 @@ import type { InjectionKey } from 'vue'
 
 export type FormValidationMode = 'input' | 'submit'
 
-const FORM_VALIDATION_MODE_KEY: InjectionKey<ComputedRef<FormValidationMode>> = Symbol(
-  'FORM_VALIDATION_MODE',
-)
+const FORM_VALIDATION_MODE_KEY: InjectionKey<ComputedRef<FormValidationMode>> =
+  Symbol('FORM_VALIDATION_MODE')
 
 export function provideFormValidationMode(getMode: () => FormValidationMode | undefined) {
   provide(

@@ -44,19 +44,16 @@ interface FormSelectProps extends Omit<SelectProps, 'defaultValue' | 'modelValue
   validationMode?: FormValidationMode
 }
 
-const props = withDefaults(
-  defineProps<FormSelectProps>(),
-  {
-    class: undefined,
-    clearable: true,
-    description: undefined,
-    disabled: false,
-    label: undefined,
-    placeholder: undefined,
-    triggerClass: undefined,
-    validationMode: undefined,
-  },
-)
+const props = withDefaults(defineProps<FormSelectProps>(), {
+  class: undefined,
+  clearable: true,
+  description: undefined,
+  disabled: false,
+  label: undefined,
+  placeholder: undefined,
+  triggerClass: undefined,
+  validationMode: undefined,
+})
 
 const selectProps = reactiveOmit(
   props,
@@ -85,9 +82,7 @@ const resolvedPlaceholder = computed(() => {
     return props.placeholder
   }
 
-  return props.label
-    ? `请选择${props.label}`
-    : '请选择'
+  return props.label ? `请选择${props.label}` : '请选择'
 })
 </script>
 
@@ -97,11 +92,7 @@ const resolvedPlaceholder = computed(() => {
       <FormLabel v-if="label">{{ label }}</FormLabel>
       <Select v-bind="{ ...selectProps, ...componentField }">
         <FormControl>
-          <SelectTrigger
-            :clearable="clearable"
-            :class="triggerClass"
-            :disabled="props.disabled"
-          >
+          <SelectTrigger :clearable="clearable" :class="triggerClass" :disabled="props.disabled">
             <SelectValue :placeholder="resolvedPlaceholder" />
           </SelectTrigger>
         </FormControl>
