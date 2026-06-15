@@ -6,7 +6,7 @@ const store = useDocumentsStore()
 </script>
 
 <template>
-  <header class="h-16 border-b border-slate-200 dark:border-zinc-800 flex items-center px-8 justify-between select-none bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md z-10 shrink-0">
+  <header class="h-16 border-b border-slate-200 dark:border-zinc-800 flex items-center px-8 justify-center select-none bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md z-10 shrink-0">
     <!-- Search Bar Area -->
     <div class="flex items-center gap-3 flex-1 max-w-lg">
       <div class="relative w-full">
