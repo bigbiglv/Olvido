@@ -7,13 +7,14 @@ import '@milkdown/crepe/theme/frame.css'
 
 interface Props {
   modelValue?: string
+  onlyOrderedList?: boolean
 }
 
 interface Emits {
   (e: 'update:modelValue', value: string): void
 }
 
-const { modelValue = '' } = defineProps<Props>()
+const { modelValue = '', onlyOrderedList = false } = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const editorRef = ref<HTMLDivElement | null>(null)
@@ -26,6 +27,16 @@ onMounted(async () => {
   crepe = new Crepe({
     root: editorRef.value,
     defaultValue: modelValue,
+    features: onlyOrderedList ? {
+      [Crepe.Feature.Toolbar]: false,
+      [Crepe.Feature.BlockEdit]: false,
+      [Crepe.Feature.ImageBlock]: false,
+      [Crepe.Feature.Table]: false,
+      [Crepe.Feature.Latex]: false,
+      [Crepe.Feature.CodeMirror]: false,
+      [Crepe.Feature.TopBar]: false,
+      [Crepe.Feature.LinkTooltip]: false,
+    } : undefined
   })
 
   crepe.on((listener) => {
@@ -61,10 +72,9 @@ watch(() => modelValue, (newValue) => {
 </script>
 
 <template>
-  <div class="milkdown-editor-wrapper w-full h-full min-h-[300px]">
+  <div class="milkdown-editor-wrapper w-full h-full" :class="onlyOrderedList ? 'min-h-[220px]' : 'min-h-[300px]'">
     <div ref="editorRef" class="editor-container h-full"></div>
-  </div>
-</template>
+  </div></template>
 
 <style scoped>
 .milkdown-editor-wrapper {

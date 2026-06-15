@@ -124,11 +124,12 @@ function selectDefaultDocument() {
 }
 
 // Create a new document
-async function createDocument(title = '无标题文档', content = '') {
+async function createDocument(title = '无标题文档', content = '', category?: '日常' | '需求') {
+  const targetCategory = category || (store.currentCategory === '已完成' ? '日常' : store.currentCategory)
   const newDoc = {
     title,
     content,
-    category: store.currentCategory === '已完成' ? '日常' : store.currentCategory,
+    category: targetCategory,
     project: store.currentProject,
     completed: false,
   }

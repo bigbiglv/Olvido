@@ -6,10 +6,12 @@ import { CheckCircle2, FileX } from 'lucide-vue-next'
 import { Dialog } from '@/components/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CompletedDocsDialog from './CompletedDocsDialog.vue'
+import QuickAddDialog from './QuickAddDialog.vue'
 
 const store = useDocumentsStore()
 
 const filteredDocuments = inject<ComputedRef<DocumentItem[]>>('filteredDocuments')!
+const createDocument = inject<(title: string, content: string, category?: '日常' | '需求') => Promise<void>>('createDocument')!
 const saveDocument = inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
 const deleteDocument = inject<(docId: string) => Promise<void>>('deleteDocument')!
 const loadDocuments = inject<() => Promise<void>>('loadDocuments')!
@@ -26,6 +28,28 @@ function handleOpenCompleted() {
     width: 600,
     height: 480,
   })
+}
+
+async function handleQuickAdd() {
+  try {
+    const titles = await Dialog.show<string[]>(QuickAddDialog, {}, {
+      title: '快速批量新增日常文档',
+      width: 550,
+      height: 420,
+      okText: '生成',
+      cancelText: '取消',
+    })
+    if (titles && titles.length > 0) {
+      // Reverse loop to keep the first input item at the top of the unshifted list and selected
+      for (const title of [...titles].reverse()) {
+        await createDocument(title, '', '日常')
+      }
+      // Auto switch category to daily to show the results
+      store.currentCategory = '日常'
+    }
+  } catch (err) {
+    // Dialog cancelled
+  }
 }
 
 const categoryTabs: Array<'日常' | '需求'> = ['日常', '需求']
@@ -86,13 +110,22 @@ function formatDocTime(dateStr: string | Date) {
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <Button
-        variant="outline"
-        size="sm"
-        @click="handleOpenCompleted"
-      >
-        已完成
-      </Button>
+      <div class="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          @click="handleQuickAdd"
+        >
+          快速新增
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          @click="handleOpenCompleted"
+        >
+          已完成
+        </Button>
+      </div>
     </div>
 
     <!-- Scrollable List -->
