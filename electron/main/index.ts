@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { initDatabase, ensureGlobalProject } from '../prisma/client'
@@ -20,6 +20,9 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let win: BrowserWindow | null = null
 
 function createWindow() {
+  // 移除默认菜单栏
+  Menu.setApplicationMenu(null)
+
   win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -27,6 +30,9 @@ function createWindow() {
       preload: path.join(__dirname, 'index.mjs'),
     },
   })
+
+  // 针对 Windows/Linux 移除窗口菜单
+  win.removeMenu()
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
