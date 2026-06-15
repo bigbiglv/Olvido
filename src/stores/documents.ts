@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { isElectron } from '@/utils/env'
+import { apiListNotes, apiCreateNote, apiUpdateNote, apiDeleteNote } from '@/apis/note'
 
 export const useDocumentsStore = defineStore('documents', {
   state: () => ({
@@ -54,8 +55,18 @@ export const useDocumentsStore = defineStore('documents', {
       if (isElectron) {
         this.dbStatus = '正在连接 SQLite 数据库...'
         try {
-          const docs = await window.electronAPI.getDocuments()
-          this.documents = docs
+          const pid = this.currentProject || 'global'
+          const notes = await apiListNotes(pid)
+          this.documents = notes.map((note) => ({
+            id: note.id,
+            title: note.title,
+            content: note.content,
+            category: note.deadline ? '需求' : '日常',
+            project: note.projectId === 'global' ? null : note.projectId,
+            completed: note.isArchived,
+            createdAt: note.createdAt,
+            updatedAt: note.updatedAt,
+          }))
           this.dbStatus = '已连接 SQLite 数据库'
         } catch (err) {
           console.error('Failed to load documents:', err)
@@ -109,7 +120,7 @@ export const useDocumentsStore = defineStore('documents', {
             {
               id: '5',
               title: 'API 服务重构草案',
-              content: '# API 服务重构草案\n\n重构后端接口，迁移到 NestJS。',
+              content: '# API 服务重构草案\n\n重构后端接口，迁移 to NestJS。',
               category: '日常',
               project: 'API 服务重构',
               completed: false,
@@ -156,7 +167,24 @@ export const useDocumentsStore = defineStore('documents', {
 
       if (isElectron) {
         try {
-          const saved = await window.electronAPI.saveDocument(newDoc)
+          const deadline = newDoc.category === '需求' ? new Date() : null
+          const created = await apiCreateNote({
+            projectId: this.currentProject || 'global',
+            title: newDoc.title,
+            content: newDoc.content,
+            deadline,
+            isArchived: false,
+          })
+          const saved: DocumentItem = {
+            id: created.id,
+            title: created.title,
+            content: created.content,
+            category: created.deadline ? '需求' : '日常',
+            project: created.projectId === 'global' ? null : created.projectId,
+            completed: created.isArchived,
+            createdAt: created.createdAt,
+            updatedAt: created.updatedAt,
+          }
           this.documents.unshift(saved)
           this.selectedDocumentId = saved.id
           this.lastSavedTime = new Date().toLocaleTimeString()
@@ -191,13 +219,14 @@ export const useDocumentsStore = defineStore('documents', {
 
       if (isElectron) {
         try {
-          await window.electronAPI.saveDocument({
+          const deadline = updatedDoc.category === '需求' ? (updatedDoc.createdAt ? new Date(updatedDoc.createdAt) : new Date()) : null
+          await apiUpdateNote({
             id: updatedDoc.id,
             title: updatedDoc.title,
             content: updatedDoc.content,
-            category: updatedDoc.category,
-            project: updatedDoc.project,
-            completed: updatedDoc.completed,
+            projectId: updatedDoc.project || 'global',
+            isArchived: updatedDoc.completed,
+            deadline,
           })
           this.lastSavedTime = new Date().toLocaleTimeString()
         } catch (err) {
@@ -211,7 +240,7 @@ export const useDocumentsStore = defineStore('documents', {
     async deleteDocument(docId: string) {
       if (isElectron) {
         try {
-          await window.electronAPI.deleteDocument(docId)
+          await apiDeleteNote(docId)
           this.documents = this.documents.filter((d) => d.id !== docId)
         } catch (err) {
           console.error('Failed to delete document:', err)
@@ -232,9 +261,9 @@ export const useDocumentsStore = defineStore('documents', {
       }
     },
 
-    selectProject(project: string | null) {
+    async selectProject(project: string | null) {
       this.currentProject = project
-      this.selectDefaultDocument()
+      await this.loadDocuments()
     },
 
     selectCategory(category: '日常' | '需求' | '已完成') {

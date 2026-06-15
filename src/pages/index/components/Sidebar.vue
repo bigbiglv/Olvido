@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Dialog } from '@/components/dialog'
 import SettingsPage from './SettingsPage.vue'
+import { apiListProjects, apiCreateProject } from '@/apis/project'
+import type { ProjectDto } from '../../../../electron/types/project'
+import { isElectron } from '@/utils/env'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   BookOpen,
   Folder,
@@ -13,24 +18,106 @@ import {
 
 const store = useDocumentsStore()
 
-// State for project addition inline
-const showAddProject = ref(false)
-const newProjectName = ref('')
+/** 本地项目列表数据 */
+const projects = ref<ProjectDto[]>([])
 
-// Handle adding project
-function handleAddProject() {
-  const name = newProjectName.value.trim()
-  if (name) {
-    store.addProject(name)
-    newProjectName.value = ''
-    showAddProject.value = false
-    // Set current project
-    store.selectProject(name)
+/** 是否显示行内新建项目输入框 */
+const showAddProject = ref(false)
+/** 行内新建项目的名称输入值 */
+const newProjectName = ref('')
+/** 是否处于创建项目的请求过程中（防重锁） */
+const isAdding = ref(false)
+/** 新建项目请求的超时定时器句柄 */
+let addTimeout: number | undefined
+
+
+// 挂载时加载项目列表
+onMounted(async () => {
+  await fetchProjects()
+})
+
+/**
+ * 从 SQLite 数据库中获取项目列表
+ */
+async function fetchProjects() {
+  if (isElectron) {
+    try {
+      const list = await apiListProjects()
+      // 过滤掉数据库内置的 global 笔记本项目，避免与顶部的“笔记本”选项重复
+      projects.value = list.filter((p) => p.id !== 'global')
+    } catch (error) {
+      console.error('Failed to fetch projects from database:', error)
+    } finally {
+      // 满足异步 try-catch-finally 块规范
+    }
   }
 }
 
-// Open Settings dialog programmatically
-function openSettings() {
+/**
+ * 切换选中的项目
+ * @param projectId 项目唯一标识（null 表示全局记事本）
+ */
+function handleSelectProject(projectId: string | null) {
+  store.selectProject(projectId)
+}
+
+/**
+ * 提交并新建项目
+ */
+async function handleAddProject() {
+  const name = newProjectName.value.trim()
+  if (!name || isAdding.value) return
+
+  isAdding.value = true
+
+  // 5秒超时防御，自动释放锁定状态防止 UI 卡死
+  addTimeout = window.setTimeout(() => {
+    if (isAdding.value) {
+      isAdding.value = false
+      console.warn('Add project timeout, lock released')
+    }
+  }, 5000)
+
+  if (isElectron) {
+    try {
+      const newId = crypto.randomUUID()
+      const newProj = await apiCreateProject({ id: newId, name })
+      projects.value.push(newProj)
+      newProjectName.value = ''
+      showAddProject.value = false
+      store.selectProject(newProj.id)
+    } catch (error) {
+      console.error('Failed to create project:', error)
+    } finally {
+      isAdding.value = false
+      if (addTimeout) {
+        clearTimeout(addTimeout)
+        addTimeout = undefined
+      }
+    }
+  } else {
+    try {
+      // 网页预览模式下的 Mock 回退机制
+      const newId = Math.random().toString(36).substr(2, 9)
+      const newProj = { id: newId, name }
+      projects.value.push(newProj)
+      newProjectName.value = ''
+      showAddProject.value = false
+      store.selectProject(newId)
+    } finally {
+      isAdding.value = false
+      if (addTimeout) {
+        clearTimeout(addTimeout)
+        addTimeout = undefined
+      }
+    }
+  }
+}
+
+/**
+ * 打开系统设置对话框
+ */
+function handleOpenSettings() {
   Dialog.show(SettingsPage, {}, {
     title: '系统设置',
     footer: false,
@@ -65,18 +152,19 @@ function openSettings() {
         >
           全局
         </div>
-        <button
-          class="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left cursor-pointer border-0"
+        <Button
+          variant="ghost"
+          class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left border-0"
           :class="
             store.currentProject === null
-              ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
+              ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50 hover:bg-white dark:hover:bg-zinc-800 hover:text-indigo-600 dark:hover:text-indigo-400'
               : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
           "
-          @click="store.selectProject(null)"
+          @click="handleSelectProject(null)"
         >
           <BookOpen class="size-4.5" />
           <span>笔记本</span>
-        </button>
+        </Button>
       </div>
 
       <!-- 项目 Group -->
@@ -87,23 +175,25 @@ function openSettings() {
           >
             项目
           </span>
-          <button
-            class="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer border-0 bg-transparent"
+          <Button
+            variant="ghost"
+            size="icon"
+            class="size-6 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition bg-transparent"
             title="新建项目"
             @click="showAddProject = !showAddProject"
           >
             <Plus class="size-4.5" />
-          </button>
+          </Button>
         </div>
 
         <!-- Inline Add Project Form -->
         <div v-if="showAddProject" class="px-3 py-1 space-y-2">
-          <input
+          <Input
             ref="newProjectInput"
             v-model="newProjectName"
             type="text"
             placeholder="项目名称"
-            class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-zinc-200"
+            class="h-8 text-xs bg-white dark:bg-zinc-800 focus-visible:ring-indigo-500 border-indigo-200 dark:border-zinc-700"
             autofocus
             @keyup.enter="handleAddProject"
             @blur="handleAddProject"
@@ -112,20 +202,21 @@ function openSettings() {
 
         <!-- Project List -->
         <div class="space-y-1">
-          <button
-            v-for="proj in store.projects"
-            :key="proj"
-            class="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left cursor-pointer border-0"
+          <Button
+            v-for="proj in projects"
+            :key="proj.id"
+            variant="ghost"
+            class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left border-0"
             :class="
-              store.currentProject === proj
-                ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
+              store.currentProject === proj.id
+                ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50 hover:bg-white dark:hover:bg-zinc-800 hover:text-indigo-600 dark:hover:text-indigo-400'
                 : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
             "
-            @click="store.selectProject(proj)"
+            @click="handleSelectProject(proj.id)"
           >
             <Folder class="size-4.5 opacity-70" />
-            <span class="truncate">{{ proj }}</span>
-          </button>
+            <span class="truncate">{{ proj.name }}</span>
+          </Button>
         </div>
       </div>
     </nav>
@@ -134,13 +225,14 @@ function openSettings() {
     <div
       class="p-4 border-t border-slate-200/60 dark:border-zinc-800/60 bg-white/10 dark:bg-transparent"
     >
-      <button
-        class="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100 cursor-pointer border-0 bg-transparent"
-        @click="openSettings"
+      <Button
+        variant="ghost"
+        class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100 border-0 bg-transparent"
+        @click="handleOpenSettings"
       >
         <Settings class="size-4.5" />
         <span>设置</span>
-      </button>
+      </Button>
     </div>
   </aside>
 </template>
