@@ -2,10 +2,20 @@ import { prisma } from '../prisma/client'
 import type { CreateNoteDto, UpdateNoteDto } from '../types/note'
 
 export class NoteService {
-  async getNotesByProject(projectId: string) {
+  async getNotesByProject(projectId: string, type?: 'daily' | 'requirement' | 'archived') {
     try {
+      const where: any = { projectId }
+      if (type === 'daily') {
+        where.deadline = null
+        where.isArchived = false
+      } else if (type === 'requirement') {
+        where.deadline = { not: null }
+        where.isArchived = false
+      } else if (type === 'archived') {
+        where.isArchived = true
+      }
       return await prisma.note.findMany({
-        where: { projectId },
+        where,
         orderBy: [
           { sort: 'asc' },
           { updatedAt: 'desc' }

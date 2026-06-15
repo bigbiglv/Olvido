@@ -1,7 +1,7 @@
 import type { CreateNoteDto, UpdateNoteDto } from '../../electron/types/note'
 
-export function apiListNotes(projectId: string) {
-  return window.api.note.list(projectId)
+export function apiListNotes(projectId: string, type?: 'daily' | 'requirement' | 'archived') {
+  return window.api.note.list(projectId, type)
 }
 
 export function apiGetNote(id: string) {

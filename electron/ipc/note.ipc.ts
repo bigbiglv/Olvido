@@ -12,9 +12,9 @@ export function registerNoteIpc() {
   ipcMain.removeHandler(NOTE_CHANNELS.DELETE)
 
   // Register list handler
-  ipcMain.handle(NOTE_CHANNELS.LIST, async (_, projectId: string) => {
+  ipcMain.handle(NOTE_CHANNELS.LIST, async (_, projectId: string, type?: 'daily' | 'requirement' | 'archived') => {
     try {
-      return await noteService.getNotesByProject(projectId)
+      return await noteService.getNotesByProject(projectId, type)
     } catch (error) {
       console.error(`IPC note:list error for project ${projectId}:`, error)
       throw new Error('获取笔记列表失败', { cause: error })

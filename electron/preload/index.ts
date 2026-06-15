@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('api', {
     delete: (id: string) => ipcRenderer.invoke(PROJECT_CHANNELS.DELETE, id),
   },
   note: {
-    list: (projectId: string) => ipcRenderer.invoke(NOTE_CHANNELS.LIST, projectId),
+    list: (projectId: string, type?: 'daily' | 'requirement' | 'archived') => ipcRenderer.invoke(NOTE_CHANNELS.LIST, projectId, type),
     get: (id: string) => ipcRenderer.invoke(NOTE_CHANNELS.GET, id),
     create: (dto: CreateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.CREATE, dto),
     update: (dto: UpdateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.UPDATE, dto),
