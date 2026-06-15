@@ -24,3 +24,17 @@ release
 *.njsproj
 *.sln
 *.sw?
+
+# Prisma / SQLite
+/prisma/dev.db
+/prisma/dev.db-journal
+/prisma/dev.db-shm
+/prisma/dev.db-wal
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+

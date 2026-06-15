@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
-
-const isElectron = typeof window !== 'undefined' && window.electronAPI !== undefined
+import { isElectron } from '@/utils/env'
 
 export const useDocumentsStore = defineStore('documents', {
   state: () => ({
