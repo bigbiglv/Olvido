@@ -99,14 +99,12 @@ export function useSearch() {
           // 关闭搜索面板
           store.closeSearch()
 
-          // 切换项目：如果是 'global' 则设为 null，否则设为项目 ID
-          documentsStore.currentProject = note.projectId === 'global' ? null : note.projectId
-
-          // 切换笔记分类：根据有无截止日期确定为日常或需求
-          documentsStore.currentCategory = note.deadline ? '需求' : '日常'
-
-          // 设置当前选中的笔记 ID 触发编辑器定位
-          documentsStore.selectedDocumentId = note.id
+          // 切换项目与分类，并且选中该笔记（使用 switchProjectAndCategory 避免选中状态被清理）
+          documentsStore.switchProjectAndCategory(
+            note.projectId === 'global' ? null : note.projectId,
+            note.deadline ? '需求' : '日常',
+            note.id,
+          )
         }
       }
     } catch (err) {

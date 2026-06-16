@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { defineStore } from 'pinia'
 import { isElectron } from '@/utils/env'
 import { apiListNotes, apiCreateNote, apiUpdateNote, apiDeleteNote, apiGetNote } from '@/apis/note'
@@ -76,12 +76,17 @@ export const useDocumentsStore = defineStore('documents', () => {
         const notes = await apiListNotes(pid, type)
         const list = notes.map(mapNoteToDocument)
 
-        // 如果存在当前选中的文档，且不在过滤列表里（如已归档但正在被编辑的文档），则临时加入列表
+        // 如果存在当前选中的文档，且不在过滤列表里（如已归档但正在被编辑的文档），且属于当前项目和当前分类，则临时加入列表
         if (selectedDocumentId.value && !list.some((d) => d.id === selectedDocumentId.value)) {
           try {
             const note = await apiGetNote(selectedDocumentId.value)
             if (note) {
-              list.push(mapNoteToDocument(note))
+              const doc = mapNoteToDocument(note)
+              const noteProject = doc.project || 'global'
+              const currentPid = currentProject.value || 'global'
+              if (noteProject === currentPid && doc.category === currentCategory.value) {
+                list.push(doc)
+              }
             }
           } catch (err) {
             console.error('Failed to append selected archived document:', err)
@@ -291,10 +296,32 @@ export const useDocumentsStore = defineStore('documents', () => {
     }
   }
 
+  let preserveSelection = false
+
+  /**
+   * 切换项目与分类，并可选地选中特定文档，避免被 watch 清除选中状态
+   */
+  function switchProjectAndCategory(projectId: string | null, category: '日常' | '需求' | '已完成', docId?: string | null) {
+    preserveSelection = true
+    currentProject.value = projectId
+    currentCategory.value = category
+    if (docId !== undefined) {
+      selectedDocumentId.value = docId
+    }
+    nextTick(() => {
+      preserveSelection = false
+    })
+  }
+
   // 监听当前项目/分类的变化，并自动刷新文档列表
   watch(
     () => [currentProject.value, currentCategory.value],
     async () => {
+      if (preserveSelection) {
+        preserveSelection = false
+      } else {
+        selectedDocumentId.value = null
+      }
       await loadDocuments()
     },
   )
@@ -314,5 +341,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     createDocument,
     saveDocument,
     deleteDocument,
+    switchProjectAndCategory,
   }
-})
+}
+)

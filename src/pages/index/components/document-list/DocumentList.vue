@@ -46,8 +46,8 @@ async function handleQuickAdd() {
       for (const title of [...titles].reverse()) {
         await store.createDocument(title, '', '日常')
       }
-      // Auto switch category to daily to show the results
-      store.currentCategory = '日常'
+      // Auto switch category to daily to show the results, using switchProjectAndCategory to preserve selected document ID
+      store.switchProjectAndCategory(store.currentProject, '日常', store.selectedDocumentId)
     }
   } catch {
     // Dialog cancelled
