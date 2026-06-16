@@ -10,6 +10,8 @@ export const PROJECT_CHANNELS = {
   UPDATE: 'project:update',
   /** 删除项目 */
   DELETE: 'project:delete',
+  /** 重新排序项目 */
+  REORDER: 'project:reorder',
 } as const
 
 /** 笔记 IPC 频道常量 */

@@ -8,10 +8,13 @@ import {
   apiCreateProject,
   apiUpdateProject,
   apiDeleteProject,
+  apiReorderProjects,
 } from '@/apis/project'
 import { confirm } from '@/components/confirm'
 import RenameProjectDialog from './RenameProjectDialog.vue'
 import type { ProjectDto } from '../../../../../electron/types/project'
+import DraggableList from '@/components/ui/draggableList/DraggableList.vue'
+import type { ReorderEvent } from '@/components/ui/draggableList/types'
 import { isElectron } from '@/utils/env'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,8 +28,11 @@ const projects = ref<ProjectDto[]>([])
 
 /** 是否显示行内新建项目输入框 */
 const showAddProject = ref(false)
-/** 行内新建项目的名称输入值 */
 const newProjectName = ref('')
+const listSelectedIds = ref<string[]>([])
+
+// 右键菜单注册
+
 /** 是否处于创建项目的请求过程中（防重锁） */
 const isAdding = ref(false)
 /** 新建项目请求的超时定时器句柄 */
@@ -95,6 +101,48 @@ async function fetchProjects() {
  */
 function handleSelectProject(projectId: string | null) {
   store.currentProject = projectId
+  listSelectedIds.value = projectId ? [projectId] : ['global']
+}
+
+function handleProjectSelectionChange(ids: string[]) {
+  listSelectedIds.value = ids
+}
+
+function handleGlobalClick() {
+  listSelectedIds.value = ['global']
+}
+
+function handleGlobalDblClick() {
+  handleSelectProject(null)
+}
+
+/**
+ * 拖拽排序完成处理
+ */
+async function handleReorderProjects(event: ReorderEvent<ProjectDto>) {
+  const { items: newItems, movedIds } = event
+  const firstMovedIndex = newItems.findIndex((item) => movedIds.includes(item.id))
+  if (firstMovedIndex === -1) return
+
+  const prevItem = firstMovedIndex > 0 ? newItems[firstMovedIndex - 1] : null
+  const lastMovedIndex = firstMovedIndex + movedIds.length - 1
+  const nextItem = lastMovedIndex < newItems.length - 1 ? newItems[lastMovedIndex + 1] : null
+
+  // 立即更新本地状态
+  projects.value = newItems
+
+  if (isElectron) {
+    try {
+      await apiReorderProjects({
+        movedIds,
+        prevId: prevItem ? prevItem.id : null,
+        nextId: nextItem ? nextItem.id : null,
+      })
+      await fetchProjects()
+    } catch (error) {
+      console.error('Failed to reorder projects:', error)
+    }
+  }
 }
 
 /**
@@ -121,7 +169,7 @@ async function handleAddProject() {
       projects.value.push(newProj)
       newProjectName.value = ''
       showAddProject.value = false
-      store.currentProject = newProj.id
+      handleSelectProject(newProj.id)
     } catch (error) {
       console.error('Failed to create project:', error)
     } finally {
@@ -139,8 +187,8 @@ async function handleAddProject() {
       projects.value.push(newProj)
       newProjectName.value = ''
       showAddProject.value = false
-      store.currentProject = newId
-    } finally {
+      handleSelectProject(newId)
+    } catch (error) {
       isAdding.value = false
       if (addTimeout) {
         clearTimeout(addTimeout)
@@ -200,8 +248,10 @@ async function handleDeleteProject(proj: ProjectDto) {
       projects.value = projects.value.filter((p) => p.id !== proj.id)
       // 如果被删除的是当前选中的项目，重置为全局记事本
       if (store.currentProject === proj.id) {
-        store.currentProject = null
+        handleSelectProject(null)
       }
+      // 从多选中移除
+      listSelectedIds.value = listSelectedIds.value.filter((id) => id !== proj.id)
     } catch (error) {
       console.error('Failed to delete project:', error)
     }
@@ -224,9 +274,9 @@ async function handleDeleteProject(proj: ProjectDto) {
     </div>
 
     <!-- Sidebar Navigation -->
-    <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-7">
+    <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-7" @click.self="listSelectedIds = []">
       <!-- 全局 Group -->
-      <div class="space-y-2">
+      <div class="space-y-2" @click.self="listSelectedIds = []">
         <div
           class="px-3 text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
         >
@@ -235,12 +285,19 @@ async function handleDeleteProject(proj: ProjectDto) {
         <Button
           variant="ghost"
           class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left border-0"
-          :class="
+          :class="[
             store.currentProject === null
-              ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50 hover:bg-white dark:hover:bg-zinc-800 hover:text-indigo-600 dark:hover:text-indigo-400'
-              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
-          "
-          @click="handleSelectProject(null)"
+              ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
+              : '',
+            listSelectedIds.includes('global') && store.currentProject !== null
+              ? 'bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
+              : '',
+            store.currentProject !== null && !listSelectedIds.includes('global')
+              ? 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
+              : ''
+          ]"
+          @click="handleGlobalClick"
+          @dblclick="handleGlobalDblClick"
         >
           <BookOpen class="size-4.5" />
           <span>笔记本</span>
@@ -248,8 +305,8 @@ async function handleDeleteProject(proj: ProjectDto) {
       </div>
 
       <!-- 项目 Group -->
-      <div class="space-y-2">
-        <div class="flex items-center justify-between px-3">
+      <div class="space-y-2" @click.self="listSelectedIds = []">
+        <div class="flex items-center justify-between px-3" @click.self="listSelectedIds = []">
           <span
             class="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
           >
@@ -281,25 +338,39 @@ async function handleDeleteProject(proj: ProjectDto) {
         </div>
 
         <!-- Project List -->
-        <div class="space-y-1">
-          <Button
-            v-for="proj in projects"
-            :key="proj.id"
-            data-context-region="project"
-            variant="ghost"
-            class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left border-0"
-            :class="
-              store.currentProject === proj.id
-                ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50 hover:bg-white dark:hover:bg-zinc-800 hover:text-indigo-600 dark:hover:text-indigo-400'
-                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
-            "
-            @click="handleSelectProject(proj.id)"
-            @contextmenu="handleContextMenu($event, proj)"
-          >
-            <Folder class="size-4.5 opacity-70" />
-            <span class="truncate">{{ proj.name }}</span>
-          </Button>
-        </div>
+        <DraggableList
+          :items="projects"
+          item-key="id"
+          :selected-ids="listSelectedIds"
+          :opened-id="store.currentProject || ''"
+          @selection-change="handleProjectSelectionChange"
+          @open="(proj) => handleSelectProject(proj.id)"
+          @reorder="handleReorderProjects"
+          @context-menu="(proj, event) => handleContextMenu(event, proj)"
+          class="space-y-1"
+        >
+          <template #item="{ item: proj, selected, opened }">
+            <Button
+              data-context-region="project"
+              variant="ghost"
+              class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left border-0"
+              :class="[
+                opened
+                  ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
+                  : '',
+                selected && !opened
+                  ? 'bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
+                  : '',
+                !opened && !selected
+                  ? 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
+                  : ''
+              ]"
+            >
+              <Folder class="size-4.5 opacity-70" />
+              <span class="truncate">{{ proj.name }}</span>
+            </Button>
+          </template>
+        </DraggableList>
       </div>
     </nav>
 

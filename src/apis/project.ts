@@ -19,3 +19,11 @@ export function apiUpdateProject(data: UpdateProjectDto) {
 export function apiDeleteProject(id: string) {
   return window.api.project.delete(id)
 }
+
+export function apiReorderProjects(data: {
+  movedIds: string[]
+  prevId: string | null
+  nextId: string | null
+}) {
+  return window.api.project.reorder(data)
+}

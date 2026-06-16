@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('api', {
     create: (dto: CreateProjectDto) => ipcRenderer.invoke(PROJECT_CHANNELS.CREATE, dto),
     update: (dto: UpdateProjectDto) => ipcRenderer.invoke(PROJECT_CHANNELS.UPDATE, dto),
     delete: (id: string) => ipcRenderer.invoke(PROJECT_CHANNELS.DELETE, id),
+    reorder: (data: { movedIds: string[]; prevId: string | null; nextId: string | null }) =>
+      ipcRenderer.invoke(PROJECT_CHANNELS.REORDER, data),
   },
   note: {
     list: (projectId: string, type?: 'daily' | 'requirement' | 'archived') =>

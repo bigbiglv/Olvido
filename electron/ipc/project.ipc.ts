@@ -10,6 +10,7 @@ export function registerProjectIpc() {
   ipcMain.removeHandler(PROJECT_CHANNELS.CREATE)
   ipcMain.removeHandler(PROJECT_CHANNELS.UPDATE)
   ipcMain.removeHandler(PROJECT_CHANNELS.DELETE)
+  ipcMain.removeHandler(PROJECT_CHANNELS.REORDER)
 
   // Register list handler
   ipcMain.handle(PROJECT_CHANNELS.LIST, async () => {
@@ -60,4 +61,17 @@ export function registerProjectIpc() {
       throw new Error('删除项目失败', { cause: error })
     }
   })
+
+  // Register reorder handler
+  ipcMain.handle(
+    PROJECT_CHANNELS.REORDER,
+    async (_, data: { movedIds: string[]; prevId: string | null; nextId: string | null }) => {
+      try {
+        return await projectService.reorderProjects(data)
+      } catch (error) {
+        console.error('IPC project:reorder error:', error)
+        throw new Error('重新排序项目失败', { cause: error })
+      }
+    },
+  )
 }

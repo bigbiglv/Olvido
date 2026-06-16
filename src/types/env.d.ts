@@ -56,6 +56,12 @@ declare global {
         update: (dto: UpdateProjectDto) => Promise<ProjectDto>
         /** 删除项目 */
         delete: (id: string) => Promise<ProjectDto>
+        /** 重新排序项目 */
+        reorder: (data: {
+          movedIds: string[]
+          prevId: string | null
+          nextId: string | null
+        }) => Promise<void>
       }
       note: {
         /** 获取笔记列表 */

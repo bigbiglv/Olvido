@@ -73,6 +73,107 @@ export class ProjectService {
       throw error
     }
   }
+  async reorderProjects(data: {
+    movedIds: string[]
+    prevId: string | null
+    nextId: string | null
+  }) {
+    const { movedIds, prevId, nextId } = data
+    const movedCount = movedIds.length
+    if (movedCount === 0) return
+
+    try {
+      const prevItem = prevId ? await prisma.project.findUnique({ where: { id: prevId } }) : null
+      const nextItem = nextId ? await prisma.project.findUnique({ where: { id: nextId } }) : null
+
+      const prevSort = prevItem ? prevItem.sortOrder : 0
+      const nextSort = nextItem ? nextItem.sortOrder : 0
+
+      // 情况 1: 拖拽到顶部
+      if (!prevItem && nextItem) {
+        const baseSort = nextSort - movedCount * 1000
+        await prisma.$transaction(
+          movedIds.map((id, index) =>
+            prisma.project.update({
+              where: { id },
+              data: { sortOrder: baseSort + index * 1000 },
+            }),
+          ),
+        )
+        return
+      }
+
+      // 情况 2: 拖拽到底部
+      if (prevItem && !nextItem) {
+        await prisma.$transaction(
+          movedIds.map((id, index) =>
+            prisma.project.update({
+              where: { id },
+              data: { sortOrder: prevSort + (index + 1) * 1000 },
+            }),
+          ),
+        )
+        return
+      }
+
+      // 情况 3: 列表为空
+      if (!prevItem && !nextItem) {
+        await prisma.$transaction(
+          movedIds.map((id, index) =>
+            prisma.project.update({
+              where: { id },
+              data: { sortOrder: (index + 1) * 1000 },
+            }),
+          ),
+        )
+        return
+      }
+
+      // 情况 4: 拖拽到中间，检测插入空间
+      const gap = nextSort - prevSort
+      if (gap <= movedCount) {
+        const allProjects = await prisma.project.findMany({
+          orderBy: [{ sortOrder: 'asc' }, { updatedAt: 'desc' }],
+        })
+
+        const remainingProjects = allProjects.filter((p) => !movedIds.includes(p.id))
+        const prevIndex = remainingProjects.findIndex((p) => p.id === prevId)
+
+        const reordered: typeof allProjects = []
+        remainingProjects.forEach((p, index) => {
+          reordered.push(p)
+          if (index === prevIndex) {
+            movedIds.forEach((id) => {
+              const movedProj = allProjects.find((x) => x.id === id)
+              if (movedProj) reordered.push(movedProj)
+            })
+          }
+        })
+
+        await prisma.$transaction(
+          reordered.map((p, index) =>
+            prisma.project.update({
+              where: { id: p.id },
+              data: { sortOrder: (index + 1) * 1000 },
+            }),
+          ),
+        )
+      } else {
+        const step = Math.floor(gap / (movedCount + 1))
+        await prisma.$transaction(
+          movedIds.map((id, index) =>
+            prisma.project.update({
+              where: { id },
+              data: { sortOrder: prevSort + step * (index + 1) },
+            }),
+          ),
+        )
+      }
+    } catch (error) {
+      console.error('Failed to reorder projects:', error)
+      throw error
+    }
+  }
 }
 
 export const projectService = new ProjectService()
