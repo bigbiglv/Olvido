@@ -73,12 +73,8 @@ dialog.onConfirm(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full -mx-6 -my-4 p-4 space-y-4 bg-slate-50/30 dark:bg-zinc-900/10">
-    <div
-      class="flex-1 overflow-hidden border border-slate-200 dark:border-zinc-700/60 rounded-xl bg-white dark:bg-zinc-800"
-    >
-      <Editor v-model="markdownContent" only-ordered-list auto-focus />
-    </div>
+  <div class="p-4">
+    <Editor v-model="markdownContent" only-ordered-list auto-focus />
   </div>
 </template>
 
