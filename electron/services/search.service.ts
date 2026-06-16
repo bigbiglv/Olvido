@@ -77,10 +77,9 @@ export class SearchService {
 
       // Helper function to format items
       const formatItem = (item: SearchItemRaw, isContentMatch: boolean): SearchItem => {
-        const createdAtStr = item.createdAt instanceof Date 
-          ? item.createdAt.toISOString() 
-          : String(item.createdAt)
-        
+        const createdAtStr =
+          item.createdAt instanceof Date ? item.createdAt.toISOString() : String(item.createdAt)
+
         const searchItem: SearchItem = {
           id: item.noteId,
           projectId: item.projectId,
@@ -98,13 +97,13 @@ export class SearchService {
         return searchItem
       }
 
-      const titleMatches = titleRaw.map(item => formatItem(item, false))
-      
+      const titleMatches = titleRaw.map((item) => formatItem(item, false))
+
       // Deduplicate content matches (if already matched in title, don't repeat in content matches)
-      const titleNoteIds = new Set(titleMatches.map(m => m.id))
+      const titleNoteIds = new Set(titleMatches.map((m) => m.id))
       const contentMatches = contentRaw
-        .filter(item => !titleNoteIds.has(item.noteId))
-        .map(item => formatItem(item, true))
+        .filter((item) => !titleNoteIds.has(item.noteId))
+        .map((item) => formatItem(item, true))
 
       return {
         titleMatches,
@@ -136,23 +135,23 @@ function generateSnippet(content: string, keyword: string, length = 100): string
   if (terms.length > 0) {
     index = plainText.toLowerCase().indexOf(terms[0].toLowerCase())
   }
-  
+
   if (index === -1) {
     return plainText.substring(0, length) + '...'
   }
 
   const start = Math.max(0, index - Math.floor(length / 2))
   const end = Math.min(plainText.length, start + length)
-  
+
   let snippet = plainText.substring(start, end)
-  
+
   if (start > 0) {
     snippet = '...' + snippet
   }
   if (end < plainText.length) {
     snippet = snippet + '...'
   }
-  
+
   return snippet
 }
 

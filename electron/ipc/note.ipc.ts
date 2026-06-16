@@ -10,6 +10,7 @@ export function registerNoteIpc() {
   ipcMain.removeHandler(NOTE_CHANNELS.CREATE)
   ipcMain.removeHandler(NOTE_CHANNELS.UPDATE)
   ipcMain.removeHandler(NOTE_CHANNELS.DELETE)
+  ipcMain.removeHandler(NOTE_CHANNELS.REORDER)
 
   // Register list handler
   ipcMain.handle(
@@ -63,4 +64,26 @@ export function registerNoteIpc() {
       throw new Error('删除笔记失败', { cause: error })
     }
   })
+
+  // Register reorder handler
+  ipcMain.handle(
+    NOTE_CHANNELS.REORDER,
+    async (
+      _,
+      data: {
+        movedIds: string[]
+        prevId: string | null
+        nextId: string | null
+        projectId: string
+        type: 'daily' | 'requirement'
+      },
+    ) => {
+      try {
+        return await noteService.reorderNotes(data)
+      } catch (error) {
+        console.error('IPC note:reorder error:', error)
+        throw new Error('重新排序笔记失败', { cause: error })
+      }
+    },
+  )
 }

@@ -23,7 +23,9 @@ export function useKeyboardShortcuts() {
           searchStore.projectId = store.currentProject || 'global'
         }
 
-        const inputEl = document.querySelector('input[placeholder="输入关键词搜索..."]') as HTMLInputElement
+        const inputEl = document.querySelector(
+          'input[placeholder="输入关键词搜索..."]',
+        ) as HTMLInputElement
         if (inputEl) {
           inputEl.focus()
           inputEl.select()

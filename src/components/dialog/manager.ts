@@ -18,25 +18,29 @@ let lastClickRect: { left: number; top: number; width: number; height: number } 
 let clearTimer: ReturnType<typeof setTimeout> | null = null
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('click', (e) => {
-    const target = e.target
-    if (target && typeof (target as any).closest === 'function') {
-      const triggerEl = (target as any).closest('button, a, [role="button"]') || target
-      if (triggerEl && typeof (triggerEl as any).getBoundingClientRect === 'function') {
-        const rect = (triggerEl as any).getBoundingClientRect()
-        lastClickRect = {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
+  window.addEventListener(
+    'click',
+    (e) => {
+      const target = e.target
+      if (target && typeof (target as any).closest === 'function') {
+        const triggerEl = (target as any).closest('button, a, [role="button"]') || target
+        if (triggerEl && typeof (triggerEl as any).getBoundingClientRect === 'function') {
+          const rect = (triggerEl as any).getBoundingClientRect()
+          lastClickRect = {
+            left: rect.left,
+            top: rect.top,
+            width: rect.width,
+            height: rect.height,
+          }
+          if (clearTimer) clearTimeout(clearTimer)
+          clearTimer = setTimeout(() => {
+            lastClickRect = null
+          }, 100)
         }
-        if (clearTimer) clearTimeout(clearTimer)
-        clearTimer = setTimeout(() => {
-          lastClickRect = null
-        }, 100)
       }
-    }
-  }, { capture: true, passive: true })
+    },
+    { capture: true, passive: true },
+  )
 }
 
 function resolveTriggerRect(
@@ -240,7 +244,10 @@ function remove(id: string, delay?: number) {
     const animate = instance.settings.animate
     const isGsap = animate !== false
     if (isGsap) {
-      const customDuration = typeof animate === 'object' && typeof animate.duration === 'number' ? animate.duration : null
+      const customDuration =
+        typeof animate === 'object' && typeof animate.duration === 'number'
+          ? animate.duration
+          : null
       if (customDuration !== null) {
         finalDelay = customDuration * 1000 + 50
       } else {
@@ -276,7 +283,8 @@ export const Dialog = {
     }
     const layout = createLayout(settings)
     const draggable = resolveDraggable(settings)
-    const triggerRect = resolveTriggerRect(settings.trigger) || (lastClickRect ? { ...lastClickRect } : null)
+    const triggerRect =
+      resolveTriggerRect(settings.trigger) || (lastClickRect ? { ...lastClickRect } : null)
     lastClickRect = null // 消费后重置
 
     return new Promise<TResult>((resolve, reject) => {

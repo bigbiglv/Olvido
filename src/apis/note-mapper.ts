@@ -16,5 +16,6 @@ export function mapNoteToDocument(note: NoteDto): DocumentItem {
     createdAt: note.createdAt,
     updatedAt: note.updatedAt,
     deadline: note.deadline,
+    sortOrder: note.sortOrder,
   }
 }

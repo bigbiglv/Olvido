@@ -13,7 +13,7 @@ export interface NoteDto {
   /** 是否已被归档 */
   isArchived: boolean
   /** 排序权重，数值越小越靠前 */
-  sort: number
+  sortOrder: number
   /** 创建时间 */
   createdAt: Date
   /** 更新时间 */
@@ -33,7 +33,7 @@ export interface CreateNoteDto {
   /** 是否归档，默认值为 false */
   isArchived?: boolean
   /** 排序权重，默认值为 0 */
-  sort?: number
+  sortOrder?: number
 }
 
 /** 更新笔记数据传输对象 */
@@ -51,5 +51,5 @@ export interface UpdateNoteDto {
   /** 是否已归档 */
   isArchived?: boolean
   /** 排序权重 */
-  sort?: number
+  sortOrder?: number
 }

@@ -53,7 +53,7 @@ export function useSearch() {
       searchTimeout = setTimeout(() => {
         performSearch()
       }, 300)
-    }
+    },
   )
 
   onUnmounted(() => {
@@ -79,10 +79,7 @@ export function useSearch() {
   // 选择并打开笔记
   const selectItem = async (item: SearchItem) => {
     try {
-      const result = await Dialog.show<string>(
-        NotePreviewDialog,
-        { item },
-      )
+      const result = await Dialog.show<string>(NotePreviewDialog, { item })
 
       if (result === 'edit') {
         // 获取该笔记最新的完整详情（以此确认其真正的 deadline 和分类）

@@ -1,7 +1,14 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { defineStore } from 'pinia'
 import { isElectron } from '@/utils/env'
-import { apiListNotes, apiCreateNote, apiUpdateNote, apiDeleteNote, apiGetNote } from '@/apis/note'
+import {
+  apiListNotes,
+  apiCreateNote,
+  apiUpdateNote,
+  apiDeleteNote,
+  apiGetNote,
+  apiReorderNotes,
+} from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 
 export const useDocumentsStore = defineStore('documents', () => {
@@ -176,7 +183,12 @@ export const useDocumentsStore = defineStore('documents', () => {
    * @param content 内容，默认为空
    * @param category 分类，默认取当前选中分类
    */
-  async function createDocument(title = '无标题文档', content = '', category?: '日常' | '需求') {
+  async function createDocument(
+    title = '无标题文档',
+    content = '',
+    category?: '日常' | '需求',
+    skipReload = false,
+  ) {
     const targetCategory = category || currentCategory.value
     const newDoc = {
       title,
@@ -197,8 +209,10 @@ export const useDocumentsStore = defineStore('documents', () => {
           isArchived: false,
         })
         const saved = mapNoteToDocument(created)
-        documents.value.unshift(saved)
         selectedDocumentId.value = saved.id
+        if (!skipReload) {
+          await loadDocuments()
+        }
         lastSavedTime.value = new Date().toLocaleTimeString()
       } catch (err) {
         console.error('Failed to create document:', err)
@@ -283,7 +297,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     if (isElectron) {
       try {
         await apiDeleteNote(docId)
-        documents.value = documents.value.filter((d) => d.id !== docId)
+        await loadDocuments()
       } catch (err) {
         console.error('Failed to delete document:', err)
       }
@@ -296,12 +310,62 @@ export const useDocumentsStore = defineStore('documents', () => {
     }
   }
 
+  /**
+   * 重新排序文档（向后端发起区间排序请求，并在完成后更新本地数据列表）
+   */
+  async function reorderDocuments(data: {
+    movedIds: string[]
+    prevId: string | null
+    nextId: string | null
+    projectId: string
+    type: 'daily' | 'requirement'
+  }) {
+    if (isElectron) {
+      try {
+        await apiReorderNotes(data)
+        // 重新从数据库拉取，保证内存顺序和排序字段绝对同步与准确
+        await loadDocuments()
+      } catch (err) {
+        console.error('Failed to reorder documents:', err)
+      }
+    } else {
+      // Mock 网页预览模式：纯内存级拖拽重排逻辑
+      const allNotes = [...documents.value]
+      const movedNotes = allNotes.filter((n) => data.movedIds.includes(n.id))
+      const remainingNotes = allNotes.filter((n) => !data.movedIds.includes(n.id))
+
+      if (data.prevId) {
+        const prevIndex = remainingNotes.findIndex((n) => n.id === data.prevId)
+        if (prevIndex !== -1) {
+          remainingNotes.splice(prevIndex + 1, 0, ...movedNotes)
+        }
+      } else if (data.nextId) {
+        const nextIndex = remainingNotes.findIndex((n) => n.id === data.nextId)
+        if (nextIndex !== -1) {
+          remainingNotes.splice(nextIndex, 0, ...movedNotes)
+        }
+      } else {
+        remainingNotes.push(...movedNotes)
+      }
+
+      // 重新生成 Mock 的 sortOrder 序号
+      remainingNotes.forEach((note, index) => {
+        note.sortOrder = (index + 1) * 1000
+      })
+      documents.value = remainingNotes
+    }
+  }
+
   let preserveSelection = false
 
   /**
    * 切换项目与分类，并可选地选中特定文档，避免被 watch 清除选中状态
    */
-  function switchProjectAndCategory(projectId: string | null, category: '日常' | '需求' | '已完成', docId?: string | null) {
+  function switchProjectAndCategory(
+    projectId: string | null,
+    category: '日常' | '需求' | '已完成',
+    docId?: string | null,
+  ) {
     preserveSelection = true
     currentProject.value = projectId
     currentCategory.value = category
@@ -342,6 +406,6 @@ export const useDocumentsStore = defineStore('documents', () => {
     saveDocument,
     deleteDocument,
     switchProjectAndCategory,
+    reorderDocuments,
   }
-}
-)
+})

@@ -13,7 +13,7 @@ model Project {
   // 项目名称
   name      String
   // 排序序号，用于拖拽排序
-  sort      Int      @default(0)
+  sortOrder Int      @default(0)
   // 创建时间
   createdAt DateTime @default(now())
   // 更新时间
@@ -36,7 +36,7 @@ model Note {
   // 归档状态，用于未来归档功能
   isArchived Boolean   @default(false)
   // 排序序号，用于拖拽排序
-  sort       Int       @default(0)
+  sortOrder  Int       @default(0)
   // 创建时间
   createdAt  DateTime  @default(now())
   // 更新时间

@@ -19,3 +19,13 @@ export function apiUpdateNote(data: UpdateNoteDto) {
 export function apiDeleteNote(id: string) {
   return window.api.note.delete(id)
 }
+
+export function apiReorderNotes(data: {
+  movedIds: string[]
+  prevId: string | null
+  nextId: string | null
+  projectId: string
+  type: 'daily' | 'requirement'
+}) {
+  return window.api.note.reorder(data)
+}

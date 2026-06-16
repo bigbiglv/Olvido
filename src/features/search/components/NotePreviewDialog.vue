@@ -18,8 +18,8 @@ defineOptions({
     draggable: true,
     closeOnEsc: true,
     okText: '在主编辑器中打开',
-    cancelText: '关闭'
-  } as DialogOptions
+    cancelText: '关闭',
+  } as DialogOptions,
 })
 
 const props = defineProps<{
@@ -46,7 +46,7 @@ function formatDate(dateStr: string | Date | undefined) {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 }
 
@@ -79,8 +79,8 @@ onMounted(async () => {
       features: {
         [Crepe.Feature.Toolbar]: false,
         [Crepe.Feature.TopBar]: false,
-        [Crepe.Feature.BlockEdit]: false
-      }
+        [Crepe.Feature.BlockEdit]: false,
+      },
     })
 
     try {
@@ -104,7 +104,9 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full overflow-hidden bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100">
+  <div
+    class="flex flex-col h-full overflow-hidden bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100"
+  >
     <!-- 顶部元信息栏 -->
     <div
       class="px-6 py-4 border-b border-slate-100 dark:border-zinc-800/60 bg-gradient-to-r from-slate-50/50 to-white dark:from-zinc-900/50 dark:to-zinc-900 flex flex-col gap-2 shrink-0"
@@ -112,16 +114,21 @@ onBeforeUnmount(async () => {
       <h1 class="text-xl font-bold text-slate-900 dark:text-zinc-50 truncate leading-snug">
         {{ noteData?.title || item.title }}
       </h1>
-      
+
       <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-zinc-400">
         <!-- 所属项目标签 -->
-        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 font-medium">
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 font-medium"
+        >
           <span class="size-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
           <span>{{ item.projectName }}</span>
         </div>
 
         <!-- 归档状态标签 -->
-        <div v-if="isArchived" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-medium border border-amber-200/40 dark:border-amber-900/30">
+        <div
+          v-if="isArchived"
+          class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-medium border border-amber-200/40 dark:border-amber-900/30"
+        >
           <span>已归档</span>
         </div>
 
@@ -136,9 +143,14 @@ onBeforeUnmount(async () => {
     <!-- 中间滚动编辑区 -->
     <div class="flex-1 overflow-y-auto relative p-6 bg-slate-50/10 dark:bg-zinc-950/10">
       <!-- 优雅的旋转加载动画 -->
-      <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-zinc-900/80 z-20 transition-all duration-300">
+      <div
+        v-if="loading"
+        class="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-zinc-900/80 z-20 transition-all duration-300"
+      >
         <div class="flex flex-col items-center gap-3">
-          <div class="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500/20 border-t-indigo-600 dark:border-indigo-400/20 dark:border-t-indigo-400"></div>
+          <div
+            class="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500/20 border-t-indigo-600 dark:border-indigo-400/20 dark:border-t-indigo-400"
+          ></div>
           <span class="text-sm text-slate-500 dark:text-zinc-400 font-medium">加载内容中...</span>
         </div>
       </div>

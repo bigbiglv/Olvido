@@ -188,4 +188,3 @@ export async function initFts() {
     console.error('Failed to initialize FTS5 database layers:', error)
   }
 }
-

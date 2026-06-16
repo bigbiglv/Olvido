@@ -3,7 +3,7 @@ export type SearchMatchType = 'title' | 'content'
 export interface SearchRequest {
   keyword: string
   projectId?: string // undefined = 全部项目, 'global' = 全局笔记本, UUID = 指定项目
-  limit?: number     // 默认 50，最大 200
+  limit?: number // 默认 50，最大 200
 }
 
 export interface SearchResult {

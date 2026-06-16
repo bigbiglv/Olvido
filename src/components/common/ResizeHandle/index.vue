@@ -11,7 +11,7 @@ const props = withDefaults(
     minWidth: 150,
     maxWidth: 600,
     direction: 'right',
-  }
+  },
 )
 
 const width = defineModel<number>({ required: true })
@@ -82,7 +82,7 @@ onUnmounted(() => {
       :class="[
         isDragging
           ? 'w-[3px] bg-indigo-500 dark:bg-indigo-400'
-          : 'bg-slate-200 dark:bg-zinc-800 group-hover:w-[3px] group-hover:bg-indigo-500/80 dark:group-hover:bg-indigo-400/80'
+          : 'bg-slate-200 dark:bg-zinc-800 group-hover:w-[3px] group-hover:bg-indigo-500/80 dark:group-hover:bg-indigo-400/80',
       ]"
     />
   </div>

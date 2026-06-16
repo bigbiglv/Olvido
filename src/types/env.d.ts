@@ -24,6 +24,7 @@ declare global {
     createdAt: string | Date
     updatedAt: string | Date
     deadline?: string | Date | null
+    sortOrder?: number
   }
 
   interface ElectronAPI {
@@ -67,6 +68,14 @@ declare global {
         update: (dto: UpdateNoteDto) => Promise<NoteDto>
         /** 删除笔记 */
         delete: (id: string) => Promise<NoteDto>
+        /** 重新排序笔记 */
+        reorder: (data: {
+          movedIds: string[]
+          prevId: string | null
+          nextId: string | null
+          projectId: string
+          type: 'daily' | 'requirement'
+        }) => Promise<void>
       }
       search: {
         /** 全文搜索列表 */

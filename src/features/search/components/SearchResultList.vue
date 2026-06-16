@@ -26,7 +26,7 @@ watch(
         activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
       }
     })
-  }
+  },
 )
 </script>
 
@@ -45,7 +45,9 @@ watch(
     <template v-else>
       <!-- 第一组：标题匹配 -->
       <div v-if="results.titleMatches.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+        <div
+          class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
+        >
           <span>标题匹配</span>
           <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-[10px]">
             {{ results.titleMatches.length }}
@@ -64,7 +66,9 @@ watch(
 
       <!-- 第二组：内容匹配 -->
       <div v-if="results.contentMatches.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+        <div
+          class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
+        >
           <span>内容匹配</span>
           <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-[10px]">
             {{ results.contentMatches.length }}

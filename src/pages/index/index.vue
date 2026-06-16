@@ -43,9 +43,7 @@ onMounted(() => {
 
       <!-- Main Content Area -->
       <div class="flex-1 overflow-hidden min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
-        <div
-          class="h-full flex min-w-0 overflow-hidden"
-        >
+        <div class="h-full flex min-w-0 overflow-hidden">
           <DocumentList :style="{ width: `${docListWidth}px` }" class="shrink-0" />
           <ResizeHandle v-model="docListWidth" :min-width="240" :max-width="480" />
           <div

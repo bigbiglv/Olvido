@@ -5,7 +5,7 @@ export class ProjectService {
   async getProjects() {
     try {
       return await prisma.project.findMany({
-        orderBy: { sort: 'asc' },
+        orderBy: { sortOrder: 'asc' },
       })
     } catch (error) {
       console.error('Failed to get projects:', error)
@@ -26,11 +26,16 @@ export class ProjectService {
 
   async createProject(data: CreateProjectDto) {
     try {
+      const lastProject = await prisma.project.findFirst({
+        orderBy: { sortOrder: 'desc' },
+      })
+      const sortOrder = (lastProject?.sortOrder ?? 0) + 1000
+
       return await prisma.project.create({
         data: {
           id: data.id,
           name: data.name,
-          sort: data.sort ?? 0,
+          sortOrder,
         },
       })
     } catch (error) {
@@ -45,7 +50,7 @@ export class ProjectService {
         where: { id: data.id },
         data: {
           name: data.name,
-          sort: data.sort,
+          sortOrder: data.sortOrder,
         },
       })
     } catch (error) {

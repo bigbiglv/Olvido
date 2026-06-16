@@ -5,7 +5,7 @@ export interface ProjectDto {
   /** 项目名称 */
   name: string
   /** 排序权重，数值越小越靠前 */
-  sort?: number
+  sortOrder?: number
 }
 
 /** 创建项目数据传输对象 */
@@ -15,7 +15,7 @@ export interface CreateProjectDto {
   /** 项目名称 */
   name: string
   /** 排序权重，数值越小越靠前 */
-  sort?: number
+  sortOrder?: number
 }
 
 /** 更新项目数据传输对象 */
@@ -25,5 +25,5 @@ export interface UpdateProjectDto {
   /** 更新后的项目名称 */
   name?: string
   /** 更新后的排序权重 */
-  sort?: number
+  sortOrder?: number
 }

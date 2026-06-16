@@ -3,36 +3,37 @@ import { computed } from 'vue'
 import { CheckCircle2 } from 'lucide-vue-next'
 
 interface Props {
+  /** 文档数据项 */
   doc: DocumentItem
-  isSelected: boolean
+  /** 是否被选中 */
+  isSelected?: boolean
+  /** 是否处于打开状态（Active） */
+  isOpened?: boolean
+  /** 是否处于悬停状态（Hover） */
+  isHovered?: boolean
 }
 
 interface Emits {
-  (e: 'select', id: string): void
+  /** 触发切换文档完成状态 */
   (e: 'toggle', doc: DocumentItem, event: Event): void
-  (e: 'contextmenu', event: MouseEvent, doc: DocumentItem): void
 }
 
-const props = defineProps<Props>()
+const { doc, isSelected = false, isOpened = false, isHovered = false } = defineProps<Props>()
+
 const emit = defineEmits<Emits>()
 
-function handleClick() {
-  emit('select', props.doc.id)
-}
-
+/**
+ * 切换文档完成状态事件处理
+ */
 function handleToggle(event: Event) {
   event.stopPropagation()
-  emit('toggle', props.doc, event)
-}
-
-function handleContextMenu(event: MouseEvent) {
-  emit('contextmenu', event, props.doc)
+  emit('toggle', doc, event)
 }
 
 // 1. 使用 computed 统一计算天数差，并提供健壮的无效日期容错
 const diffDays = computed(() => {
-  if (!props.doc.deadline) return null
-  const deadline = new Date(props.doc.deadline)
+  if (!doc.deadline) return null
+  const deadline = new Date(doc.deadline)
   if (isNaN(deadline.getTime())) return null // 容错：无效日期直接返回 null
 
   const dDate = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate())
@@ -65,14 +66,14 @@ function getDeadlineClass(days: number | null): string {
 <template>
   <div
     class="w-full text-left py-2 px-3 rounded-xl transition-all border flex items-center gap-3 cursor-pointer"
-    :class="
+    :class="[
       isSelected
         ? 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700/60 shadow-sm'
-        : 'bg-transparent border-transparent hover:bg-slate-50/50 dark:hover:bg-zinc-800/30'
-    "
+        : isHovered
+          ? 'bg-slate-50/50 dark:bg-zinc-800/30 border-slate-100/50 dark:border-zinc-800/20'
+          : 'bg-transparent border-transparent',
+    ]"
     data-context-region="document"
-    @click="handleClick"
-    @contextmenu.prevent="handleContextMenu"
   >
     <!-- Completion checkbox -->
     <button
@@ -90,10 +91,12 @@ function getDeadlineClass(days: number | null): string {
     <!-- Title and Time -->
     <div class="flex items-center justify-between gap-3 min-w-0 flex-1">
       <span
-        class="font-semibold text-sm truncate"
-        :class="
-          isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-zinc-200'
-        "
+        class="font-semibold text-sm truncate transition-colors"
+        :class="[
+          isOpened
+            ? 'text-indigo-600 dark:text-indigo-400 font-bold'
+            : 'text-slate-700 dark:text-zinc-200',
+        ]"
       >
         {{ doc.title || '无标题文档' }}
       </span>

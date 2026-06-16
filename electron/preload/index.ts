@@ -19,6 +19,13 @@ contextBridge.exposeInMainWorld('api', {
     create: (dto: CreateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.CREATE, dto),
     update: (dto: UpdateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.UPDATE, dto),
     delete: (id: string) => ipcRenderer.invoke(NOTE_CHANNELS.DELETE, id),
+    reorder: (data: {
+      movedIds: string[]
+      prevId: string | null
+      nextId: string | null
+      projectId: string
+      type: 'daily' | 'requirement'
+    }) => ipcRenderer.invoke(NOTE_CHANNELS.REORDER, data),
   },
   search: {
     list: (request: SearchRequest) => ipcRenderer.invoke('search:list', request),

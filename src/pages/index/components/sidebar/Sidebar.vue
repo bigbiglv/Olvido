@@ -154,13 +154,10 @@ async function handleAddProject() {
  * 打开系统设置对话框
  */
 function handleOpenSettings() {
-  Dialog.show(
-    SettingsPage,
-    {
-      dbStatus: store.dbStatus,
-      documentCount: store.documents.length,
-    },
-  )
+  Dialog.show(SettingsPage, {
+    dbStatus: store.dbStatus,
+    documentCount: store.documents.length,
+  })
 }
 
 /**
@@ -168,10 +165,7 @@ function handleOpenSettings() {
  */
 async function handleRenameProject(proj: ProjectDto) {
   try {
-    const newName = await Dialog.show<string>(
-      RenameProjectDialog,
-      { initialName: proj.name },
-    )
+    const newName = await Dialog.show<string>(RenameProjectDialog, { initialName: proj.name })
     if (newName) {
       if (isElectron) {
         await apiUpdateProject({ id: proj.id, name: newName })
@@ -216,9 +210,7 @@ async function handleDeleteProject(proj: ProjectDto) {
 </script>
 
 <template>
-  <aside
-    class="bg-slate-50/70 dark:bg-zinc-950/40 flex flex-col h-full select-none"
-  >
+  <aside class="bg-slate-50/70 dark:bg-zinc-950/40 flex flex-col h-full select-none">
     <!-- Brand Logo -->
     <div
       class="h-16 flex items-center px-6 gap-2 border-b border-slate-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-transparent"
