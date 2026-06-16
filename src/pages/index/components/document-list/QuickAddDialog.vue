@@ -11,35 +11,44 @@ function parseTitlesFromMarkdown(markdown: string): string[] {
   const titles: string[] = []
 
   for (const line of lines) {
-    const trimmed = line.trim()
-    if (!trimmed) continue
+    // 预处理行：替换常见的 HTML 实体和标签（&nbsp;, &#x20;, <br />, <br> 等），并统一 Unicode 空格后 trim
+    const processedLine = line
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&#x20;/g, ' ')
+      .replace(/<br\s*\/?>/gi, '')
+      .replace(/[\s\u00A0]+/g, ' ')
+      .trim()
 
-    // Ignore line if it only contains a list prefix (e.g., "1.", "2)", "-", "*")
-    if (/^\d+[.)]$/.test(trimmed) || /^[-*+]$/.test(trimmed)) {
+    if (!processedLine) continue
+
+    // 忽略仅有列表前缀的行
+    if (/^\d+[.)]$/.test(processedLine) || /^[-*+]$/.test(processedLine)) {
       continue
     }
 
-    // Match ordered list: "1. Title", "2) Title"
-    const orderedMatch = trimmed.match(/^\d+[.)]\s+(.+)$/)
+    // 匹配有序列表
+    const orderedMatch = processedLine.match(/^\d+[.)]\s+(.+)$/)
     if (orderedMatch) {
-      titles.push(orderedMatch[1].trim())
+      const title = orderedMatch[1].trim()
+      if (title) titles.push(title)
       continue
     }
 
-    // Match bulleted list: "- Title", "* Title", "+ Title"
-    const bulletMatch = trimmed.match(/^[-*+]\s+(.+)$/)
+    // 匹配无序列表
+    const bulletMatch = processedLine.match(/^[-*+]\s+(.+)$/)
     if (bulletMatch) {
-      titles.push(bulletMatch[1].trim())
+      const title = bulletMatch[1].trim()
+      if (title) titles.push(title)
       continue
     }
 
-    // Treat non-empty lines as titles if not formatted as lists
-    if (!trimmed.startsWith('#') && !trimmed.startsWith('>') && !trimmed.startsWith('`')) {
-      titles.push(trimmed)
+    // 非列表格式的非空行
+    if (!processedLine.startsWith('#') && !processedLine.startsWith('>') && !processedLine.startsWith('`')) {
+      titles.push(processedLine)
     }
   }
 
-  return titles.filter(Boolean)
+  return titles
 }
 
 dialog.onConfirm(() => {
