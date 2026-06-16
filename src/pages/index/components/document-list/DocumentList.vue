@@ -127,14 +127,12 @@ async function handleConvertToRequirement(doc: DocumentItem) {
 }
 
 function handleSelectionChange(ids: string[]) {
-  if (ids.length > 0) {
-    store.selectedDocumentId = ids[0]
-  } else {
-    store.selectedDocumentId = null
-  }
+  store.listSelectedIds = ids
 }
 
-function handleSelect(item: DocumentItem) {
+
+
+function handleOpen(item: DocumentItem) {
   store.selectedDocumentId = item.id
 }
 
@@ -187,7 +185,7 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
     </div>
 
     <!-- Scrollable List -->
-    <div class="flex-1 overflow-y-auto p-4">
+    <div class="flex-1 overflow-y-auto p-4" @click.self="store.listSelectedIds = []">
       <div
         v-if="store.filteredDocuments.length === 0"
         class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4"
@@ -200,10 +198,10 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
         v-else
         :items="store.filteredDocuments"
         item-key="id"
-        :selected-ids="store.selectedDocumentId ? [store.selectedDocumentId] : []"
+        :selected-ids="store.listSelectedIds"
         :opened-id="store.selectedDocumentId"
         @selection-change="handleSelectionChange"
-        @select="handleSelect"
+        @open="handleOpen"
         @reorder="handleReorder"
         @context-menu="(item, event) => handleContextMenu(event, item)"
       >

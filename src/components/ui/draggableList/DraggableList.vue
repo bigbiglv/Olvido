@@ -126,7 +126,7 @@ function handleItemMouseLeave() {
 </script>
 
 <template>
-  <div ref="containerRef" class="dl-container">
+  <div ref="containerRef" class="dl-container" @click.self="emit('selection-change', [])">
     <div
       v-for="item in items"
       :key="String(item[itemKey as keyof T])"

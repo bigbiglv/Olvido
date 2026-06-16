@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, type Ref } from 'vue'
+import { onMounted, onUnmounted, type Ref, watch } from 'vue'
 import Sortable from 'sortablejs'
 import { MultiDrag } from 'sortablejs'
 import type { ReorderEvent } from './types'
@@ -43,6 +43,7 @@ export function useSortable<T>(
   emit: SortableEmits<T>,
 ) {
   let sortableInstance: Sortable | null = null
+  let stopWatch: (() => void) | null = null
 
   onMounted(() => {
     if (!containerRef.value) return
@@ -132,9 +133,31 @@ export function useSortable<T>(
         })
       },
     })
+
+    stopWatch = watch(
+      () => config.getSelectedIds(),
+      (newIds) => {
+        if (!containerRef.value) return
+        const children = Array.from(containerRef.value.children)
+        children.forEach((child) => {
+          const id = child.getAttribute('data-id')
+          if (!id) return
+          if (newIds.includes(id)) {
+            Sortable.utils.select(child as HTMLElement)
+          } else {
+            Sortable.utils.deselect(child as HTMLElement)
+          }
+        })
+      },
+      { deep: true, immediate: true }
+    )
   })
 
   onUnmounted(() => {
+    if (stopWatch) {
+      stopWatch()
+      stopWatch = null
+    }
     if (sortableInstance) {
       sortableInstance.destroy()
       sortableInstance = null

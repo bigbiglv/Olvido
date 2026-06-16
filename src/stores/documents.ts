@@ -17,6 +17,7 @@ export const useDocumentsStore = defineStore('documents', () => {
   const currentCategory = ref<'日常' | '需求' | '已完成'>('日常')
   const searchQuery = ref('')
   const selectedDocumentId = ref<string | null>(null)
+  const listSelectedIds = ref<string[]>([])
   const dbStatus = ref('未连接')
   const lastSavedTime = ref('')
   const documents = ref<DocumentItem[]>([])
@@ -60,9 +61,13 @@ export const useDocumentsStore = defineStore('documents', () => {
     if (filtered.length > 0) {
       if (!selectedDocumentId.value || !filtered.some((d) => d.id === selectedDocumentId.value)) {
         selectedDocumentId.value = filtered[0].id
+        listSelectedIds.value = [filtered[0].id]
+      } else {
+        listSelectedIds.value = [selectedDocumentId.value]
       }
     } else {
       selectedDocumentId.value = null
+      listSelectedIds.value = []
     }
   }
 
@@ -210,6 +215,7 @@ export const useDocumentsStore = defineStore('documents', () => {
         })
         const saved = mapNoteToDocument(created)
         selectedDocumentId.value = saved.id
+        listSelectedIds.value = [saved.id]
         if (!skipReload) {
           await loadDocuments()
         }
@@ -227,6 +233,7 @@ export const useDocumentsStore = defineStore('documents', () => {
       }
       documents.value.unshift(mockSaved)
       selectedDocumentId.value = mockSaved.id
+      listSelectedIds.value = [mockSaved.id]
       lastSavedTime.value = new Date().toLocaleTimeString()
     }
   }
@@ -371,6 +378,11 @@ export const useDocumentsStore = defineStore('documents', () => {
     currentCategory.value = category
     if (docId !== undefined) {
       selectedDocumentId.value = docId
+      if (docId !== null) {
+        listSelectedIds.value = [docId]
+      } else {
+        listSelectedIds.value = []
+      }
     }
     nextTick(() => {
       preserveSelection = false
@@ -385,6 +397,7 @@ export const useDocumentsStore = defineStore('documents', () => {
         preserveSelection = false
       } else {
         selectedDocumentId.value = null
+        listSelectedIds.value = []
       }
       await loadDocuments()
     },
@@ -395,6 +408,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     currentCategory,
     searchQuery,
     selectedDocumentId,
+    listSelectedIds,
     dbStatus,
     lastSavedTime,
     documents,
