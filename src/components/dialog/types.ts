@@ -1,3 +1,4 @@
+/// <reference types="gsap" />
 import type { AsyncComponentLoader, Component, InjectionKey, VNode } from 'vue'
 
 export const DIALOG_KEY: InjectionKey<DialogContext> = Symbol('DIALOG_KEY')
@@ -13,6 +14,13 @@ export type DialogButtonProps = Record<string, unknown>
  * `deferred` 松手后更新
  */
 export type DialogResizeStrategy = 'realtime' | 'deferred'
+
+export type DialogTrigger =
+  | string
+  | Element
+  | MouseEvent
+  | { left: number; top: number; width?: number; height?: number }
+  | DOMRect
 
 export interface DialogOptions {
   /** 弹窗标题 */
@@ -107,6 +115,12 @@ export interface DialogOptions {
 
   /** 自定义插槽 */
   slots?: Partial<Record<DialogSlotName, DialogSlot>>
+
+  /** 触发源，用于动画过渡起点 */
+  trigger?: DialogTrigger
+
+  /** 启用/禁用动画或自定义动画配置 */
+  animate?: boolean | gsap.TweenVars
 }
 
 export interface DialogShowConfig<TProps = Record<string, unknown>> {
@@ -169,6 +183,8 @@ export interface DialogInstance {
   confirmLoading: boolean
   resolve: (value: unknown) => void
   reject: (reason?: unknown) => void
+  /** 触发源的屏幕绝对坐标矩形缓存 */
+  triggerRect?: { left: number; top: number; width: number; height: number }
 }
 
 export interface DialogLifecycle<TResult = unknown> {

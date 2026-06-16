@@ -14,6 +14,65 @@ type ComponentWithDialogOptions = Component & {
   dialogOptions?: DialogOptions
 }
 
+let lastClickRect: { left: number; top: number; width: number; height: number } | null = null
+let clearTimer: ReturnType<typeof setTimeout> | null = null
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('click', (e) => {
+    const target = e.target
+    if (target && typeof (target as any).closest === 'function') {
+      const triggerEl = (target as any).closest('button, a, [role="button"]') || target
+      if (triggerEl && typeof (triggerEl as any).getBoundingClientRect === 'function') {
+        const rect = (triggerEl as any).getBoundingClientRect()
+        lastClickRect = {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+        }
+        if (clearTimer) clearTimeout(clearTimer)
+        clearTimer = setTimeout(() => {
+          lastClickRect = null
+        }, 100)
+      }
+    }
+  }, { capture: true, passive: true })
+}
+
+function resolveTriggerRect(
+  trigger: DialogOptions['trigger'],
+): { left: number; top: number; width: number; height: number } | null {
+  if (!trigger) return null
+  if (typeof trigger === 'string') {
+    if (typeof document === 'undefined') return null
+    const el = document.querySelector(trigger)
+    return el && typeof el.getBoundingClientRect === 'function' ? el.getBoundingClientRect() : null
+  }
+  if (typeof MouseEvent !== 'undefined' && trigger instanceof MouseEvent) {
+    return { left: trigger.clientX, top: trigger.clientY, width: 0, height: 0 }
+  }
+  if (typeof trigger === 'object') {
+    if (typeof (trigger as any).getBoundingClientRect === 'function') {
+      const rect = (trigger as any).getBoundingClientRect()
+      return {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+      }
+    }
+    if ('left' in trigger && 'top' in trigger) {
+      return {
+        left: (trigger as any).left,
+        top: (trigger as any).top,
+        width: (trigger as any).width ?? 0,
+        height: (trigger as any).height ?? 0,
+      }
+    }
+  }
+  return null
+}
+
 const defaultOptions = {
   mask: true,
   maskClosable: true,
@@ -170,16 +229,32 @@ function createLayout(settings: DialogOptions) {
   }
 }
 
-function remove(id: string, delay = 160) {
+function remove(id: string, delay?: number) {
   const instance = stack.find((item) => item.id === id)
-  if (!instance) return
+  if (!instance || !instance.open) return
 
   instance.open = false
+
+  let finalDelay = delay
+  if (finalDelay === undefined) {
+    const animate = instance.settings.animate
+    const isGsap = animate !== false
+    if (isGsap) {
+      const customDuration = typeof animate === 'object' && typeof animate.duration === 'number' ? animate.duration : null
+      if (customDuration !== null) {
+        finalDelay = customDuration * 1000 + 50
+      } else {
+        finalDelay = instance.triggerRect ? 250 : 200
+      }
+    } else {
+      finalDelay = 160 // 默认 CSS 动画延时
+    }
+  }
 
   window.setTimeout(() => {
     const index = stack.findIndex((item) => item.id === id)
     if (index >= 0) stack.splice(index, 1)
-  }, delay)
+  }, finalDelay)
 }
 
 export const Dialog = {
@@ -201,6 +276,8 @@ export const Dialog = {
     }
     const layout = createLayout(settings)
     const draggable = resolveDraggable(settings)
+    const triggerRect = resolveTriggerRect(settings.trigger) || (lastClickRect ? { ...lastClickRect } : null)
+    lastClickRect = null // 消费后重置
 
     return new Promise<TResult>((resolve, reject) => {
       stack.push({
@@ -218,6 +295,7 @@ export const Dialog = {
         confirmLoading: false,
         resolve: resolve as (value: unknown) => void,
         reject,
+        triggerRect: triggerRect ?? undefined,
       })
     })
   },

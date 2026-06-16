@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, toRef } from 'vue'
+import { computed, nextTick, onMounted, toRef, watch, ref, onBeforeUnmount } from 'vue'
+import { gsap } from 'gsap'
 
 import { Dialog, DialogContent } from '../ui'
 import type { DialogInstance } from '../types'
@@ -96,26 +97,192 @@ const { handleResizeStart, isResizing, resizePreviewStyle } = useDialogResize({
   dispatchResize,
 })
 
+const hasGsapAnimation = computed(() => dialogInstance.settings.animate !== false)
+const isAnimatingIn = ref(hasGsapAnimation.value)
+
 const contentClass = computed(() => [
   'flex flex-col p-0',
   dialogInstance.isFullscreen ? 'rounded-none sm:rounded-none' : 'sm:rounded-lg',
   !props.isTopmost && 'pointer-events-none',
   (isDragging.value || isResizing.value) && 'select-none duration-0',
+  hasGsapAnimation.value && isAnimatingIn.value && 'opacity-0',
 ])
 
+const adaptedContentStyle = computed(() => {
+  const base = contentStyle.value
+  if (hasGsapAnimation.value && (isAnimatingIn.value || !dialogInstance.open)) {
+    // 动画期间，不强制使用 Vue 的 transform: 'none'，允许 GSAP 控制缩放和位移
+    const { transform, ...style } = base as any
+    return style
+  }
+  return base
+})
+
+function playOpenAnimation() {
+  if (!hasGsapAnimation.value) return
+
+  const el = document.getElementById(dialogInstance.id)
+  if (!el) return
+
+  gsap.killTweensOf(el)
+
+  const trigger = dialogInstance.triggerRect
+  // 让动画更快：触发器变形时 0.25s，无触发器渐显时 0.2s
+  const duration = typeof dialogInstance.settings.animate === 'object'
+    ? dialogInstance.settings.animate.duration ?? (trigger ? 0.25 : 0.2)
+    : (trigger ? 0.25 : 0.2)
+  const ease = typeof dialogInstance.settings.animate === 'object'
+    ? dialogInstance.settings.animate.ease ?? 'power3.out'
+    : 'power3.out'
+
+  if (trigger) {
+    el.style.animation = 'none'
+    el.style.transition = 'none'
+    el.style.overflow = 'hidden'
+
+    const targetRect = el.getBoundingClientRect()
+
+    // 计算触发源中心点与弹窗最终中心点的偏移量与缩放比率
+    const triggerCenterX = trigger.left + trigger.width / 2
+    const triggerCenterY = trigger.top + trigger.height / 2
+    const targetCenterX = targetRect.left + targetRect.width / 2
+    const targetCenterY = targetRect.top + targetRect.height / 2
+
+    const startX = triggerCenterX - targetCenterX
+    const startY = triggerCenterY - targetCenterY
+    const startScaleX = trigger.width / targetRect.width
+    const startScaleY = trigger.height / targetRect.height
+
+    // 使用 transform 实现极致流畅的硬件加速缩放变形动画
+    gsap.set(el, {
+      x: startX,
+      y: startY,
+      scaleX: startScaleX,
+      scaleY: startScaleY,
+      opacity: 0,
+      borderRadius: '24px',
+      transformOrigin: 'center center',
+    })
+
+    gsap.to(el, {
+      x: 0,
+      y: 0,
+      scaleX: 1,
+      scaleY: 1,
+      opacity: 1,
+      borderRadius: dialogInstance.isFullscreen ? '0px' : '8px',
+      duration,
+      ease,
+      onComplete: () => {
+        gsap.set(el, { clearProps: 'transform,x,y,scaleX,scaleY,borderRadius' })
+        isAnimatingIn.value = false
+      },
+    })
+  } else {
+    // 默认渐显缩放动画
+    gsap.fromTo(el, {
+      scale: 0.95,
+      opacity: 0,
+    }, {
+      scale: 1,
+      opacity: 1,
+      duration,
+      ease,
+      onComplete: () => {
+        gsap.set(el, { clearProps: 'transform,scale' })
+        isAnimatingIn.value = false
+      },
+    })
+  }
+}
+
+function playCloseAnimation() {
+  if (!hasGsapAnimation.value) return
+
+  const el = document.getElementById(dialogInstance.id)
+  if (!el) return
+
+  gsap.killTweensOf(el)
+
+  const trigger = dialogInstance.triggerRect
+  // 关闭速度更快，提升交互爽快感：触发器变形时 0.2s，无触发器渐隐时 0.15s
+  const duration = typeof dialogInstance.settings.animate === 'object'
+    ? dialogInstance.settings.animate.duration ?? (trigger ? 0.2 : 0.15)
+    : (trigger ? 0.2 : 0.15)
+  const ease = typeof dialogInstance.settings.animate === 'object'
+    ? dialogInstance.settings.animate.ease ?? 'power3.in'
+    : 'power3.in'
+
+  el.style.animation = 'none'
+  el.style.transition = 'none'
+  el.style.overflow = 'hidden'
+
+  if (trigger) {
+    const currentRect = el.getBoundingClientRect()
+    const currentCenterX = currentRect.left + currentRect.width / 2
+    const currentCenterY = currentRect.top + currentRect.height / 2
+
+    const triggerCenterX = trigger.left + trigger.width / 2
+    const triggerCenterY = trigger.top + trigger.height / 2
+
+    const endX = triggerCenterX - currentCenterX
+    const endY = triggerCenterY - currentCenterY
+    const endScaleX = trigger.width / currentRect.width
+    const endScaleY = trigger.height / currentRect.height
+
+    gsap.to(el, {
+      x: endX,
+      y: endY,
+      scaleX: endScaleX,
+      scaleY: endScaleY,
+      opacity: 0,
+      borderRadius: '24px',
+      duration,
+      ease,
+    })
+  } else {
+    gsap.to(el, {
+      scale: 0.95,
+      opacity: 0,
+      duration,
+      ease,
+    })
+  }
+}
+
+// 挂载时触发入场动画
 onMounted(async () => {
   await nextTick()
   callOpen()
+  setTimeout(playOpenAnimation, 0)
+})
+
+// 监听 open 变化触发退场动画
+watch(() => dialogInstance.open, (isOpen) => {
+  if (!isOpen) {
+    playCloseAnimation()
+  }
+})
+
+// 组件卸载前清除 GSAP 动画
+onBeforeUnmount(() => {
+  const el = document.getElementById(dialogInstance.id)
+  if (el) {
+    gsap.killTweensOf(el)
+  }
 })
 </script>
 
 <template>
   <Dialog :open="dialogInstance.open" @update:open="handleOpenChange">
     <DialogContent
+      :id="dialogInstance.id"
+      :disable-css-animation="hasGsapAnimation"
+      force-mount
       :show-overlay="dialogInstance.settings.mask"
       :show-close="false"
       close-label="关闭"
-      :style="contentStyle"
+      :style="adaptedContentStyle"
       :class="contentClass"
       @escape-key-down="!dialogInstance.settings.closeOnEsc && preventBlockedClose($event)"
       @pointer-down-outside="handlePointerDownOutside"
