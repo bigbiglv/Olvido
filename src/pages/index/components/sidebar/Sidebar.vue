@@ -230,7 +230,7 @@ async function handleDeleteProject(proj: ProjectDto) {
 
 <template>
   <aside
-    class="w-64 border-r border-slate-200 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-950/40 flex flex-col h-full select-none"
+    class="bg-slate-50/70 dark:bg-zinc-950/40 flex flex-col h-full select-none"
   >
     <!-- Brand Logo -->
     <div

@@ -148,7 +148,7 @@ async function handleConvertToRequirement(doc: DocumentItem) {
 </script>
 
 <template>
-  <div class="w-80 flex flex-col h-full bg-white dark:bg-zinc-900 shrink-0 select-none">
+  <div class="flex flex-col h-full bg-white dark:bg-zinc-900 select-none">
     <!-- Tabs header -->
     <div
       class="px-5 py-3 border-b border-slate-200/80 dark:border-zinc-800/80 flex items-center justify-between"
