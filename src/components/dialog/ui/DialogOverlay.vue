@@ -12,7 +12,7 @@ const props = defineProps<DialogOverlayProps & { class?: HTMLAttributes['class']
     v-bind="props"
     :class="
       cn(
-        'fixed inset-0 bg-black/80 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+        'fixed inset-0 z-[1000] bg-black/80 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         props.class,
       )
     "

@@ -73,7 +73,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="relative w-[6px] -mx-[3px] h-full cursor-col-resize group select-none shrink-0 z-50"
+    class="relative w-[6px] -mx-[3px] h-full cursor-col-resize group select-none shrink-0 z-[1]"
     @mousedown="handleMouseDown"
   >
     <!-- 视觉分界细线 -->

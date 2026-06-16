@@ -141,12 +141,12 @@ onMounted(async () => {
 
   <div
     v-if="isTopSpanning"
-    class="fixed inset-x-3 top-3 z-80 h-[calc(100vh-1.5rem)] rounded-lg border-2 border-primary bg-primary/25 shadow-[0_0_0_9999px_rgb(255_255_255/0.08),0_0_32px_rgb(124_58_237/0.45)]"
+    class="fixed inset-x-3 top-3 z-[1000] h-[calc(100vh-1.5rem)] rounded-lg border-2 border-primary bg-primary/25 shadow-[0_0_0_9999px_rgb(255_255_255/0.08),0_0_32px_rgb(124_58_237/0.45)]"
   ></div>
 
   <div
     v-if="resizePreviewStyle"
     :style="resizePreviewStyle"
-    class="pointer-events-none fixed z-80 rounded-lg border-2 border-primary bg-primary/10 shadow-[0_0_0_9999px_rgb(255_255_255/0.08),0_0_32px_rgb(124_58_237/0.35)]"
+    class="pointer-events-none fixed z-[1000] rounded-lg border-2 border-primary bg-primary/10 shadow-[0_0_0_9999px_rgb(255_255_255/0.08),0_0_32px_rgb(124_58_237/0.35)]"
   ></div>
 </template>
