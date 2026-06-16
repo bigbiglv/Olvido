@@ -21,7 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const headerClass = computed(() => [
-  'shrink-0 select-none border-b border-border px-6 py-4',
+  'shrink-0 select-none border-b border-border px-4 py-3',
   props.canDrag ? 'cursor-move' : 'cursor-default',
 ])
 

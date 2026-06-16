@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useDialog } from '@/components/dialog/hooks/useDialog'
+import { useDialog, type DialogOptions } from '@/components/dialog'
 import Editor from '@/components/Editor/index.vue'
+
+defineOptions({
+  dialogOptions: {
+    title: '快速批量新增日常文档',
+    width: 550,
+    height: 420,
+    okText: '生成',
+    cancelText: '取消',
+  } as DialogOptions,
+})
 
 const dialog = useDialog<string[]>()
 const markdownContent = ref('1. ')
@@ -43,7 +53,11 @@ function parseTitlesFromMarkdown(markdown: string): string[] {
     }
 
     // 非列表格式的非空行
-    if (!processedLine.startsWith('#') && !processedLine.startsWith('>') && !processedLine.startsWith('`')) {
+    if (
+      !processedLine.startsWith('#') &&
+      !processedLine.startsWith('>') &&
+      !processedLine.startsWith('`')
+    ) {
       titles.push(processedLine)
     }
   }
@@ -62,9 +76,6 @@ dialog.onConfirm(() => {
 
 <template>
   <div class="flex flex-col h-full -mx-6 -my-4 p-4 space-y-4 bg-slate-50/30 dark:bg-zinc-900/10">
-    <div class="text-xs text-slate-400 dark:text-zinc-500 font-medium">
-      请输入有序列表（以 1. 2. 格式开始），每一行列表项的内容都将作为一个独立的日常文档生成。
-    </div>
     <div
       class="flex-1 overflow-hidden border border-slate-200 dark:border-zinc-700/60 rounded-xl bg-white dark:bg-zinc-800"
     >

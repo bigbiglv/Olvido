@@ -32,14 +32,6 @@ async function handleQuickAdd() {
   try {
     const titles = await Dialog.show<string[]>(
       QuickAddDialog,
-      {},
-      {
-        title: '快速批量新增日常文档',
-        width: 550,
-        height: 420,
-        okText: '生成',
-        cancelText: '取消',
-      },
     )
     if (titles && titles.length > 0) {
       // Reverse loop to keep the first input item at the top of the unshifted list and selected
@@ -170,8 +162,8 @@ async function handleConvertToRequirement(doc: DocumentItem) {
         </TabsList>
       </Tabs>
       <div class="flex items-center gap-2">
-        <Button variant="outline" size="sm" @click="handleQuickAdd"> 快速新增 </Button>
-        <Button variant="outline" size="sm" @click="handleOpenCompleted"> 已完成 </Button>
+        <Button size="sm" @click="handleQuickAdd"> 新增 </Button>
+        <Button size="sm" @click="handleOpenCompleted"> 已完成 </Button>
       </div>
     </div>
 
