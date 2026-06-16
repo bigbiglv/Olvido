@@ -1,6 +1,16 @@
 <script setup lang="ts">
+import { type DialogOptions } from '@/components/dialog'
 import ThemeSwitch from '@/components/common/ThemeSwitch/index.vue'
 import { Database, HardDrive, Info, Palette } from 'lucide-vue-next'
+
+defineOptions({
+  dialogOptions: {
+    title: '系统设置',
+    footer: false,
+    width: 680,
+    height: 520,
+  } as DialogOptions,
+})
 
 defineProps<{
   dbStatus: string

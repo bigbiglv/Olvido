@@ -1,7 +1,16 @@
-<script lang="ts">
-export default {
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useDialog, type DialogOptions } from '@/components/dialog'
+import { apiGetNote } from '@/apis/note'
+import type { SearchItem } from '../types/search'
+import type { NoteDto } from '../../../../electron/types/note'
+import { Crepe } from '@milkdown/crepe'
+import '@milkdown/crepe/theme/common/style.css'
+import '@milkdown/crepe/theme/frame.css'
+
+defineOptions({
   dialogOptions: {
-    title: '查看笔记',
+    title: '预览笔记',
     footer: true,
     width: 800,
     height: 600,
@@ -10,19 +19,8 @@ export default {
     closeOnEsc: true,
     okText: '在主编辑器中打开',
     cancelText: '关闭'
-  }
-}
-</script>
-
-<script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useDialog } from '@/components/dialog'
-import { apiGetNote } from '@/apis/note'
-import type { SearchItem } from '../types/search'
-import type { NoteDto } from '../../../../electron/types/note'
-import { Crepe } from '@milkdown/crepe'
-import '@milkdown/crepe/theme/common/style.css'
-import '@milkdown/crepe/theme/frame.css'
+  } as DialogOptions
+})
 
 const props = defineProps<{
   item: SearchItem

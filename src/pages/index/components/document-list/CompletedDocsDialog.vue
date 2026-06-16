@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { type DialogOptions } from '@/components/dialog'
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
 import { RotateCcw, Trash2, Search, Inbox } from 'lucide-vue-next'
@@ -7,6 +8,15 @@ import { isElectron } from '@/utils/env'
 import { apiListNotes } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 import { confirm } from '@/components/confirm'
+
+defineOptions({
+  dialogOptions: {
+    title: '已完成的文档',
+    footer: false,
+    width: 600,
+    height: 480,
+  } as DialogOptions,
+})
 
 const store = useDocumentsStore()
 const searchQuery = ref('')

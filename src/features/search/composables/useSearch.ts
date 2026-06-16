@@ -82,14 +82,6 @@ export function useSearch() {
       const result = await Dialog.show<string>(
         NotePreviewDialog,
         { item },
-        {
-          title: '预览笔记',
-          footer: true,
-          width: 800,
-          height: 600,
-          okText: '在主编辑器中打开',
-          cancelText: '关闭'
-        }
       )
 
       if (result === 'edit') {

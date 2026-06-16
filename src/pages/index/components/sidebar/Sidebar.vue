@@ -160,12 +160,6 @@ function handleOpenSettings() {
       dbStatus: store.dbStatus,
       documentCount: store.documents.length,
     },
-    {
-      title: '系统设置',
-      footer: false,
-      width: 680,
-      height: 520,
-    },
   )
 }
 
@@ -177,13 +171,6 @@ async function handleRenameProject(proj: ProjectDto) {
     const newName = await Dialog.show<string>(
       RenameProjectDialog,
       { initialName: proj.name },
-      {
-        title: '重命名项目',
-        width: 400,
-        height: 200,
-        resizable: false,
-        draggable: true,
-      },
     )
     if (newName) {
       if (isElectron) {

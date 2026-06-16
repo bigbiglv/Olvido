@@ -18,13 +18,6 @@ const store = useDocumentsStore()
 function handleOpenCompleted() {
   Dialog.show(
     CompletedDocsDialog,
-    {},
-    {
-      title: '已完成的文档',
-      footer: false,
-      width: 600,
-      height: 480,
-    },
   )
 }
 
@@ -117,14 +110,6 @@ async function handleConvertToRequirement(doc: DocumentItem) {
   try {
     const date = await Dialog.show<string>(
       ConvertToRequirementDialog,
-      {},
-      {
-        title: '转为需求文档',
-        width: 400,
-        height: 220,
-        okText: '确定',
-        cancelText: '取消',
-      },
     )
     if (date) {
       await store.saveDocument(doc.id, {

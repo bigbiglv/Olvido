@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useDialog } from '@/components/dialog/hooks/useDialog'
+import { useDialog, type DialogOptions } from '@/components/dialog'
 import { Label } from '@/components/ui/label'
+
+defineOptions({
+  dialogOptions: {
+    title: '转为需求文档',
+    width: 400,
+    height: 220,
+    okText: '确定',
+    cancelText: '取消',
+  } as DialogOptions,
+})
 
 const dialog = useDialog<string>()
 // Default deadline to tomorrow or today

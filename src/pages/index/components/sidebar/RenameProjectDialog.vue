@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useDialog } from '@/components/dialog/hooks/useDialog'
+import { useDialog, type DialogOptions } from '@/components/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+
+defineOptions({
+  dialogOptions: {
+    title: '重命名项目',
+    width: 400,
+    height: 200,
+    resizable: false,
+    draggable: true,
+  } as DialogOptions,
+})
 
 const props = defineProps<{
   initialName: string
