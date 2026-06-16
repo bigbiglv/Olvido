@@ -99,6 +99,7 @@ const { handleResizeStart, isResizing, resizePreviewStyle } = useDialogResize({
 
 const hasGsapAnimation = computed(() => dialogInstance.settings.animate !== false)
 const isAnimatingIn = ref(hasGsapAnimation.value)
+const isAnimatingFullscreen = ref(false)
 
 const contentClass = computed(() => [
   'flex flex-col p-0',
@@ -110,7 +111,7 @@ const contentClass = computed(() => [
 
 const adaptedContentStyle = computed(() => {
   const base = contentStyle.value
-  if (hasGsapAnimation.value && (isAnimatingIn.value || !dialogInstance.open)) {
+  if (hasGsapAnimation.value && (isAnimatingIn.value || isAnimatingFullscreen.value || !dialogInstance.open)) {
     // 动画期间，不强制使用 Vue 的 transform: 'none'，允许 GSAP 控制缩放和位移
     const { transform, ...style } = base as any
     return style
@@ -262,6 +263,61 @@ watch(() => dialogInstance.open, (isOpen) => {
   if (!isOpen) {
     playCloseAnimation()
   }
+})
+
+// 监听最大化与最小化（还原）状态变化，执行 FLIP 动画过渡
+watch(() => dialogInstance.isFullscreen, async (isFullscreen) => {
+  if (!hasGsapAnimation.value) return
+
+  const el = document.getElementById(dialogInstance.id)
+  if (!el) return
+
+  // 1. FIRST: 记录变化前的尺寸和位置
+  const firstRect = el.getBoundingClientRect()
+
+  // 标记正在执行最大化动画，从而临时接管 transform 样式绑定
+  isAnimatingFullscreen.value = true
+  
+  // 等待 Vue 将新的 DOM 布局刷新完毕
+  await nextTick()
+
+  // 2. LAST: 记录变化后的尺寸和位置
+  const lastRect = el.getBoundingClientRect()
+
+  // 3. INVERT & PLAY: 计算差异并播放 FLIP 动画
+  const deltaX = firstRect.left - lastRect.left
+  const deltaY = firstRect.top - lastRect.top
+  const deltaScaleX = firstRect.width / lastRect.width
+  const deltaScaleY = firstRect.height / lastRect.height
+
+  // 清除当前的任何动画，防止冲突
+  gsap.killTweensOf(el)
+
+  // 设定为 Invert 起始变换（以 top left 为基准，位置计算最直观精确）
+  gsap.set(el, {
+    x: deltaX,
+    y: deltaY,
+    scaleX: deltaScaleX,
+    scaleY: deltaScaleY,
+    borderRadius: isFullscreen ? '8px' : '0px',
+    transformOrigin: 'top left',
+  })
+
+  // 播放回到 Last 原始位置状态的动画
+  gsap.to(el, {
+    x: 0,
+    y: 0,
+    scaleX: 1,
+    scaleY: 1,
+    borderRadius: isFullscreen ? '0px' : '8px',
+    duration: 0.25,
+    ease: 'power3.out',
+    onComplete: () => {
+      // 动画完毕后彻底清除 GSAP 产生的影响，使 Vue 重新接管正常自适应和拉伸行为
+      gsap.set(el, { clearProps: 'transform,x,y,scaleX,scaleY,borderRadius,transformOrigin' })
+      isAnimatingFullscreen.value = false
+    },
+  })
 })
 
 // 组件卸载前清除 GSAP 动画
