@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, inject, ref, watch, type ComputedRef } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import MarkdownSplitEditor from '@/components/Editor/MarkdownSplitEditor.vue'
 import { Calendar, Clock, Edit2, FileText } from 'lucide-vue-next'
+import { formatDocTime, formatFullDateTime } from '@/utils/date'
 
 const store = useDocumentsStore()
-const selectedDocument = inject<ComputedRef<DocumentItem | null>>('selectedDocument')!
-const saveDocument =
-  inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
 
 // Debounced save timeout
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
@@ -15,7 +13,7 @@ const isSaving = ref(false)
 
 // Reset isSaving if selected document changes
 watch(
-  () => selectedDocument.value?.id,
+  () => store.selectedDocument?.id,
   () => {
     if (saveTimeout) {
       clearTimeout(saveTimeout)
@@ -26,29 +24,29 @@ watch(
 
 // Handle content and title updates with auto-save
 function handleContentUpdate(newContent: string) {
-  if (!selectedDocument.value) return
+  if (!store.selectedDocument) return
 
   // Set temporary local value
-  selectedDocument.value.content = newContent
+  store.selectedDocument.content = newContent
   isSaving.value = true
 
   // Debounce save to database
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
-    if (selectedDocument.value) {
+    if (store.selectedDocument) {
       // Auto-extract first header as title if user writes one
-      let title = selectedDocument.value.title
+      let title = store.selectedDocument.title
       if (newContent.trim().startsWith('# ')) {
         const firstLine = newContent.split('\n')[0]
         const extracted = firstLine.replace(/^#\s+/, '').trim()
         if (extracted) {
           title = extracted
-          selectedDocument.value.title = title
+          store.selectedDocument.title = title
         }
       }
 
       try {
-        await saveDocument(selectedDocument.value.id, {
+        await store.saveDocument(store.selectedDocument.id, {
           content: newContent,
           title: title,
         })
@@ -61,16 +59,16 @@ function handleContentUpdate(newContent: string) {
 
 function handleTitleUpdate(event: Event) {
   const newTitle = (event.target as HTMLInputElement).value.trim()
-  if (!selectedDocument.value || !newTitle) return
+  if (!store.selectedDocument || !newTitle) return
 
-  selectedDocument.value.title = newTitle
+  store.selectedDocument.title = newTitle
   isSaving.value = true
 
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
-    if (selectedDocument.value) {
+    if (store.selectedDocument) {
       try {
-        await saveDocument(selectedDocument.value.id, {
+        await store.saveDocument(store.selectedDocument.id, {
           title: newTitle,
         })
       } finally {
@@ -80,50 +78,14 @@ function handleTitleUpdate(event: Event) {
   }, 500)
 }
 
-// Helper to format date/time
-function formatDocTime(dateStr: string | Date) {
-  const date = new Date(dateStr)
-  const today = new Date()
-
-  if (date.toDateString() === today.toDateString()) {
-    // Show HH:MM
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
-
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
-  if (date.toDateString() === yesterday.toDateString()) {
-    return '昨天'
-  }
-
-  // Show MM-DD
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${month}-${day}`
-}
-
-function formatFullDateTime(dateStr: string | Date) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  const time = date.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-  return `${y}-${m}-${d} ${time}`
-}
-
 // Word & Character count calculation
 const wordCount = computed(() => {
-  const content = selectedDocument.value?.content || ''
+  const content = store.selectedDocument?.content || ''
   return content.split(/\s+/).filter(Boolean).length
 })
 
 const charCount = computed(() => {
-  const content = selectedDocument.value?.content || ''
+  const content = store.selectedDocument?.content || ''
   return content.length
 })
 
@@ -134,7 +96,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <template v-if="selectedDocument">
+  <template v-if="store.selectedDocument">
     <!-- Editor Header Panel -->
     <div
       class="px-8 py-5 border-b border-slate-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900 flex flex-col gap-2 shrink-0"
@@ -144,7 +106,7 @@ onBeforeUnmount(() => {
         <!-- Document Title Input -->
         <input
           type="text"
-          :value="selectedDocument.title"
+          :value="store.selectedDocument.title"
           placeholder="无标题文档"
           class="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-50 border-0 p-0 focus:outline-none focus:ring-0 focus:border-0 bg-transparent flex-1"
           @input="handleTitleUpdate"
@@ -157,12 +119,12 @@ onBeforeUnmount(() => {
       >
         <span class="flex items-center gap-1">
           <Calendar class="size-3.5" />
-          创建于 {{ formatFullDateTime(selectedDocument.createdAt) }}
+          创建于 {{ formatFullDateTime(store.selectedDocument.createdAt) }}
         </span>
         <span class="flex items-center gap-1">
           <Clock class="size-3.5" />
           自动保存于
-          {{ store.lastSavedTime || formatDocTime(selectedDocument.updatedAt) }}
+          {{ store.lastSavedTime || formatDocTime(store.selectedDocument.updatedAt) }}
         </span>
         <span
           class="h-1.5 size-1.5 rounded-full transition-colors duration-300"
@@ -173,9 +135,9 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Markdown Split Editor Pane -->
-    <div class="flex-1 overflow-hidden p-6 min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
+    <div class="flex-1 overflow-hidden p-1 min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
       <MarkdownSplitEditor
-        :model-value="selectedDocument.content"
+        :model-value="store.selectedDocument.content"
         @update:model-value="handleContentUpdate"
       />
     </div>

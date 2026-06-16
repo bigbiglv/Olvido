@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, inject, type Ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Dialog } from '@/components/dialog'
-import SettingsPage from './SettingsPage.vue'
+import SettingsPage from '@/pages/index/components/SettingsPage.vue'
 import {
   apiListProjects,
   apiCreateProject,
@@ -11,7 +11,7 @@ import {
 } from '@/apis/project'
 import { confirm } from '@/components/confirm'
 import RenameProjectDialog from './RenameProjectDialog.vue'
-import type { ProjectDto } from '../../../../electron/types/project'
+import type { ProjectDto } from '../../../../../electron/types/project'
 import { isElectron } from '@/utils/env'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,7 +19,6 @@ import { contextMenuManager } from '@/context-menu/context-menu-manager'
 import { BookOpen, Folder, Plus, Settings, CheckSquare } from 'lucide-vue-next'
 
 const store = useDocumentsStore()
-const documents = inject<Ref<DocumentItem[]>>('documents')
 
 /** 本地项目列表数据 */
 const projects = ref<ProjectDto[]>([])
@@ -159,7 +158,7 @@ function handleOpenSettings() {
     SettingsPage,
     {
       dbStatus: store.dbStatus,
-      documentCount: documents?.value?.length || 0,
+      documentCount: store.documents.length,
     },
     {
       title: '系统设置',

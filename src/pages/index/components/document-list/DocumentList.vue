@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, type ComputedRef } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
 import { FileX } from 'lucide-vue-next'
 import { Dialog } from '@/components/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { confirm } from '@/components/confirm'
 import CompletedDocsDialog from './CompletedDocsDialog.vue'
 import QuickAddDialog from './QuickAddDialog.vue'
 import ConvertToRequirementDialog from './ConvertToRequirementDialog.vue'
@@ -14,25 +15,10 @@ import RequirementDocItem from './RequirementDocItem.vue'
 
 const store = useDocumentsStore()
 
-const filteredDocuments = inject<ComputedRef<DocumentItem[]>>('filteredDocuments')!
-const createDocument =
-  inject<(title: string, content: string, category?: '日常' | '需求') => Promise<void>>(
-    'createDocument',
-  )!
-const saveDocument =
-  inject<(docId: string, updates: Partial<DocumentItem>) => Promise<void>>('saveDocument')!
-const deleteDocument = inject<(docId: string) => Promise<void>>('deleteDocument')!
-const loadDocuments = inject<() => Promise<void>>('loadDocuments')!
-const selectDefaultDocument = inject<() => void>('selectDefaultDocument')!
-
 function handleOpenCompleted() {
   Dialog.show(
     CompletedDocsDialog,
-    {
-      saveDocument,
-      loadDocuments,
-      deleteDocument,
-    },
+    {},
     {
       title: '已完成的文档',
       footer: false,
@@ -58,7 +44,7 @@ async function handleQuickAdd() {
     if (titles && titles.length > 0) {
       // Reverse loop to keep the first input item at the top of the unshifted list and selected
       for (const title of [...titles].reverse()) {
-        await createDocument(title, '', '日常')
+        await store.createDocument(title, '', '日常')
       }
       // Auto switch category to daily to show the results
       store.currentCategory = '日常'
@@ -73,10 +59,10 @@ const categoryTabs: Array<'日常' | '需求'> = ['日常', '需求']
 // Toggle completion checkbox in list
 async function toggleCompletion(doc: DocumentItem) {
   const newCompleted = !doc.completed
-  await saveDocument(doc.id, { completed: newCompleted })
+  await store.saveDocument(doc.id, { completed: newCompleted })
 
   // Re-evaluate selection
-  selectDefaultDocument()
+  store.selectDefaultDocument()
 }
 
 // Right-click menu registration
@@ -90,16 +76,23 @@ onMounted(() => {
           id: 'complete',
           label: '完成',
           onClick: async () => {
-            await saveDocument(doc.id, { completed: true })
-            selectDefaultDocument()
+            await store.saveDocument(doc.id, { completed: true })
+            store.selectDefaultDocument()
           },
         },
         {
           id: 'delete',
           label: '删除',
           onClick: async () => {
-            if (confirm('确定要删除此文档吗？')) {
-              await deleteDocument(doc.id)
+            const isConfirmed = await confirm({
+              title: '删除文档',
+              description: '确定要删除此文档吗？此操作无法撤销。',
+              destructive: true,
+              okText: '确定删除',
+              cancelText: '取消',
+            })
+            if (isConfirmed) {
+              await store.deleteDocument(doc.id)
             }
           },
         },
@@ -142,11 +135,11 @@ async function handleConvertToRequirement(doc: DocumentItem) {
       },
     )
     if (date) {
-      await saveDocument(doc.id, {
+      await store.saveDocument(doc.id, {
         category: '需求',
         deadline: date,
       })
-      selectDefaultDocument()
+      store.selectDefaultDocument()
     }
   } catch {
     // Dialog cancelled
@@ -185,7 +178,7 @@ async function handleConvertToRequirement(doc: DocumentItem) {
     <!-- Scrollable List -->
     <div class="flex-1 overflow-y-auto p-4 space-y-1">
       <div
-        v-if="filteredDocuments.length === 0"
+        v-if="store.filteredDocuments.length === 0"
         class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4"
       >
         <FileX class="size-8 opacity-40 mb-2" />
@@ -194,7 +187,7 @@ async function handleConvertToRequirement(doc: DocumentItem) {
 
       <component
         :is="doc.category === '需求' ? RequirementDocItem : DailyDocItem"
-        v-for="doc in filteredDocuments"
+        v-for="doc in store.filteredDocuments"
         :key="doc.id"
         :doc="doc"
         :is-selected="store.selectedDocumentId === doc.id"

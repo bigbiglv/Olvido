@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CheckCircle2 } from 'lucide-vue-next'
+import { formatDocTime } from '@/utils/date'
 
 interface Props {
   doc: DocumentItem
@@ -26,27 +27,6 @@ function handleToggle(event: Event) {
 
 function handleContextMenu(event: MouseEvent) {
   emit('contextmenu', event, props.doc)
-}
-
-function formatDocTime(dateStr: string | Date) {
-  const date = new Date(dateStr)
-  const today = new Date()
-
-  if (date.toDateString() === today.toDateString()) {
-    // Show HH:MM
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
-
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
-  if (date.toDateString() === yesterday.toDateString()) {
-    return '昨天'
-  }
-
-  // Show MM-DD
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${month}-${day}`
 }
 </script>
 

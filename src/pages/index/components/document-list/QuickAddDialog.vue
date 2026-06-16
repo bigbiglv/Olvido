@@ -15,12 +15,12 @@ function parseTitlesFromMarkdown(markdown: string): string[] {
     if (!trimmed) continue
 
     // Ignore line if it only contains a list prefix (e.g., "1.", "2)", "-", "*")
-    if (/^\d+[\.\)]$/.test(trimmed) || /^[-*+]$/.test(trimmed)) {
+    if (/^\d+[.)]$/.test(trimmed) || /^[-*+]$/.test(trimmed)) {
       continue
     }
 
     // Match ordered list: "1. Title", "2) Title"
-    const orderedMatch = trimmed.match(/^\d+[\.\)]\s+(.+)$/)
+    const orderedMatch = trimmed.match(/^\d+[.)]\s+(.+)$/)
     if (orderedMatch) {
       titles.push(orderedMatch[1].trim())
       continue

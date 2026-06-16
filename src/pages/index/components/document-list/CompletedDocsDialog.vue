@@ -1,19 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, inject, type Ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
 import { RotateCcw, Trash2, Search, Inbox } from 'lucide-vue-next'
 import { isElectron } from '@/utils/env'
 import { apiListNotes } from '@/apis/note'
-
-const props = defineProps<{
-  saveDocument: (docId: string, updates: Partial<DocumentItem>) => Promise<void>
-  loadDocuments: () => Promise<void>
-  deleteDocument: (docId: string) => Promise<void>
-}>()
+import { mapNoteToDocument } from '@/apis/note-mapper'
+import { confirm } from '@/components/confirm'
 
 const store = useDocumentsStore()
-const mainDocuments = inject<Ref<DocumentItem[]>>('documents')
 const searchQuery = ref('')
 const allCompletedDocs = ref<DocumentItem[]>([])
 
@@ -23,23 +18,13 @@ async function loadCompletedDocs() {
     try {
       const pid = store.currentProject || 'global'
       const notes = await apiListNotes(pid, 'archived')
-      allCompletedDocs.value = notes.map((note) => ({
-        id: note.id,
-        title: note.title,
-        content: note.content,
-        category: note.deadline ? '需求' : '日常',
-        project: note.projectId === 'global' ? null : note.projectId,
-        completed: note.isArchived,
-        createdAt: note.createdAt,
-        updatedAt: note.updatedAt,
-        deadline: note.deadline,
-      }))
+      allCompletedDocs.value = notes.map(mapNoteToDocument)
     } catch (err) {
       console.error('Failed to load completed documents:', err)
     }
   } else {
     // Mock mode
-    allCompletedDocs.value = mainDocuments?.value.filter((d) => d.completed) || []
+    allCompletedDocs.value = store.documents.filter((d) => d.completed)
   }
 }
 
@@ -59,18 +44,26 @@ const completedDocs = computed(() => {
 // Restore document (set completed = false)
 async function handleRestore(docId: string, event: Event) {
   event.stopPropagation()
-  await props.saveDocument(docId, { completed: false })
+  await store.saveDocument(docId, { completed: false })
   // Remove from local list
   allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
   // Reload store documents to update the main DocumentList
-  await props.loadDocuments()
+  await store.loadDocuments()
 }
 
 // Permanently delete document
 async function handleDelete(docId: string, event: Event) {
   event.stopPropagation()
-  if (confirm('确定要永久删除此文档吗？此操作无法撤销。')) {
-    await props.deleteDocument(docId)
+  const isConfirmed = await confirm({
+    title: '永久删除文档',
+    description: '确定要永久删除此文档吗？此操作无法撤销。',
+    destructive: true,
+    okText: '确定删除',
+    cancelText: '取消',
+  })
+
+  if (isConfirmed) {
+    await store.deleteDocument(docId)
     // Remove from local list
     allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
   }
