@@ -8,8 +8,6 @@ defineOptions({
     title: '快速批量新增日常文档',
     width: 550,
     height: 420,
-    okText: '生成',
-    cancelText: '取消',
   } as DialogOptions,
 })
 
@@ -79,7 +77,16 @@ dialog.onConfirm(() => {
     <div
       class="flex-1 overflow-hidden border border-slate-200 dark:border-zinc-700/60 rounded-xl bg-white dark:bg-zinc-800"
     >
-      <Editor v-model="markdownContent" only-ordered-list />
+      <Editor v-model="markdownContent" only-ordered-list auto-focus />
     </div>
   </div>
 </template>
+
+<style scoped>
+:deep(.milkdown .ProseMirror) {
+  padding: 12px !important;
+}
+:deep(.milkdown-block-handle) {
+  display: none !important;
+}
+</style>

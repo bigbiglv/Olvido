@@ -8,18 +8,30 @@ import '@milkdown/crepe/theme/frame.css'
 interface Props {
   modelValue?: string
   onlyOrderedList?: boolean
+  autoFocus?: boolean
 }
 
 interface Emits {
   (e: 'update:modelValue', value: string): void
 }
 
-const { modelValue = '', onlyOrderedList = false } = defineProps<Props>()
+const { modelValue = '', onlyOrderedList = false, autoFocus = false } = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const editorRef = ref<HTMLDivElement | null>(null)
 let crepe: Crepe | null = null
 const isUpdatingFromProp = ref(false)
+
+function focus() {
+  if (editorRef.value) {
+    const prosemirror = editorRef.value.querySelector('.ProseMirror') as HTMLElement | null
+    if (prosemirror) {
+      prosemirror.focus()
+    }
+  }
+}
+
+defineExpose({ focus })
 
 onMounted(async () => {
   if (!editorRef.value) return
@@ -36,6 +48,7 @@ onMounted(async () => {
           [Crepe.Feature.CodeMirror]: false,
           [Crepe.Feature.TopBar]: false,
           [Crepe.Feature.LinkTooltip]: false,
+          [Crepe.Feature.BlockEdit]: false,
         }
       : undefined,
   })
@@ -50,6 +63,9 @@ onMounted(async () => {
 
   try {
     await crepe.create()
+    if (autoFocus) {
+      focus()
+    }
   } catch (error) {
     console.error('Failed to create Milkdown Crepe instance:', error)
   }
