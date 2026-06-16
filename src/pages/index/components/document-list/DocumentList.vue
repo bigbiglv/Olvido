@@ -25,11 +25,12 @@ async function handleQuickAdd() {
     const titles = await Dialog.show<string[]>(QuickAddDialog)
     if (titles && titles.length > 0) {
       let firstDocId: string | null = null
-      for (const title of titles) {
+      // 反转标题顺序，因为新增的文档会被插入到最顶部
+      // 先插入 3，再插入 2，再插入 1，最终列表显示为 1, 2, 3
+      for (const title of [...titles].reverse()) {
         await store.createDocument(title, '', '日常', true)
-        if (!firstDocId) {
-          firstDocId = store.selectedDocumentId
-        }
+        // 不断覆盖，最终 firstDocId 会是输入列表的第一项
+        firstDocId = store.selectedDocumentId
       }
       const needManualLoad = store.currentCategory === '日常'
       // Auto switch category to daily to show the results, using switchProjectAndCategory to preserve the first inserted document ID

@@ -26,10 +26,10 @@ export class ProjectService {
 
   async createProject(data: CreateProjectDto) {
     try {
-      const lastProject = await prisma.project.findFirst({
-        orderBy: { sortOrder: 'desc' },
+      const firstProject = await prisma.project.findFirst({
+        orderBy: { sortOrder: 'asc' },
       })
-      const sortOrder = (lastProject?.sortOrder ?? 0) + 1000
+      const sortOrder = firstProject ? firstProject.sortOrder - 1000 : 0
 
       return await prisma.project.create({
         data: {

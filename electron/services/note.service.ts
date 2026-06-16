@@ -49,13 +49,13 @@ export class NoteService {
         where.deadline = null
       }
 
-      const lastNote = await prisma.note.findFirst({
+      const firstNote = await prisma.note.findFirst({
         where,
-        orderBy: { sortOrder: 'desc' },
+        orderBy: { sortOrder: 'asc' },
       })
 
-      // 2. 生成以 1000 为步长的全新间隔排序值
-      const sortOrder = (lastNote?.sortOrder ?? 0) + 1000
+      // 生成更小的排序值，使其排在最上面
+      const sortOrder = firstNote ? firstNote.sortOrder - 1000 : 0
 
       return await prisma.note.create({
         data: {
