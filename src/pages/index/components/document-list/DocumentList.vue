@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
-import { FileX } from 'lucide-vue-next'
+import { FileX, FilePlusCorner, BookOpenCheck } from 'lucide-vue-next'
 import { Dialog } from '@/components/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { confirm } from '@/components/confirm'
@@ -131,8 +131,6 @@ function handleSelectionChange(ids: string[]) {
   store.listSelectedIds = ids
 }
 
-
-
 function handleOpen(item: DocumentItem) {
   store.selectedDocumentId = item.id
 }
@@ -180,8 +178,12 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
         </TabsList>
       </Tabs>
       <div class="flex items-center gap-2">
-        <Button size="sm" @click="handleQuickAdd"> 新增 </Button>
-        <Button size="sm" @click="handleOpenCompleted"> 已完成 </Button>
+        <Button variant="outline" size="icon" aria-label="新增" @click="handleQuickAdd">
+          <FilePlusCorner :size="16" />
+        </Button>
+        <Button variant="outline" size="icon" aria-label="完成列表" @click="handleOpenCompleted">
+          <BookOpenCheck :size="16" />
+        </Button>
       </div>
     </div>
 
