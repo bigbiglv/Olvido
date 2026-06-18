@@ -73,6 +73,18 @@ onMounted(async () => {
   crepe = new Crepe({
     root: editorRef.value,
     defaultValue: modelValue,
+    featureConfigs: {
+      [Crepe.Feature.ImageBlock]: {
+        onUpload: async (file: File) => {
+          return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = (err) => reject(err)
+            reader.readAsDataURL(file)
+          })
+        },
+      },
+    },
   })
 
   crepe.on((listener) => {

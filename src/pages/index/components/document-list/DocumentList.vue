@@ -14,24 +14,39 @@ import type { ContextMenuItem } from '@/context-menu/context-menu-types'
 import DailyDocItem from './DailyDocItem.vue'
 import RequirementDocItem from './RequirementDocItem.vue'
 import { DraggableList, type ReorderEvent } from '@/components/ui/draggableList'
-import { apiDelete, apiBatchDelete, apiReorder, apiList, apiDetail, apiCreate, apiUpdate } from '@/apis/note'
+import {
+  apiDelete,
+  apiBatchDelete,
+  apiReorder,
+  apiList,
+  apiDetail,
+  apiCreate,
+  apiUpdate,
+} from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 import { isElectron } from '@/utils/env'
+import DatePicker from '@/components/ui/datePicker/index.vue'
 
 const TestCustomComponent = defineComponent({
   props: {
-    title: String
+    title: String,
   },
   emits: ['close'],
   setup(props, { emit }) {
-    return () => h('div', { class: 'p-3 text-xs w-[160px] flex flex-col gap-2 bg-popover rounded-md' }, [
-      h('span', { class: 'font-semibold text-foreground' }, props.title),
-      h('button', {
-        class: 'w-full bg-primary text-primary-foreground py-1 rounded text-center cursor-pointer hover:opacity-90',
-        onClick: () => emit('close')
-      }, '关闭菜单')
-    ])
-  }
+    return () =>
+      h('div', { class: 'p-3 text-xs w-[160px] flex flex-col gap-2 bg-popover rounded-md' }, [
+        h('span', { class: 'font-semibold text-foreground' }, props.title),
+        h(
+          'button',
+          {
+            class:
+              'w-full bg-primary text-primary-foreground py-1 rounded text-center cursor-pointer hover:opacity-90',
+            onClick: () => emit('close'),
+          },
+          '关闭菜单',
+        ),
+      ])
+  },
 })
 
 const appStore = useAppStore()
@@ -102,7 +117,10 @@ const filteredDocuments = computed(() => {
 function selectDefaultDocument() {
   const filtered = filteredDocuments.value
   if (filtered.length > 0) {
-    if (!appStore.selectedDocumentId || !filtered.some((d) => d.id === appStore.selectedDocumentId)) {
+    if (
+      !appStore.selectedDocumentId ||
+      !filtered.some((d) => d.id === appStore.selectedDocumentId)
+    ) {
       appStore.selectDocument(filtered[0].id)
     }
   } else {
@@ -112,7 +130,7 @@ function selectDefaultDocument() {
 
 // 监听当前项目/分类的变化，并自动刷新文档列表
 watch(
-  (() => [appStore.currentProject, appStore.currentCategory]),
+  () => [appStore.currentProject, appStore.currentCategory],
   async () => {
     await loadDocuments()
     selectDefaultDocument()
@@ -149,11 +167,7 @@ function handleOpenCompleted() {
 /**
  * 本地新建文档辅助方法
  */
-async function createDocument(
-  title = '无标题文档',
-  content = '',
-  category?: '日常' | '需求',
-) {
+async function createDocument(title = '无标题文档', content = '', category?: '日常' | '需求') {
   const targetCategory = category || appStore.currentCategory
   if (isElectron) {
     try {
@@ -208,7 +222,7 @@ async function toggleCompletion(doc: DocumentItem) {
     await apiUpdate({
       id: doc.id,
       isArchived: newCompleted,
-      deadline: (doc.category === '需求' && doc.deadline) ? new Date(doc.deadline) : null,
+      deadline: doc.category === '需求' && doc.deadline ? new Date(doc.deadline) : null,
     })
     appStore.lastSavedTime = new Date().toLocaleTimeString()
     selectDefaultDocument()
@@ -238,36 +252,46 @@ onMounted(async () => {
               id: 'sub-item-1',
               label: '动态可见项',
               visible: () => true,
-              onClick: () => { console.log('Sub item 1 clicked') }
+              onClick: () => {
+                console.log('Sub item 1 clicked')
+              },
             },
             {
               id: 'sub-item-2',
               label: '动态隐藏项',
               visible: () => false,
-              onClick: () => { console.log('Sub item 2 clicked') }
+              onClick: () => {
+                console.log('Sub item 2 clicked')
+              },
             },
             {
               id: 'sub-item-3',
               label: '动态禁用项',
               disabled: () => true,
-              onClick: () => { console.log('Sub item 3 clicked') }
+              onClick: () => {
+                console.log('Sub item 3 clicked')
+              },
             },
             {
               id: 'sub-item-4',
               label: '正常子选项',
               disabled: () => false,
-              onClick: () => { console.log('Sub item 4 clicked') }
-            }
-          ]
+              onClick: () => {
+                console.log('Sub item 4 clicked')
+              },
+            },
+          ],
         },
         {
           id: 'test-custom',
           label: '测试自定义面板',
           submenuComponent: TestCustomComponent,
-          submenuComponentProps: { title: '自定义提示标题' }
+          submenuComponentProps: { title: '自定义提示标题' },
         },
         {
-          type: 'separator'
+          id: 'date',
+          label: '日期',
+          submenuComponent: DatePicker,
         },
         {
           id: 'complete',
@@ -280,14 +304,17 @@ onMounted(async () => {
                   await apiUpdate({
                     id,
                     isArchived: true,
-                    deadline: (itemDoc?.category === '需求' && itemDoc.deadline) ? new Date(itemDoc.deadline) : null,
+                    deadline:
+                      itemDoc?.category === '需求' && itemDoc.deadline
+                        ? new Date(itemDoc.deadline)
+                        : null,
                   })
                 }
               } else {
                 await apiUpdate({
                   id: doc.id,
                   isArchived: true,
-                  deadline: (doc.category === '需求' && doc.deadline) ? new Date(doc.deadline) : null,
+                  deadline: doc.category === '需求' && doc.deadline ? new Date(doc.deadline) : null,
                 })
               }
               appStore.lastSavedTime = new Date().toLocaleTimeString()
@@ -322,7 +349,10 @@ onMounted(async () => {
                   await apiBatchDelete(idsToDelete)
                   appStore.lastSavedTime = new Date().toLocaleTimeString()
 
-                  if (appStore.selectedDocumentId && idsToDelete.includes(appStore.selectedDocumentId)) {
+                  if (
+                    appStore.selectedDocumentId &&
+                    idsToDelete.includes(appStore.selectedDocumentId)
+                  ) {
                     selectDefaultDocument()
                   } else {
                     listSelectedIds.value = listSelectedIds.value.filter(
