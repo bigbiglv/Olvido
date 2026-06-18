@@ -1,5 +1,5 @@
 import { prisma } from '../prisma/client'
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 import type { CreateNoteDto, NoteType, UpdateNoteDto } from '../types/note'
 
 export class NoteService {

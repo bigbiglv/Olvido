@@ -1,7 +1,11 @@
 import { app } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
-import { PrismaClient } from '@prisma/client'
+import { createRequire } from 'node:module'
+import type { PrismaClient } from '@prisma/client'
+
+const require = createRequire(import.meta.url)
+const PrismaClientConstructor = (require('@prisma/client') as typeof import('@prisma/client')).PrismaClient
 
 // Global singleton instance
 export let prisma: PrismaClient
@@ -40,7 +44,7 @@ export function initDatabase() {
 
   console.log('SQLite Database Path:', dbPath)
 
-  prisma = new PrismaClient({
+  prisma = new PrismaClientConstructor({
     datasources: {
       db: {
         url: `file:${dbPath}`,
