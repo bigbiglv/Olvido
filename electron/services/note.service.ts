@@ -1,9 +1,9 @@
 import { prisma } from '../prisma/client'
 import { Prisma } from '@prisma/client'
-import type { CreateNoteDto, UpdateNoteDto } from '../types/note'
+import type { CreateNoteDto, NoteType, UpdateNoteDto } from '../types/note'
 
 export class NoteService {
-  async getNotesByProject(projectId: string, type?: 'daily' | 'requirement' | 'archived') {
+  async getNotesByProject(projectId: string, type?: NoteType) {
     try {
       const where: Prisma.NoteWhereInput = { projectId }
       if (type === 'daily') {
@@ -38,7 +38,7 @@ export class NoteService {
 
   async createNote(data: CreateNoteDto) {
     try {
-      // 1. 根据当前项目与分类类型，过滤查询当前最大排序值
+      // 根据当前项目与分类类型，过滤查询当前最大排序值
       const where: Prisma.NoteWhereInput = {
         projectId: data.projectId,
         isArchived: data.isArchived ?? false,
@@ -99,6 +99,21 @@ export class NoteService {
       })
     } catch (error) {
       console.error(`Failed to delete note ${id}:`, error)
+      throw error
+    }
+  }
+
+  async deleteNotes(ids: string[]) {
+    try {
+      return await prisma.note.deleteMany({
+        where: {
+          id: {
+            in: ids,
+          },
+        },
+      })
+    } catch (error) {
+      console.error(`Failed to delete note ${ids}:`, error)
       throw error
     }
   }

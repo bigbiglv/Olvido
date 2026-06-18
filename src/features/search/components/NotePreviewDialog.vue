@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useDialog, type DialogOptions } from '@/components/dialog'
-import { apiGetNote } from '@/apis/note'
+import { apiDetail } from '@/apis/note'
 import type { SearchItem } from '../types/search'
 import type { NoteDto } from '../../../../electron/types/note'
 import { Crepe } from '@milkdown/crepe'
@@ -61,7 +61,7 @@ const isArchived = computed(() => {
 onMounted(async () => {
   try {
     loading.value = true
-    const note = await apiGetNote(props.item.id)
+    const note = await apiDetail(props.item.id)
     if (note) {
       noteData.value = note
     }

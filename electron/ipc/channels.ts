@@ -26,6 +26,8 @@ export const NOTE_CHANNELS = {
   UPDATE: 'note:update',
   /** 删除笔记 */
   DELETE: 'note:delete',
+  /** 批量删除笔记 */
+  BATCH_DELETE: 'note:batch-delete',
   /** 重新排序笔记 */
   REORDER: 'note:reorder',
 } as const

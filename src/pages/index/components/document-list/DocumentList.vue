@@ -82,9 +82,10 @@ onMounted(() => {
               okText: '确定删除',
               cancelText: '取消',
             })
-            if (isConfirmed) {
-              await store.deleteDocument(doc.id)
-            }
+            console.log(isConfirmed, doc)
+            // if (isConfirmed) {
+            //   await store.deleteDocument(doc.id)
+            // }
           },
         },
       ]

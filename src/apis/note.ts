@@ -1,26 +1,30 @@
-import type { CreateNoteDto, UpdateNoteDto } from '../../electron/types/note'
+import type { CreateNoteDto, NoteType, UpdateNoteDto } from '../../electron/types/note'
 
-export function apiListNotes(projectId: string, type?: 'daily' | 'requirement' | 'archived') {
+export function apiList(projectId: string, type?: NoteType) {
   return window.api.note.list(projectId, type)
 }
 
-export function apiGetNote(id: string) {
+export function apiDetail(id: string) {
   return window.api.note.get(id)
 }
 
-export function apiCreateNote(data: CreateNoteDto) {
+export function apiCreate(data: CreateNoteDto) {
   return window.api.note.create(data)
 }
 
-export function apiUpdateNote(data: UpdateNoteDto) {
+export function apiUpdate(data: UpdateNoteDto) {
   return window.api.note.update(data)
 }
 
-export function apiDeleteNote(id: string) {
+export function apiDelete(id: string) {
   return window.api.note.delete(id)
 }
 
-export function apiReorderNotes(data: {
+export function apiBatchDelete(ids: string[]) {
+  return window.api.note.batchDelete(ids)
+}
+
+export function apiReorder(data: {
   movedIds: string[]
   prevId: string | null
   nextId: string | null

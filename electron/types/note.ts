@@ -1,3 +1,6 @@
+/** 笔记类型 */
+export type NoteType = 'daily' | 'requirement' | 'archived'
+
 /** 笔记基本数据结构 */
 export interface NoteDto {
   /** 笔记唯一标识，由数据库自动生成 cuid */

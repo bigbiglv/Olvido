@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { PROJECT_CHANNELS, NOTE_CHANNELS } from '../ipc/channels'
 import type { CreateProjectDto, UpdateProjectDto } from '../types/project'
-import type { CreateNoteDto, UpdateNoteDto } from '../types/note'
+import type { CreateNoteDto, NoteType, UpdateNoteDto } from '../types/note'
 import type { SearchRequest } from '../types/search'
 
 contextBridge.exposeInMainWorld('api', {
@@ -15,12 +15,13 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke(PROJECT_CHANNELS.REORDER, data),
   },
   note: {
-    list: (projectId: string, type?: 'daily' | 'requirement' | 'archived') =>
+    list: (projectId: string, type?: NoteType) =>
       ipcRenderer.invoke(NOTE_CHANNELS.LIST, projectId, type),
     get: (id: string) => ipcRenderer.invoke(NOTE_CHANNELS.GET, id),
     create: (dto: CreateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.CREATE, dto),
     update: (dto: UpdateNoteDto) => ipcRenderer.invoke(NOTE_CHANNELS.UPDATE, dto),
     delete: (id: string) => ipcRenderer.invoke(NOTE_CHANNELS.DELETE, id),
+    batchDelete: (ids: string[]) => ipcRenderer.invoke(NOTE_CHANNELS.BATCH_DELETE, ids),
     reorder: (data: {
       movedIds: string[]
       prevId: string | null

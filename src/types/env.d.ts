@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import type { ProjectDto, CreateProjectDto, UpdateProjectDto } from '../../electron/types/project'
-import type { NoteDto, CreateNoteDto, UpdateNoteDto } from '../../electron/types/note'
+import type { NoteDto, CreateNoteDto, UpdateNoteDto, NoteType } from '../../electron/types/note'
 import type { SearchRequest, SearchResult } from '../features/search/types/search'
 
 declare global {
@@ -65,7 +65,7 @@ declare global {
       }
       note: {
         /** 获取笔记列表 */
-        list: (projectId: string, type?: 'daily' | 'requirement' | 'archived') => Promise<NoteDto[]>
+        list: (projectId: string, type?: NoteType) => Promise<NoteDto[]>
         /** 获取笔记详情 */
         get: (id: string) => Promise<NoteDto | null>
         /** 创建笔记 */
@@ -74,6 +74,7 @@ declare global {
         update: (dto: UpdateNoteDto) => Promise<NoteDto>
         /** 删除笔记 */
         delete: (id: string) => Promise<NoteDto>
+        batchDelete: (ids: string[]) => Promise<ProjectDto>
         /** 重新排序笔记 */
         reorder: (data: {
           movedIds: string[]

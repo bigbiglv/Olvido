@@ -5,7 +5,7 @@ import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
 import { RotateCcw, Trash2, Search, Inbox } from 'lucide-vue-next'
 import { isElectron } from '@/utils/env'
-import { apiListNotes } from '@/apis/note'
+import { apiList } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 import { confirm } from '@/components/confirm'
 
@@ -27,7 +27,7 @@ async function loadCompletedDocs() {
   if (isElectron) {
     try {
       const pid = store.currentProject || 'global'
-      const notes = await apiListNotes(pid, 'archived')
+      const notes = await apiList(pid, 'archived')
       allCompletedDocs.value = notes.map(mapNoteToDocument)
     } catch (err) {
       console.error('Failed to load completed documents:', err)

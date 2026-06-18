@@ -2,12 +2,12 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { defineStore } from 'pinia'
 import { isElectron } from '@/utils/env'
 import {
-  apiListNotes,
-  apiCreateNote,
-  apiUpdateNote,
-  apiDeleteNote,
-  apiGetNote,
-  apiReorderNotes,
+  apiList,
+  apiCreate,
+  apiUpdate,
+  apiDelete,
+  apiDetail,
+  apiReorder,
 } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 
@@ -85,13 +85,13 @@ export const useDocumentsStore = defineStore('documents', () => {
         } else if (currentCategory.value === '需求') {
           type = 'requirement'
         }
-        const notes = await apiListNotes(pid, type)
+        const notes = await apiList(pid, type)
         const list = notes.map(mapNoteToDocument)
 
         // 如果存在当前选中的文档，且不在过滤列表里（如已归档但正在被编辑的文档），且属于当前项目和当前分类，则临时加入列表
         if (selectedDocumentId.value && !list.some((d) => d.id === selectedDocumentId.value)) {
           try {
-            const note = await apiGetNote(selectedDocumentId.value)
+            const note = await apiDetail(selectedDocumentId.value)
             if (note) {
               const doc = mapNoteToDocument(note)
               const noteProject = doc.project || 'global'
@@ -206,7 +206,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     if (isElectron) {
       try {
         const deadline = newDoc.category === '需求' ? new Date() : null
-        const created = await apiCreateNote({
+        const created = await apiCreate({
           projectId: currentProject.value || 'global',
           title: newDoc.title,
           content: newDoc.content,
@@ -275,7 +275,7 @@ export const useDocumentsStore = defineStore('documents', () => {
           }
         }
 
-        await apiUpdateNote({
+        await apiUpdate({
           id: docId,
           title: updatedDoc?.title || updates.title,
           content: updatedDoc?.content || updates.content,
@@ -303,7 +303,7 @@ export const useDocumentsStore = defineStore('documents', () => {
   async function deleteDocument(docId: string) {
     if (isElectron) {
       try {
-        await apiDeleteNote(docId)
+        await apiDelete(docId)
         await loadDocuments()
       } catch (err) {
         console.error('Failed to delete document:', err)
@@ -329,7 +329,7 @@ export const useDocumentsStore = defineStore('documents', () => {
   }) {
     if (isElectron) {
       try {
-        await apiReorderNotes(data)
+        await apiReorder(data)
         // 重新从数据库拉取，保证内存顺序和排序字段绝对同步与准确
         await loadDocuments()
       } catch (err) {
