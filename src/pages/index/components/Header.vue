@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { useDocumentsStore } from '@/stores/documents'
+import { useAppStore } from '@/stores/app'
 import { useSearchStore } from '@/features/search/stores/search.store'
 import { Dialog } from '@/components/dialog'
 import SearchDialog from '@/features/search/components/SearchDialog.vue'
 import { Search } from 'lucide-vue-next'
 
-const store = useDocumentsStore()
+const appStore = useAppStore()
 const searchStore = useSearchStore()
 
 function handleOpenSearch() {
   // 默认进入当前项目内搜索模式
-  searchStore.openProjectSearch(store.currentProject)
+  searchStore.openProjectSearch(appStore.currentProject)
   Dialog.show(SearchDialog)
 }
 </script>

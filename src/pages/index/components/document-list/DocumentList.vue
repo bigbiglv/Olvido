@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { useDocumentsStore } from '@/stores/documents'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { useAppStore } from '@/stores/app'
 import { Button } from '@/components/ui/button'
 import { FileX, FilePlusCorner, BookOpenCheck } from 'lucide-vue-next'
 import { Dialog } from '@/components/dialog'
@@ -13,16 +13,106 @@ import { contextMenuManager } from '@/context-menu/context-menu-manager'
 import DailyDocItem from './DailyDocItem.vue'
 import RequirementDocItem from './RequirementDocItem.vue'
 import { DraggableList, type ReorderEvent } from '@/components/ui/draggableList'
-import { apiDelete, apiBatchDelete } from '@/apis/note'
+import { apiDelete, apiBatchDelete, apiReorder, apiList, apiDetail, apiCreate, apiUpdate } from '@/apis/note'
+import { mapNoteToDocument } from '@/apis/note-mapper'
+import { isElectron } from '@/utils/env'
 
-const store = useDocumentsStore()
+const appStore = useAppStore()
+
+/** 本地自持的文档列表数据 */
+const documents = ref<DocumentItem[]>([])
 
 /** 本地维护的文档多选选中 ID 数组 */
 const listSelectedIds = ref<string[]>([])
 
+/**
+ * 加载当前项目/分类下的文档列表
+ */
+async function loadDocuments() {
+  if (isElectron) {
+    try {
+      const pid = appStore.currentProject || 'global'
+      let type: 'daily' | 'requirement' | undefined = undefined
+      if (appStore.currentCategory === '日常') {
+        type = 'daily'
+      } else if (appStore.currentCategory === '需求') {
+        type = 'requirement'
+      }
+      const notes = await apiList(pid, type)
+      const list = notes.map(mapNoteToDocument)
+
+      // 如果存在当前选中的文档，且不在过滤列表里（如已归档但正在被编辑的文档），且属于当前项目和当前分类，则临时加入列表
+      if (appStore.selectedDocumentId && !list.some((d) => d.id === appStore.selectedDocumentId)) {
+        try {
+          const note = await apiDetail(appStore.selectedDocumentId)
+          if (note) {
+            const doc = mapNoteToDocument(note)
+            const noteProject = doc.project || 'global'
+            const currentPid = appStore.currentProject || 'global'
+            if (noteProject === currentPid && doc.category === appStore.currentCategory) {
+              list.push(doc)
+            }
+          }
+        } catch (err) {
+          console.error('Failed to append selected archived document:', err)
+        }
+      }
+
+      documents.value = list
+    } catch (err) {
+      console.error('Failed to load documents:', err)
+    }
+  } else {
+    documents.value = []
+  }
+}
+
+/**
+ * 过滤分类与完成状态
+ */
+const filteredDocuments = computed(() => {
+  let docs = documents.value
+  docs = docs.filter((d) => {
+    if (d.id === appStore.selectedDocumentId) return true
+    return !d.completed && d.category === appStore.currentCategory
+  })
+  return docs
+})
+
+/**
+ * 选择默认文档
+ */
+function selectDefaultDocument() {
+  const filtered = filteredDocuments.value
+  if (filtered.length > 0) {
+    if (!appStore.selectedDocumentId || !filtered.some((d) => d.id === appStore.selectedDocumentId)) {
+      appStore.selectDocument(filtered[0].id)
+    }
+  } else {
+    appStore.selectDocument(null)
+  }
+}
+
+// 监听当前项目/分类的变化，并自动刷新文档列表
+watch(
+  (() => [appStore.currentProject, appStore.currentCategory]),
+  async () => {
+    await loadDocuments()
+    selectDefaultDocument()
+  },
+)
+
+// 监听保存/持久化时间戳信号，自动刷新文档列表
+watch(
+  () => appStore.lastSavedTime,
+  async () => {
+    await loadDocuments()
+  },
+)
+
 // 监听当前激活的文档 ID，并将其同步到选中列表中
 watch(
-  () => store.selectedDocumentId,
+  () => appStore.selectedDocumentId,
   (newId) => {
     if (newId) {
       if (!listSelectedIds.value.includes(newId)) {
@@ -39,24 +129,52 @@ function handleOpenCompleted() {
   Dialog.show(CompletedDocsDialog)
 }
 
+/**
+ * 本地新建文档辅助方法
+ */
+async function createDocument(
+  title = '无标题文档',
+  content = '',
+  category?: '日常' | '需求',
+) {
+  const targetCategory = category || appStore.currentCategory
+  if (isElectron) {
+    try {
+      const deadline = targetCategory === '需求' ? new Date() : null
+      const created = await apiCreate({
+        projectId: appStore.currentProject || 'global',
+        title,
+        content,
+        deadline,
+        isArchived: false,
+      })
+      const saved = mapNoteToDocument(created)
+      await appStore.selectDocument(saved.id)
+      appStore.lastSavedTime = new Date().toLocaleTimeString()
+      return saved
+    } catch (err) {
+      console.error('Failed to create document:', err)
+      return null
+    }
+  }
+  return null
+}
+
 async function handleQuickAdd() {
   try {
     const titles = await Dialog.show<string[]>(QuickAddDialog)
     if (titles && titles.length > 0) {
       let firstDocId: string | null = null
-      // 反转标题顺序，因为新增的文档会被插入到最顶部
-      // 先插入 3，再插入 2，再插入 1，最终列表显示为 1, 2, 3
       for (const title of [...titles].reverse()) {
-        await store.createDocument(title, '', '日常', true)
-        // 不断覆盖，最终 firstDocId 会是输入列表的第一项
-        firstDocId = store.selectedDocumentId
+        const created = await createDocument(title, '', '日常')
+        if (created) {
+          firstDocId = created.id
+        }
       }
-      const needManualLoad = store.currentCategory === '日常'
-      // Auto switch category to daily to show the results, using switchProjectAndCategory to preserve the first inserted document ID
-      store.switchProjectAndCategory(store.currentProject, '日常', firstDocId)
+      const needManualLoad = appStore.currentCategory === '日常'
+      await appStore.switchProjectAndCategory(appStore.currentProject, '日常', firstDocId)
       if (needManualLoad) {
-        // Re-load documents from DB/state to ensure the display order matches the DB sort order exactly
-        await store.loadDocuments()
+        await loadDocuments()
       }
     }
   } catch {
@@ -68,15 +186,25 @@ const categoryTabs: Array<'日常' | '需求'> = ['日常', '需求']
 
 // Toggle completion checkbox in list
 async function toggleCompletion(doc: DocumentItem) {
-  const newCompleted = !doc.completed
-  await store.saveDocument(doc.id, { completed: newCompleted })
-
-  // Re-evaluate selection
-  store.selectDefaultDocument()
+  try {
+    const newCompleted = !doc.completed
+    await apiUpdate({
+      id: doc.id,
+      isArchived: newCompleted,
+      deadline: (doc.category === '需求' && doc.deadline) ? new Date(doc.deadline) : null,
+    })
+    appStore.lastSavedTime = new Date().toLocaleTimeString()
+    selectDefaultDocument()
+  } catch (error) {
+    console.error('Failed to toggle completion:', error)
+  }
 }
 
 // Right-click menu registration
-onMounted(() => {
+onMounted(async () => {
+  await loadDocuments()
+  selectDefaultDocument()
+
   contextMenuManager.register({
     type: 'document',
     getMenus: (context) => {
@@ -92,12 +220,22 @@ onMounted(() => {
             try {
               if (isMultiSelect) {
                 for (const id of listSelectedIds.value) {
-                  await store.saveDocument(id, { completed: true })
+                  const itemDoc = documents.value.find((d) => d.id === id)
+                  await apiUpdate({
+                    id,
+                    isArchived: true,
+                    deadline: (itemDoc?.category === '需求' && itemDoc.deadline) ? new Date(itemDoc.deadline) : null,
+                  })
                 }
               } else {
-                await store.saveDocument(doc.id, { completed: true })
+                await apiUpdate({
+                  id: doc.id,
+                  isArchived: true,
+                  deadline: (doc.category === '需求' && doc.deadline) ? new Date(doc.deadline) : null,
+                })
               }
-              store.selectDefaultDocument()
+              appStore.lastSavedTime = new Date().toLocaleTimeString()
+              selectDefaultDocument()
             } catch (error) {
               console.error('Failed to update completion status:', error)
             }
@@ -126,10 +264,10 @@ onMounted(() => {
                 if (isMultiSelect) {
                   const idsToDelete = [...listSelectedIds.value]
                   await apiBatchDelete(idsToDelete)
-                  await store.loadDocuments()
+                  appStore.lastSavedTime = new Date().toLocaleTimeString()
 
-                  if (store.selectedDocumentId && idsToDelete.includes(store.selectedDocumentId)) {
-                    store.selectDefaultDocument()
+                  if (appStore.selectedDocumentId && idsToDelete.includes(appStore.selectedDocumentId)) {
+                    selectDefaultDocument()
                   } else {
                     listSelectedIds.value = listSelectedIds.value.filter(
                       (id) => !idsToDelete.includes(id),
@@ -137,10 +275,10 @@ onMounted(() => {
                   }
                 } else {
                   await apiDelete(doc.id)
-                  await store.loadDocuments()
+                  appStore.lastSavedTime = new Date().toLocaleTimeString()
 
-                  if (store.selectedDocumentId === doc.id) {
-                    store.selectDefaultDocument()
+                  if (appStore.selectedDocumentId === doc.id) {
+                    selectDefaultDocument()
                   } else {
                     listSelectedIds.value = listSelectedIds.value.filter((id) => id !== doc.id)
                   }
@@ -180,11 +318,12 @@ async function handleConvertToRequirement(doc: DocumentItem) {
   try {
     const date = await Dialog.show<string>(ConvertToRequirementDialog)
     if (date) {
-      await store.saveDocument(doc.id, {
-        category: '需求',
-        deadline: date,
+      await apiUpdate({
+        id: doc.id,
+        deadline: new Date(date),
       })
-      store.selectDefaultDocument()
+      appStore.lastSavedTime = new Date().toLocaleTimeString()
+      selectDefaultDocument()
     }
   } catch {
     // Dialog cancelled
@@ -196,7 +335,7 @@ function handleSelectionChange(ids: string[]) {
 }
 
 function handleOpen(item: DocumentItem) {
-  store.selectedDocumentId = item.id
+  appStore.selectDocument(item.id)
 }
 
 async function handleReorder(event: ReorderEvent<DocumentItem>) {
@@ -207,15 +346,20 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
   const prevItem = firstMovedIndex > 0 ? newItems[firstMovedIndex - 1] : null
   const lastMovedIndex = firstMovedIndex + movedIds.length - 1
   const nextItem = lastMovedIndex < newItems.length - 1 ? newItems[lastMovedIndex + 1] : null
-  const type = store.currentCategory === '需求' ? 'requirement' : 'daily'
+  const type = appStore.currentCategory === '需求' ? 'requirement' : 'daily'
 
-  await store.reorderDocuments({
-    movedIds,
-    prevId: prevItem ? prevItem.id : null,
-    nextId: nextItem ? nextItem.id : null,
-    projectId: store.currentProject || 'global',
-    type,
-  })
+  try {
+    await apiReorder({
+      movedIds,
+      prevId: prevItem ? prevItem.id : null,
+      nextId: nextItem ? nextItem.id : null,
+      projectId: appStore.currentProject || 'global',
+      type,
+    })
+    await loadDocuments()
+  } catch (error) {
+    console.error('Failed to reorder documents:', error)
+  }
 }
 </script>
 
@@ -226,9 +370,9 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
       class="px-5 py-3 border-b border-slate-200/80 dark:border-zinc-800/80 flex items-center justify-between"
     >
       <Tabs
-        :model-value="store.currentCategory"
+        :model-value="appStore.currentCategory"
         class="w-auto"
-        @update:model-value="(val) => (store.currentCategory = val as any)"
+        @update:model-value="(val) => (appStore.currentCategory = val as any)"
       >
         <TabsList class="h-8 p-1">
           <TabsTrigger
@@ -254,7 +398,7 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
     <!-- Scrollable List -->
     <div class="flex-1 overflow-y-auto p-4" @click.self="listSelectedIds = []">
       <div
-        v-if="store.filteredDocuments.length === 0"
+        v-if="filteredDocuments.length === 0"
         class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4"
       >
         <FileX class="size-8 opacity-40 mb-2" />
@@ -263,10 +407,10 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
 
       <DraggableList
         v-else
-        :items="store.filteredDocuments"
+        :items="filteredDocuments"
         item-key="id"
         :selected-ids="listSelectedIds"
-        :opened-id="store.selectedDocumentId"
+        :opened-id="appStore.selectedDocumentId"
         @selection-change="handleSelectionChange"
         @open="handleOpen"
         @reorder="handleReorder"

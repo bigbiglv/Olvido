@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useStorage } from '@vueuse/core'
-import { useDocumentsStore } from '@/stores/documents'
+import { useAppStore } from '@/stores/app'
 import Sidebar from './components/sidebar/Sidebar.vue'
 import ResizeHandle from '@/components/common/ResizeHandle/index.vue'
 import Header from './components/Header.vue'
@@ -10,7 +9,7 @@ import DocumentEditor from './components/editor/DocumentEditor.vue'
 import EmptyState from './components/EmptyState.vue'
 import { useKeyboardShortcuts } from './composables/use-keyboard-shortcuts'
 
-const store = useDocumentsStore()
+const appStore = useAppStore()
 
 // 侧边栏宽度持久化 (默认 256px)
 const sidebarWidth = useStorage('olvido-sidebar-width', 256)
@@ -20,12 +19,6 @@ const docListWidth = useStorage('olvido-doclist-width', 320)
 
 // 注册全局键盘快捷键
 useKeyboardShortcuts()
-
-onMounted(() => {
-  store.loadDocuments().catch((err) => {
-    console.error('Failed to initialize documents:', err)
-  })
-})
 </script>
 
 <template>
@@ -49,7 +42,7 @@ onMounted(() => {
           <div
             class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50/20 dark:bg-zinc-900/10"
           >
-            <DocumentEditor v-if="store.selectedDocument" />
+            <DocumentEditor v-if="appStore.selectedDocument" />
             <EmptyState v-else />
           </div>
         </div>

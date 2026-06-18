@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { type DialogOptions } from '@/components/dialog'
-import { useDocumentsStore } from '@/stores/documents'
+import { useAppStore } from '@/stores/app'
 import { Button } from '@/components/ui/button'
 import { RotateCcw, Trash2, Search, Inbox } from 'lucide-vue-next'
 import { isElectron } from '@/utils/env'
-import { apiList } from '@/apis/note'
+import { apiList, apiDelete, apiUpdate } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 import { confirm } from '@/components/confirm'
 
@@ -18,7 +18,7 @@ defineOptions({
   } as DialogOptions,
 })
 
-const store = useDocumentsStore()
+const appStore = useAppStore()
 const searchQuery = ref('')
 const allCompletedDocs = ref<DocumentItem[]>([])
 
@@ -26,15 +26,14 @@ const allCompletedDocs = ref<DocumentItem[]>([])
 async function loadCompletedDocs() {
   if (isElectron) {
     try {
-      const pid = store.currentProject || 'global'
+      const pid = appStore.currentProject || 'global'
       const notes = await apiList(pid, 'archived')
       allCompletedDocs.value = notes.map(mapNoteToDocument)
     } catch (err) {
       console.error('Failed to load completed documents:', err)
     }
   } else {
-    // Mock mode
-    allCompletedDocs.value = store.documents.filter((d) => d.completed)
+    allCompletedDocs.value = []
   }
 }
 
@@ -54,28 +53,45 @@ const completedDocs = computed(() => {
 // Restore document (set completed = false)
 async function handleRestore(docId: string, event: Event) {
   event.stopPropagation()
-  await store.saveDocument(docId, { completed: false })
-  // Remove from local list
-  allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
-  // Reload store documents to update the main DocumentList
-  await store.loadDocuments()
+  try {
+    const doc = allCompletedDocs.value.find((d) => d.id === docId)
+    if (doc) {
+      await apiUpdate({
+        id: docId,
+        isArchived: false,
+        deadline: (doc.category === '需求' && doc.deadline) ? new Date(doc.deadline) : null,
+      })
+      // Remove from local list
+      allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
+      // Trigger list update on main document list
+      appStore.lastSavedTime = new Date().toLocaleTimeString()
+    }
+  } catch (error) {
+    console.error('Failed to restore completed document:', error)
+  }
 }
 
 // Permanently delete document
 async function handleDelete(docId: string, event: Event) {
   event.stopPropagation()
-  const isConfirmed = await confirm({
-    title: '永久删除文档',
-    description: '确定要永久删除此文档吗？此操作无法撤销。',
-    destructive: true,
-    okText: '确定删除',
-    cancelText: '取消',
-  })
+  try {
+    const isConfirmed = await confirm({
+      title: '永久删除文档',
+      description: '确定要永久删除此文档吗？此操作无法撤销。',
+      destructive: true,
+      okText: '确定删除',
+      cancelText: '取消',
+    })
 
-  if (isConfirmed) {
-    await store.deleteDocument(docId)
-    // Remove from local list
-    allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
+    if (isConfirmed) {
+      await apiDelete(docId)
+      // Trigger list update on main document list
+      appStore.lastSavedTime = new Date().toLocaleTimeString()
+      // Remove from local list
+      allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
+    }
+  } catch (error) {
+    console.error('Failed to delete completed document:', error)
   }
 }
 

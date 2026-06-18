@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useDocumentsStore } from '@/stores/documents'
+import { useAppStore } from '@/stores/app'
 import MarkdownSplitEditor from '@/components/Editor/MarkdownSplitEditor.vue'
 import { Calendar, Clock, Edit2, FileText } from 'lucide-vue-next'
 import { formatDocTime, formatFullDateTime } from '@/utils/date'
+import { apiUpdate } from '@/apis/note'
 
-const store = useDocumentsStore()
+const appStore = useAppStore()
 
 // Debounced save timeout
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
@@ -13,7 +14,7 @@ const isSaving = ref(false)
 
 // Reset isSaving if selected document changes
 watch(
-  () => store.selectedDocument?.id,
+  () => appStore.selectedDocument?.id,
   () => {
     if (saveTimeout) {
       clearTimeout(saveTimeout)
@@ -22,31 +23,51 @@ watch(
   },
 )
 
+// Helper function to save document changes directly to database
+async function saveDocument(docId: string, updates: Partial<DocumentItem>) {
+  try {
+    const doc = appStore.selectedDocument
+    if (!doc) return
+    Object.assign(doc, updates)
+
+    await apiUpdate({
+      id: docId,
+      title: doc.title,
+      content: doc.content,
+      isArchived: doc.completed,
+      deadline: (doc.category === '需求' && doc.deadline) ? new Date(doc.deadline) : null,
+    })
+    appStore.lastSavedTime = new Date().toLocaleTimeString()
+  } catch (err) {
+    console.error('Failed to save document:', err)
+  }
+}
+
 // Handle content and title updates with auto-save
 function handleContentUpdate(newContent: string) {
-  if (!store.selectedDocument) return
+  if (!appStore.selectedDocument) return
 
   // Set temporary local value
-  store.selectedDocument.content = newContent
+  appStore.selectedDocument.content = newContent
   isSaving.value = true
 
   // Debounce save to database
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
-    if (store.selectedDocument) {
+    if (appStore.selectedDocument) {
       // Auto-extract first header as title if user writes one
-      let title = store.selectedDocument.title
+      let title = appStore.selectedDocument.title
       if (newContent.trim().startsWith('# ')) {
         const firstLine = newContent.split('\n')[0]
         const extracted = firstLine.replace(/^#\s+/, '').trim()
         if (extracted) {
           title = extracted
-          store.selectedDocument.title = title
+          appStore.selectedDocument.title = title
         }
       }
 
       try {
-        await store.saveDocument(store.selectedDocument.id, {
+        await saveDocument(appStore.selectedDocument.id, {
           content: newContent,
           title: title,
         })
@@ -59,16 +80,16 @@ function handleContentUpdate(newContent: string) {
 
 function handleTitleUpdate(event: Event) {
   const newTitle = (event.target as HTMLInputElement).value.trim()
-  if (!store.selectedDocument || !newTitle) return
+  if (!appStore.selectedDocument || !newTitle) return
 
-  store.selectedDocument.title = newTitle
+  appStore.selectedDocument.title = newTitle
   isSaving.value = true
 
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
-    if (store.selectedDocument) {
+    if (appStore.selectedDocument) {
       try {
-        await store.saveDocument(store.selectedDocument.id, {
+        await saveDocument(appStore.selectedDocument.id, {
           title: newTitle,
         })
       } finally {
@@ -80,12 +101,12 @@ function handleTitleUpdate(event: Event) {
 
 // Word & Character count calculation
 const wordCount = computed(() => {
-  const content = store.selectedDocument?.content || ''
+  const content = appStore.selectedDocument?.content || ''
   return content.split(/\s+/).filter(Boolean).length
 })
 
 const charCount = computed(() => {
-  const content = store.selectedDocument?.content || ''
+  const content = appStore.selectedDocument?.content || ''
   return content.length
 })
 
@@ -96,7 +117,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <template v-if="store.selectedDocument">
+  <template v-if="appStore.selectedDocument">
     <!-- Editor Header Panel -->
     <div
       class="px-8 py-5 border-b border-slate-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900 flex flex-col gap-2 shrink-0"
@@ -106,7 +127,7 @@ onBeforeUnmount(() => {
         <!-- Document Title Input -->
         <input
           type="text"
-          :value="store.selectedDocument.title"
+          :value="appStore.selectedDocument.title"
           placeholder="无标题文档"
           class="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-50 border-0 p-0 focus:outline-none focus:ring-0 focus:border-0 bg-transparent flex-1"
           @input="handleTitleUpdate"
@@ -119,12 +140,12 @@ onBeforeUnmount(() => {
       >
         <span class="flex items-center gap-1">
           <Calendar class="size-3.5" />
-          创建于 {{ formatFullDateTime(store.selectedDocument.createdAt) }}
+          创建于 {{ formatFullDateTime(appStore.selectedDocument.createdAt) }}
         </span>
         <span class="flex items-center gap-1">
           <Clock class="size-3.5" />
           自动保存于
-          {{ store.lastSavedTime || formatDocTime(store.selectedDocument.updatedAt) }}
+          {{ appStore.lastSavedTime || formatDocTime(appStore.selectedDocument.updatedAt) }}
         </span>
         <span
           class="h-1.5 size-1.5 rounded-full transition-colors duration-300"
@@ -137,7 +158,7 @@ onBeforeUnmount(() => {
     <!-- Markdown Split Editor Pane -->
     <div class="flex-1 overflow-hidden p-1 min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
       <MarkdownSplitEditor
-        :model-value="store.selectedDocument.content"
+        :model-value="appStore.selectedDocument.content"
         @update:model-value="handleContentUpdate"
       />
     </div>

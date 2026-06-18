@@ -11,11 +11,6 @@ defineOptions({
     height: 520,
   } as DialogOptions,
 })
-
-defineProps<{
-  dbStatus: string
-  documentCount: number
-}>()
 </script>
 
 <template>
@@ -49,21 +44,6 @@ defineProps<{
           <h2 class="text-lg font-semibold text-slate-800 dark:text-zinc-100">数据与存储</h2>
         </div>
         <div class="space-y-4">
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-slate-500 dark:text-zinc-400"> 数据库状态 </span>
-            <span
-              class="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5"
-            >
-              <span class="h-2 size-2 rounded-full bg-emerald-500"></span>
-              {{ dbStatus }}
-            </span>
-          </div>
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-slate-500 dark:text-zinc-400"> 文档数量 </span>
-            <span class="font-medium text-slate-700 dark:text-zinc-200 font-mono">
-              {{ documentCount }} 篇
-            </span>
-          </div>
           <div class="flex justify-between items-center text-sm">
             <span class="text-slate-500 dark:text-zinc-400"> 本地持久化 </span>
             <span class="text-slate-700 dark:text-zinc-200 flex items-center gap-1">

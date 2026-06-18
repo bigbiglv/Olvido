@@ -1,8 +1,46 @@
 <script setup lang="ts">
 import { FilePlus, CheckSquare } from 'lucide-vue-next'
-import { useDocumentsStore } from '@/stores/documents'
+import { useAppStore } from '@/stores/app'
+import { apiCreate } from '@/apis/note'
+import { mapNoteToDocument } from '@/apis/note-mapper'
+import { isElectron } from '@/utils/env'
 
-const store = useDocumentsStore()
+const appStore = useAppStore()
+
+async function handleCreate() {
+  const targetCategory = appStore.currentCategory === '已完成' ? '日常' : appStore.currentCategory
+  const newDoc = {
+    title: '新文档',
+    content: '# 新文档\n\n在此开始编写内容...',
+    category: targetCategory,
+    project: appStore.currentProject,
+    completed: false,
+  }
+
+  if (isElectron) {
+    try {
+      const deadline = newDoc.category === '需求' ? new Date() : null
+      const created = await apiCreate({
+        projectId: appStore.currentProject || 'global',
+        title: newDoc.title,
+        content: newDoc.content,
+        deadline,
+        isArchived: false,
+      })
+      const saved = mapNoteToDocument(created)
+      // 选中创建的文档
+      await appStore.selectDocument(saved.id)
+      // 更新 lastSavedTime 触发 DocumentList 刷新
+      appStore.lastSavedTime = new Date().toLocaleTimeString()
+    } catch (err) {
+      console.error('Failed to create document:', err)
+    }
+  } else {
+    const mockId = Math.random().toString(36).substring(2, 11)
+    await appStore.selectDocument(mockId)
+    appStore.lastSavedTime = new Date().toLocaleTimeString()
+  }
+}
 </script>
 
 <template>
@@ -21,7 +59,7 @@ const store = useDocumentsStore()
       </p>
       <button
         class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 dark:shadow-none transition cursor-pointer"
-        @click="store.createDocument('新文档', '# 新文档\n\n在此开始编写内容...')"
+        @click="handleCreate"
       >
         <FilePlus class="size-4.5" />
         <span>创建您的第一个文档</span>

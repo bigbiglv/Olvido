@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useDocumentsStore } from '@/stores/documents'
+import { useAppStore } from '@/stores/app'
 import { Dialog } from '@/components/dialog'
 import SettingsPage from '@/pages/index/components/SettingsPage.vue'
 import {
@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input'
 import { contextMenuManager } from '@/context-menu/context-menu-manager'
 import { BookOpen, Folder, Plus, Settings, CheckSquare } from 'lucide-vue-next'
 
-const store = useDocumentsStore()
+const appStore = useAppStore()
 
 /** 本地项目列表数据 */
 const projects = ref<ProjectDto[]>([])
@@ -100,7 +100,7 @@ async function fetchProjects() {
  * @param projectId 项目唯一标识（null 表示全局记事本）
  */
 function handleSelectProject(projectId: string | null) {
-  store.currentProject = projectId
+  appStore.currentProject = projectId
   listSelectedIds.value = projectId ? [projectId] : ['global']
 }
 
@@ -188,7 +188,7 @@ async function handleAddProject() {
       newProjectName.value = ''
       showAddProject.value = false
       handleSelectProject(newId)
-    } catch (error) {
+    } catch {
       isAdding.value = false
       if (addTimeout) {
         clearTimeout(addTimeout)
@@ -202,10 +202,7 @@ async function handleAddProject() {
  * 打开系统设置对话框
  */
 function handleOpenSettings() {
-  Dialog.show(SettingsPage, {
-    dbStatus: store.dbStatus,
-    documentCount: store.documents.length,
-  })
+  Dialog.show(SettingsPage)
 }
 
 /**
@@ -247,7 +244,7 @@ async function handleDeleteProject(proj: ProjectDto) {
       // 从本地列表移除
       projects.value = projects.value.filter((p) => p.id !== proj.id)
       // 如果被删除的是当前选中的项目，重置为全局记事本
-      if (store.currentProject === proj.id) {
+      if (appStore.currentProject === proj.id) {
         handleSelectProject(null)
       }
       // 从多选中移除
@@ -286,13 +283,13 @@ async function handleDeleteProject(proj: ProjectDto) {
           variant="ghost"
           class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left border-0"
           :class="[
-            store.currentProject === null
+            appStore.currentProject === null
               ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
               : '',
-            listSelectedIds.includes('global') && store.currentProject !== null
+            listSelectedIds.includes('global') && appStore.currentProject !== null
               ? 'bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
               : '',
-            store.currentProject !== null && !listSelectedIds.includes('global')
+            appStore.currentProject !== null && !listSelectedIds.includes('global')
               ? 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
               : ''
           ]"
@@ -339,15 +336,15 @@ async function handleDeleteProject(proj: ProjectDto) {
 
         <!-- Project List -->
         <DraggableList
+          class="space-y-1"
           :items="projects"
           item-key="id"
           :selected-ids="listSelectedIds"
-          :opened-id="store.currentProject || ''"
+          :opened-id="appStore.currentProject || ''"
           @selection-change="handleProjectSelectionChange"
           @open="(proj) => handleSelectProject(proj.id)"
           @reorder="handleReorderProjects"
           @context-menu="(proj, event) => handleContextMenu(event, proj)"
-          class="space-y-1"
         >
           <template #item="{ item: proj, selected, opened }">
             <Button

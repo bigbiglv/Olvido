@@ -1,13 +1,13 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useSearchStore } from '../stores/search.store'
-import { useDocumentsStore } from '@/stores/documents'
+import { useAppStore } from '@/stores/app'
 import type { SearchResult, SearchItem } from '../types/search'
 import { Dialog } from '@/components/dialog'
 import NotePreviewDialog from '../components/NotePreviewDialog.vue'
 
 export function useSearch() {
   const store = useSearchStore()
-  const documentsStore = useDocumentsStore()
+  const appStore = useAppStore()
 
   const results = ref<SearchResult>({ titleMatches: [], contentMatches: [] })
   const loading = ref(false)
@@ -89,7 +89,7 @@ export function useSearch() {
           store.closeSearch()
 
           // 切换项目与分类，并且选中该笔记（使用 switchProjectAndCategory 避免选中状态被清理）
-          documentsStore.switchProjectAndCategory(
+          appStore.switchProjectAndCategory(
             note.projectId === 'global' ? null : note.projectId,
             note.deadline ? '需求' : '日常',
             note.id,
