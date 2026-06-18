@@ -64,6 +64,7 @@
   "build": {
     "appId": "com.olvido.app",
     "productName": "Olvido",
+    "icon": "public/logo.png",
     "asar": true,
     "asarUnpack": [
       "**/node_modules/@prisma/engines/**/*",
@@ -75,6 +76,12 @@
     "files": [
       "dist",
       "dist-electron"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/.prisma",
+        "to": "node_modules/.prisma"
+      }
     ],
     "mac": {
       "target": [

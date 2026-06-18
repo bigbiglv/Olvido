@@ -27,6 +27,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
     webPreferences: {
       preload: path.join(__dirname, 'index.mjs'),
     },

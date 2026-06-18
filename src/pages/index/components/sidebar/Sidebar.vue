@@ -19,7 +19,7 @@ import { isElectron } from '@/utils/env'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { contextMenuManager } from '@/context-menu/context-menu-manager'
-import { BookOpen, Folder, Plus, Settings, CheckSquare } from 'lucide-vue-next'
+import { BookOpen, Folder, Plus, Settings } from 'lucide-vue-next'
 
 const appStore = useAppStore()
 
@@ -262,11 +262,11 @@ async function handleDeleteProject(proj: ProjectDto) {
     <div
       class="h-16 flex items-center px-6 gap-2 border-b border-slate-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-transparent"
     >
-      <div
-        class="flex size-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200/50 dark:shadow-none"
-      >
-        <CheckSquare class="size-5" />
-      </div>
+      <img
+        src="/logo.png"
+        alt="Logo"
+        class="size-9 rounded-xl object-contain shadow-sm border border-slate-100/10 dark:border-zinc-800/10"
+      />
       <span class="text-xl font-bold tracking-tight text-slate-800 dark:text-zinc-100">Olvido</span>
     </div>
 
