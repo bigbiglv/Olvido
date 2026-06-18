@@ -4,11 +4,11 @@ import { useDocumentsStore } from '@/stores/documents'
 import { Dialog } from '@/components/dialog'
 import SettingsPage from '@/pages/index/components/SettingsPage.vue'
 import {
-  apiListProjects,
-  apiCreateProject,
-  apiUpdateProject,
-  apiDeleteProject,
-  apiReorderProjects,
+  apiList,
+  apiCreate,
+  apiUpdate,
+  apiDelete,
+  apiReorder,
 } from '@/apis/project'
 import { confirm } from '@/components/confirm'
 import RenameProjectDialog from './RenameProjectDialog.vue'
@@ -84,7 +84,7 @@ function handleContextMenu(event: MouseEvent, proj: ProjectDto) {
 async function fetchProjects() {
   if (isElectron) {
     try {
-      const list = await apiListProjects()
+      const list = await apiList()
       // 过滤掉数据库内置的 global 笔记本项目，避免与顶部的“笔记本”选项重复
       projects.value = list.filter((p) => p.id !== 'global')
     } catch (error) {
@@ -133,7 +133,7 @@ async function handleReorderProjects(event: ReorderEvent<ProjectDto>) {
 
   if (isElectron) {
     try {
-      await apiReorderProjects({
+      await apiReorder({
         movedIds,
         prevId: prevItem ? prevItem.id : null,
         nextId: nextItem ? nextItem.id : null,
@@ -165,7 +165,7 @@ async function handleAddProject() {
   if (isElectron) {
     try {
       const newId = crypto.randomUUID()
-      const newProj = await apiCreateProject({ id: newId, name })
+      const newProj = await apiCreate({ id: newId, name })
       projects.value.push(newProj)
       newProjectName.value = ''
       showAddProject.value = false
@@ -216,7 +216,7 @@ async function handleRenameProject(proj: ProjectDto) {
     const newName = await Dialog.show<string>(RenameProjectDialog, { initialName: proj.name })
     if (newName) {
       if (isElectron) {
-        await apiUpdateProject({ id: proj.id, name: newName })
+        await apiUpdate({ id: proj.id, name: newName })
       }
       proj.name = newName
     }
@@ -242,7 +242,7 @@ async function handleDeleteProject(proj: ProjectDto) {
   if (isConfirmed) {
     try {
       if (isElectron) {
-        await apiDeleteProject(proj.id)
+        await apiDelete(proj.id)
       }
       // 从本地列表移除
       projects.value = projects.value.filter((p) => p.id !== proj.id)

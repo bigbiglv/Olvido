@@ -3,16 +3,19 @@ import { projectService } from '../services/project.service'
 import { PROJECT_CHANNELS } from './channels'
 import type { CreateProjectDto, UpdateProjectDto } from '../types/project'
 
+/**
+ * 注册项目相关的 IPC（进程间通信）通道处理器
+ */
 export function registerProjectIpc() {
-  // Clear old handlers first to prevent "Attempted to register a second handler"
-  ipcMain.removeHandler(PROJECT_CHANNELS.LIST)
-  ipcMain.removeHandler(PROJECT_CHANNELS.GET)
-  ipcMain.removeHandler(PROJECT_CHANNELS.CREATE)
-  ipcMain.removeHandler(PROJECT_CHANNELS.UPDATE)
-  ipcMain.removeHandler(PROJECT_CHANNELS.DELETE)
-  ipcMain.removeHandler(PROJECT_CHANNELS.REORDER)
+  // 在注册前先清理旧的处理器，防止由于热重载等原因导致 "Attempted to register a second handler" 报错
+  Object.values(PROJECT_CHANNELS).forEach((channel) => {
+    ipcMain.removeHandler(channel)
+  })
 
-  // Register list handler
+  /**
+   * 获取所有项目列表
+   * @returns 项目实体数据列表
+   */
   ipcMain.handle(PROJECT_CHANNELS.LIST, async () => {
     try {
       return await projectService.getProjects()
@@ -22,7 +25,11 @@ export function registerProjectIpc() {
     }
   })
 
-  // Register get handler
+  /**
+   * 根据 ID 获取单个项目的详细信息
+   * @param id 项目唯一标识
+   * @returns 项目实体数据，若未找到则返回 null
+   */
   ipcMain.handle(PROJECT_CHANNELS.GET, async (_, id: string) => {
     try {
       return await projectService.getProject(id)
@@ -32,7 +39,11 @@ export function registerProjectIpc() {
     }
   })
 
-  // Register create handler
+  /**
+   * 创建新项目
+   * @param dto 创建项目的数据传输对象
+   * @returns 成功创建后的项目实体对象
+   */
   ipcMain.handle(PROJECT_CHANNELS.CREATE, async (_, dto: CreateProjectDto) => {
     try {
       return await projectService.createProject(dto)
@@ -42,7 +53,11 @@ export function registerProjectIpc() {
     }
   })
 
-  // Register update handler
+  /**
+   * 更新项目信息
+   * @param dto 更新项目的数据传输对象，必须包含待更新项目的 id
+   * @returns 更新后的项目实体对象
+   */
   ipcMain.handle(PROJECT_CHANNELS.UPDATE, async (_, dto: UpdateProjectDto) => {
     try {
       return await projectService.updateProject(dto)
@@ -52,7 +67,11 @@ export function registerProjectIpc() {
     }
   })
 
-  // Register delete handler
+  /**
+   * 删除指定项目，关联的笔记将会级联删除
+   * @param id 待删除项目的唯一标识
+   * @returns 被删除的项目实体对象
+   */
   ipcMain.handle(PROJECT_CHANNELS.DELETE, async (_, id: string) => {
     try {
       return await projectService.deleteProject(id)
@@ -62,7 +81,22 @@ export function registerProjectIpc() {
     }
   })
 
-  // Register reorder handler
+  ipcMain.handle(PROJECT_CHANNELS.BATCH_DELETE, async (_, ids: string[]) => {
+    try {
+      return await projectService.deleteProjects(ids)
+    } catch (error) {
+      console.error(`IPC project:delete error for ID ${ids}:`, error)
+      throw new Error('删除项目失败', { cause: error })
+    }
+  })
+
+  /**
+   * 重新排序项目列表，支持单选与多选拖拽排序更新
+   * @param data 排序更新参数
+   * @param data.movedIds 被移动的项目 ID 数组
+   * @param data.prevId 排序后目标位置的前一个相邻项目 ID，置顶时为 null
+   * @param data.nextId 排序后目标位置的下一个相邻项目 ID，置底时为 null
+   */
   ipcMain.handle(
     PROJECT_CHANNELS.REORDER,
     async (_, data: { movedIds: string[]; prevId: string | null; nextId: string | null }) => {

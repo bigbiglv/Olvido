@@ -56,6 +56,7 @@ declare global {
         update: (dto: UpdateProjectDto) => Promise<ProjectDto>
         /** 删除项目 */
         delete: (id: string) => Promise<ProjectDto>
+        batchDelete: (ids: string[]) => Promise<ProjectDto>
         /** 重新排序项目 */
         reorder: (data: {
           movedIds: string[]
@@ -74,7 +75,7 @@ declare global {
         update: (dto: UpdateNoteDto) => Promise<NoteDto>
         /** 删除笔记 */
         delete: (id: string) => Promise<NoteDto>
-        batchDelete: (ids: string[]) => Promise<ProjectDto>
+        batchDelete: (ids: string[]) => Promise<NoteDto>
         /** 重新排序笔记 */
         reorder: (data: {
           movedIds: string[]

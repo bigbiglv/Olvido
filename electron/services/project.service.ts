@@ -73,6 +73,25 @@ export class ProjectService {
       throw error
     }
   }
+
+  async deleteProjects(ids: string[]) {
+    if (ids.includes('global')) {
+      throw new Error('Cannot delete global project')
+    }
+    try {
+      return await prisma.project.deleteMany({
+        where: {
+          id: {
+            in: ids,
+          }
+        },
+      })
+    } catch (error) {
+      console.error(`Failed to delete project ${ids}:`, error)
+      throw error
+    }
+  }
+
   async reorderProjects(data: {
     movedIds: string[]
     prevId: string | null

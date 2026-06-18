@@ -10,6 +10,8 @@ export const PROJECT_CHANNELS = {
   UPDATE: 'project:update',
   /** 删除项目 */
   DELETE: 'project:delete',
+  /** 批量删除笔记 */
+  BATCH_DELETE: 'project:batch-delete',
   /** 重新排序项目 */
   REORDER: 'project:reorder',
 } as const

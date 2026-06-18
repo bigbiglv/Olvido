@@ -32,7 +32,7 @@ import { Search } from 'lucide-vue-next'
 import { useSearchStore } from '../stores/search.store'
 import { useSearch } from '../composables/useSearch'
 import SearchResultList from './SearchResultList.vue'
-import { apiListProjects } from '@/apis/project'
+import { apiList } from '@/apis/project'
 import type { ProjectDto } from '../../../../electron/types/project'
 
 const store = useSearchStore()
@@ -57,7 +57,7 @@ onMounted(async () => {
 
   // 加载可供筛选的项目列表
   try {
-    const list = await apiListProjects()
+    const list = await apiList()
     // 过滤掉 'global'，因为全局笔记本在下拉中单独作为一个固定项 '全局' 渲染
     projects.value = list.filter((p) => p.id !== 'global')
   } catch (err) {
