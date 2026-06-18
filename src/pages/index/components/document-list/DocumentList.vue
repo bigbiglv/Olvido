@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useDocumentsStore } from '@/stores/documents'
 import { Button } from '@/components/ui/button'
 import { FileX, FilePlusCorner, BookOpenCheck } from 'lucide-vue-next'
@@ -13,8 +13,27 @@ import { contextMenuManager } from '@/context-menu/context-menu-manager'
 import DailyDocItem from './DailyDocItem.vue'
 import RequirementDocItem from './RequirementDocItem.vue'
 import { DraggableList, type ReorderEvent } from '@/components/ui/draggableList'
+import { apiDelete, apiBatchDelete } from '@/apis/note'
 
 const store = useDocumentsStore()
+
+/** 本地维护的文档多选选中 ID 数组 */
+const listSelectedIds = ref<string[]>([])
+
+// 监听当前激活的文档 ID，并将其同步到选中列表中
+watch(
+  () => store.selectedDocumentId,
+  (newId) => {
+    if (newId) {
+      if (!listSelectedIds.value.includes(newId)) {
+        listSelectedIds.value = [newId]
+      }
+    } else {
+      listSelectedIds.value = []
+    }
+  },
+  { immediate: true },
+)
 
 function handleOpenCompleted() {
   Dialog.show(CompletedDocsDialog)
@@ -62,35 +81,79 @@ onMounted(() => {
     type: 'document',
     getMenus: (context) => {
       const doc = context.data as DocumentItem
+      const isMultiSelect =
+        listSelectedIds.value.length > 1 && listSelectedIds.value.includes(doc.id)
+
       const menus = [
         {
           id: 'complete',
-          label: '完成',
+          label: isMultiSelect ? `完成已选 (${listSelectedIds.value.length} 篇)` : '完成',
           onClick: async () => {
-            await store.saveDocument(doc.id, { completed: true })
-            store.selectDefaultDocument()
+            try {
+              if (isMultiSelect) {
+                for (const id of listSelectedIds.value) {
+                  await store.saveDocument(id, { completed: true })
+                }
+              } else {
+                await store.saveDocument(doc.id, { completed: true })
+              }
+              store.selectDefaultDocument()
+            } catch (error) {
+              console.error('Failed to update completion status:', error)
+            }
           },
         },
         {
           id: 'delete',
-          label: '删除',
+          label: isMultiSelect ? `删除已选 (${listSelectedIds.value.length} 篇)` : '删除',
           onClick: async () => {
-            const isConfirmed = await confirm({
-              title: '删除文档',
-              description: '确定要删除此文档吗？此操作无法撤销。',
-              destructive: true,
-              okText: '确定删除',
-              cancelText: '取消',
-            })
-            console.log(isConfirmed, doc)
-            // if (isConfirmed) {
-            //   await store.deleteDocument(doc.id)
-            // }
+            try {
+              const count = listSelectedIds.value.length
+              const title = isMultiSelect ? '批量删除文档' : '删除文档'
+              const description = isMultiSelect
+                ? `确定要删除这 ${count} 篇文档吗？此操作无法撤销。`
+                : '确定要删除此文档吗？此操作无法撤销。'
+
+              const isConfirmed = await confirm({
+                title,
+                description,
+                destructive: true,
+                okText: '确定删除',
+                cancelText: '取消',
+              })
+
+              if (isConfirmed) {
+                if (isMultiSelect) {
+                  const idsToDelete = [...listSelectedIds.value]
+                  await apiBatchDelete(idsToDelete)
+                  await store.loadDocuments()
+
+                  if (store.selectedDocumentId && idsToDelete.includes(store.selectedDocumentId)) {
+                    store.selectDefaultDocument()
+                  } else {
+                    listSelectedIds.value = listSelectedIds.value.filter(
+                      (id) => !idsToDelete.includes(id),
+                    )
+                  }
+                } else {
+                  await apiDelete(doc.id)
+                  await store.loadDocuments()
+
+                  if (store.selectedDocumentId === doc.id) {
+                    store.selectDefaultDocument()
+                  } else {
+                    listSelectedIds.value = listSelectedIds.value.filter((id) => id !== doc.id)
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Failed to delete document(s):', error)
+            }
           },
         },
       ]
 
-      if (doc.category !== '需求') {
+      if (!isMultiSelect && doc.category !== '需求') {
         menus.push({
           id: 'convert',
           label: '转为需求',
@@ -129,7 +192,7 @@ async function handleConvertToRequirement(doc: DocumentItem) {
 }
 
 function handleSelectionChange(ids: string[]) {
-  store.listSelectedIds = ids
+  listSelectedIds.value = ids
 }
 
 function handleOpen(item: DocumentItem) {
@@ -189,7 +252,7 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
     </div>
 
     <!-- Scrollable List -->
-    <div class="flex-1 overflow-y-auto p-4" @click.self="store.listSelectedIds = []">
+    <div class="flex-1 overflow-y-auto p-4" @click.self="listSelectedIds = []">
       <div
         v-if="store.filteredDocuments.length === 0"
         class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4"
@@ -202,7 +265,7 @@ async function handleReorder(event: ReorderEvent<DocumentItem>) {
         v-else
         :items="store.filteredDocuments"
         item-key="id"
-        :selected-ids="store.listSelectedIds"
+        :selected-ids="listSelectedIds"
         :opened-id="store.selectedDocumentId"
         @selection-change="handleSelectionChange"
         @open="handleOpen"
