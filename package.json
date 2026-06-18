@@ -66,21 +66,22 @@
     "productName": "Olvido",
     "icon": "public/logo.png",
     "asar": true,
-    "asarUnpack": [
-      "**/node_modules/@prisma/engines/**/*",
-      "**/node_modules/.prisma/**/*"
-    ],
     "directories": {
       "output": "release"
     },
     "files": [
       "dist",
-      "dist-electron"
+      "dist-electron",
+      "!**/node_modules/@prisma/**"
     ],
     "extraResources": [
       {
         "from": "node_modules/.prisma",
         "to": "node_modules/.prisma"
+      },
+      {
+        "from": "node_modules/@prisma",
+        "to": "node_modules/@prisma"
       }
     ],
     "mac": {

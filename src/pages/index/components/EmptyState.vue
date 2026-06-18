@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FilePlus, CheckSquare } from 'lucide-vue-next'
+import { FilePlus } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { apiCreate } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
@@ -49,9 +49,9 @@ async function handleCreate() {
   >
     <div class="flex flex-col items-center max-w-sm text-center">
       <div
-        class="size-16 rounded-2xl bg-indigo-50 dark:bg-zinc-800 flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-6 shadow-sm border border-slate-100 dark:border-zinc-700/50"
+        class="size-16 rounded-2xl bg-indigo-50 dark:bg-zinc-800 flex items-center justify-center mb-6 shadow-sm border border-slate-100 dark:border-zinc-700/50"
       >
-        <CheckSquare class="size-8" />
+        <img src="/logo.png" alt="Logo" class="size-10 object-contain" />
       </div>
       <h2 class="text-xl font-bold text-slate-800 dark:text-zinc-100 mb-2">欢迎使用</h2>
       <p class="text-sm text-slate-400 dark:text-zinc-500 leading-relaxed mb-6">
