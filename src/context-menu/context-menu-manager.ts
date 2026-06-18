@@ -1,3 +1,4 @@
+import { markRaw } from 'vue'
 import { useContextMenuStore } from './context-menu-store'
 import type { ContextMenuRegion, ContextMenuItem, ContextMenuContext } from './context-menu-types'
 
@@ -55,13 +56,7 @@ class ContextMenuManager {
         regionElement: matched.el,
       }
 
-      // 执行 getMenus 获取菜单项，过滤掉不可见的项
-      const menus = region.getMenus(context).filter((item) => {
-        if ('type' in item && item.type === 'separator') return true
-        if ('visible' in item && item.visible === false) return false
-        return true
-      })
-
+      const menus = region.getMenus(context)
       if (menus.length > 0) {
         regionsWithMenus.push({
           priority: region.priority ?? 0,
@@ -81,14 +76,12 @@ class ContextMenuManager {
     // 5. 合并菜单并自动插入分隔线 separator
     const finalMenus: ContextMenuItem[] = []
     regionsWithMenus.forEach((group) => {
-      // 过滤掉连续的多余分隔线
-      const cleanGroupItems = this.cleanSeparators(group.items)
-      if (cleanGroupItems.length === 0) return
+      if (group.items.length === 0) return
 
       if (finalMenus.length > 0) {
         finalMenus.push({ type: 'separator' })
       }
-      finalMenus.push(...cleanGroupItems)
+      finalMenus.push(...group.items)
     })
 
     if (finalMenus.length === 0) {
@@ -96,24 +89,13 @@ class ContextMenuManager {
       return
     }
 
-    // 6. 异常安全包装 onClick 并附加 hide 行为
-    const wrappedMenus = finalMenus.map((item) => {
-      if ('type' in item && item.type === 'separator') {
-        return item
-      }
-      const action = item as any
-      return {
-        ...action,
-        onClick: async () => {
-          this.hide() // 立即隐藏菜单
-          try {
-            await action.onClick?.()
-          } catch (error) {
-            console.error('Error executing context menu action:', error)
-          }
-        },
-      }
-    })
+    // 6. 递归处理所有菜单项 (计算 visible/disabled，清理 separators，封装 onClick)
+    const wrappedMenus = this.processMenuItems(finalMenus)
+
+    if (wrappedMenus.length === 0) {
+      this.hide()
+      return
+    }
 
     // 7. 更新 Store 状态
     const store = useContextMenuStore()
@@ -123,6 +105,59 @@ class ContextMenuManager {
   hide(): void {
     const store = useContextMenuStore()
     store.hide()
+  }
+
+  private processMenuItems(items: ContextMenuItem[]): ContextMenuItem[] {
+    // 1. 过滤掉不可见项
+    const visibleItems = items.filter((item) => {
+      if ('type' in item && item.type === 'separator') return true
+      const action = item as any
+      const isVisible = typeof action.visible === 'function'
+        ? action.visible()
+        : action.visible !== false
+      return isVisible
+    })
+
+    // 2. 清理多余的分隔线
+    const cleanedItems = this.cleanSeparators(visibleItems)
+
+    // 3. 包装属性和 onClick
+    return cleanedItems.map((item) => {
+      if ('type' in item && item.type === 'separator') {
+        return item
+      }
+
+      const action = item as any
+      const disabled = typeof action.disabled === 'function'
+        ? action.disabled()
+        : !!action.disabled
+
+      const wrappedAction = {
+        ...action,
+        disabled,
+        submenuComponent: action.submenuComponent ? markRaw(action.submenuComponent) : undefined,
+      }
+
+      if (action.children) {
+        wrappedAction.children = this.processMenuItems(action.children)
+      }
+
+      if (action.onClick) {
+        wrappedAction.onClick = async () => {
+          // 如果没有子菜单，点击父项自动关闭整个上下文菜单
+          if (!action.children) {
+            this.hide()
+          }
+          try {
+            await action.onClick?.()
+          } catch (error) {
+            console.error('Error executing context menu action:', error)
+          }
+        }
+      }
+
+      return wrappedAction
+    })
   }
 
   private initGlobalListener() {

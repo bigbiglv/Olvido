@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed, defineComponent, h } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { Button } from '@/components/ui/button'
 import { FileX, FilePlusCorner, BookOpenCheck } from 'lucide-vue-next'
@@ -10,12 +10,29 @@ import CompletedDocsDialog from './CompletedDocsDialog.vue'
 import QuickAddDialog from './QuickAddDialog.vue'
 import ConvertToRequirementDialog from './ConvertToRequirementDialog.vue'
 import { contextMenuManager } from '@/context-menu/context-menu-manager'
+import type { ContextMenuItem } from '@/context-menu/context-menu-types'
 import DailyDocItem from './DailyDocItem.vue'
 import RequirementDocItem from './RequirementDocItem.vue'
 import { DraggableList, type ReorderEvent } from '@/components/ui/draggableList'
 import { apiDelete, apiBatchDelete, apiReorder, apiList, apiDetail, apiCreate, apiUpdate } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 import { isElectron } from '@/utils/env'
+
+const TestCustomComponent = defineComponent({
+  props: {
+    title: String
+  },
+  emits: ['close'],
+  setup(props, { emit }) {
+    return () => h('div', { class: 'p-3 text-xs w-[160px] flex flex-col gap-2 bg-popover rounded-md' }, [
+      h('span', { class: 'font-semibold text-foreground' }, props.title),
+      h('button', {
+        class: 'w-full bg-primary text-primary-foreground py-1 rounded text-center cursor-pointer hover:opacity-90',
+        onClick: () => emit('close')
+      }, '关闭菜单')
+    ])
+  }
+})
 
 const appStore = useAppStore()
 
@@ -212,7 +229,46 @@ onMounted(async () => {
       const isMultiSelect =
         listSelectedIds.value.length > 1 && listSelectedIds.value.includes(doc.id)
 
-      const menus = [
+      const menus: ContextMenuItem[] = [
+        {
+          id: 'test-submenu',
+          label: '测试二级菜单',
+          children: [
+            {
+              id: 'sub-item-1',
+              label: '动态可见项',
+              visible: () => true,
+              onClick: () => { console.log('Sub item 1 clicked') }
+            },
+            {
+              id: 'sub-item-2',
+              label: '动态隐藏项',
+              visible: () => false,
+              onClick: () => { console.log('Sub item 2 clicked') }
+            },
+            {
+              id: 'sub-item-3',
+              label: '动态禁用项',
+              disabled: () => true,
+              onClick: () => { console.log('Sub item 3 clicked') }
+            },
+            {
+              id: 'sub-item-4',
+              label: '正常子选项',
+              disabled: () => false,
+              onClick: () => { console.log('Sub item 4 clicked') }
+            }
+          ]
+        },
+        {
+          id: 'test-custom',
+          label: '测试自定义面板',
+          submenuComponent: TestCustomComponent,
+          submenuComponentProps: { title: '自定义提示标题' }
+        },
+        {
+          type: 'separator'
+        },
         {
           id: 'complete',
           label: isMultiSelect ? `完成已选 (${listSelectedIds.value.length} 篇)` : '完成',

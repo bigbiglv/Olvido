@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { useContextMenuStore } from './context-menu-store'
+import ContextMenuList from './components/ContextMenuList.vue'
 
 const store = useContextMenuStore()
 const menuRef = ref<HTMLElement | null>(null)
@@ -44,6 +45,12 @@ watch(
     }
   },
 )
+
+function handleActionClick(item: any) {
+  if (item.onClick) {
+    item.onClick()
+  }
+}
 </script>
 
 <template>
@@ -66,28 +73,15 @@ watch(
           top: computedY + 'px',
         }"
       >
-        <div v-for="(item, index) in store.menus" :key="index">
-          <div
-            v-if="'type' in item && item.type === 'separator'"
-            class="h-px bg-border/50 my-1 mx-1"
-          />
-          <button
-            v-else
-            :disabled="(item as any).disabled"
-            class="w-full flex items-center px-3 py-1.5 text-sm rounded-md hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:pointer-events-none text-left cursor-pointer transition-colors duration-150 font-medium"
-            @click="(item as any).onClick"
-          >
-            {{ (item as any).label }}
-          </button>
-        </div>
+        <ContextMenuList :items="store.menus" @action-click="handleActionClick" />
       </div>
     </Transition>
   </Teleport>
 </template>
 
 <style scoped>
-/* 可以在这里加入进一步的微交互效果 */
 #global-context-menu-container button {
   outline: none;
 }
 </style>
+
