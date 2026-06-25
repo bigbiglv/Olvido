@@ -132,17 +132,17 @@ function playOpenAnimation() {
   gsap.killTweensOf(el)
 
   const trigger = dialogInstance.triggerRect
-  // 让动画更快：触发器变形时 0.25s，无触发器渐显时 0.2s
+  // 稍微减弱弹簧效果的幅度，使其更微妙自然
   const duration =
     typeof dialogInstance.settings.animate === 'object'
-      ? (dialogInstance.settings.animate.duration ?? (trigger ? 0.25 : 0.2))
+      ? (dialogInstance.settings.animate.duration ?? (trigger ? 0.35 : 0.3))
       : trigger
-        ? 0.25
-        : 0.2
+        ? 0.35
+        : 0.3
   const ease =
     typeof dialogInstance.settings.animate === 'object'
-      ? (dialogInstance.settings.animate.ease ?? 'power3.out')
-      : 'power3.out'
+      ? (dialogInstance.settings.animate.ease ?? 'back.out(1.05)')
+      : 'back.out(1.05)'
 
   if (trigger) {
     el.style.animation = 'none'
