@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
+import { gsap } from 'gsap'
 import { useContextMenuStore } from './context-menu-store'
 import ContextMenuList from './components/ContextMenuList.vue'
 
@@ -51,23 +52,87 @@ function handleActionClick(item: any) {
     item.onClick()
   }
 }
+
+async function onEnter(el: Element, done: () => void) {
+  // 确保位置计算已经完成
+  await nextTick()
+  await nextTick()
+
+  const originX = computedX.value < store.x ? 'right' : 'left'
+  const originY = computedY.value < store.y ? 'bottom' : 'top'
+
+  gsap.set(el, { transformOrigin: `${originX} ${originY}` })
+
+  const yOffset = originY === 'top' ? -4 : 4
+  const xOffset = originX === 'left' ? -4 : 4
+
+  gsap.fromTo(
+    el,
+    { opacity: 0, scale: 0.92, y: yOffset, x: xOffset },
+    {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      x: 0,
+      duration: 0.35,
+      ease: 'back.out(1.2)',
+      onComplete: () => {
+        gsap.set(el, { clearProps: 'transform,scale,x,y' })
+        done()
+      },
+    }
+  )
+
+  // 菜单项级联错开进场动画 (Stagger)
+  const items = el.querySelectorAll('button, .h-px')
+  if (items.length > 0) {
+    gsap.fromTo(
+      items,
+      { opacity: 0, x: originX === 'left' ? -8 : 8 },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.3,
+        stagger: 0.02,
+        ease: 'power3.out',
+        delay: 0.05,
+        clearProps: 'transform,x,opacity'
+      }
+    )
+  }
+}
+
+function onLeave(el: Element, done: () => void) {
+  const originX = computedX.value < store.x ? 'right' : 'left'
+  const originY = computedY.value < store.y ? 'bottom' : 'top'
+
+  const yOffset = originY === 'top' ? -4 : 4
+  const xOffset = originX === 'left' ? -4 : 4
+
+  gsap.to(el, {
+    opacity: 0,
+    scale: 0.95,
+    y: yOffset,
+    x: xOffset,
+    duration: 0.15,
+    ease: 'power3.inOut',
+    onComplete: done,
+  })
+}
 </script>
 
 <template>
   <Teleport to="body">
     <Transition
-      enter-active-class="transition ease-out duration-100"
-      enter-from-class="transform opacity-0 scale-95"
-      enter-to-class="transform opacity-100 scale-100"
-      leave-active-class="transition ease-in duration-75"
-      leave-from-class="transform opacity-100 scale-100"
-      leave-to-class="transform opacity-0 scale-95"
+      @enter="onEnter"
+      @leave="onLeave"
+      :css="false"
     >
       <div
         v-if="store.visible"
         id="global-context-menu-container"
         ref="menuRef"
-        class="fixed z-[9999] min-w-[180px] bg-popover/90 backdrop-blur-md text-popover-foreground rounded-lg border border-border/80 shadow-lg p-1.5 outline-none select-none transition-[opacity,transform] duration-100 ease-out origin-top-left"
+        class="fixed z-[9999] min-w-[180px] bg-popover/90 backdrop-blur-md text-popover-foreground rounded-lg border border-border/80 shadow-lg p-1.5 outline-none select-none origin-top-left"
         :style="{
           left: computedX + 'px',
           top: computedY + 'px',
