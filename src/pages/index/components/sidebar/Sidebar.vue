@@ -108,8 +108,13 @@ function handleProjectSelectionChange(ids: string[]) {
   listSelectedIds.value = ids
 }
 
-function handleGlobalClick() {
-  listSelectedIds.value = ['global']
+function handleGlobalClick(event: MouseEvent) {
+  if (event.ctrlKey || event.metaKey || event.shiftKey) {
+    listSelectedIds.value = ['global']
+  } else {
+    listSelectedIds.value = ['global']
+    handleSelectProject(null)
+  }
 }
 
 function handleGlobalDblClick() {

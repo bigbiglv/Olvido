@@ -79,6 +79,7 @@ function handleItemClick(item: T, event: MouseEvent) {
     emit('select', item)
     // 更新范围选择起点
     anchorId.value = currentId
+    emit('open', item)
   }
 }
 
