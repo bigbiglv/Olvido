@@ -17,13 +17,18 @@ import type { DateUnit } from './types'
 dayjs.extend(isoWeek)
 interface Props {
   rows?: number
+  bordered?: boolean
 }
 
 interface Emits {
   (e: 'confirm', date: dayjs.Dayjs): void
 }
 
-const { rows = 3 } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  rows: 3,
+  bordered: true
+})
+
 const emits = defineEmits<Emits>()
 
 const pickersConfig = [
@@ -48,7 +53,7 @@ const generateWeeks = (start: dayjs.Dayjs, numRows: number) => {
   return w
 }
 
-weeks.value = generateWeeks(startMonday.value, rows)
+weeks.value = generateWeeks(startMonday.value, props.rows)
 
 // ==========================================
 // State: Grid Animations
@@ -62,13 +67,13 @@ const handleWheel = async (e: WheelEvent) => {
 
   const direction = e.deltaY > 0 ? 1 : -1
   const weekHeight = 80 // h-20 is 80px
-  const distance = weekHeight * rows
+  const distance = weekHeight * props.rows
   const contentEl = gridRef.value.contentRef
 
   if (direction === 1) {
     // 向下滚动，加载未来周
-    const nextStart = startMonday.value.add(rows, 'week')
-    weeks.value.push(...generateWeeks(nextStart, rows))
+    const nextStart = startMonday.value.add(props.rows, 'week')
+    weeks.value.push(...generateWeeks(nextStart, props.rows))
     await nextTick()
 
     gsap.to(contentEl, {
@@ -77,14 +82,14 @@ const handleWheel = async (e: WheelEvent) => {
       ease: 'power2.inOut',
       onComplete: () => {
         startMonday.value = nextStart
-        weeks.value = generateWeeks(startMonday.value, rows)
+        weeks.value = generateWeeks(startMonday.value, props.rows)
         gsap.set(contentEl, { y: 0 })
         isAnimating = false
       },
     })
 
     const cells = contentEl.querySelectorAll('.date-cell')
-    const newCells = Array.from(cells).slice(-(7 * rows))
+    const newCells = Array.from(cells).slice(-(7 * props.rows))
     gsap.from(newCells, {
       opacity: 0,
       scale: 0.5,
@@ -95,8 +100,8 @@ const handleWheel = async (e: WheelEvent) => {
     })
   } else {
     // 向上滚动，加载历史周
-    const prevStart = startMonday.value.subtract(rows, 'week')
-    weeks.value.unshift(...generateWeeks(prevStart, rows))
+    const prevStart = startMonday.value.subtract(props.rows, 'week')
+    weeks.value.unshift(...generateWeeks(prevStart, props.rows))
     await nextTick()
 
     gsap.set(contentEl, { y: -distance })
@@ -106,13 +111,13 @@ const handleWheel = async (e: WheelEvent) => {
       ease: 'power2.inOut',
       onComplete: () => {
         startMonday.value = prevStart
-        weeks.value = generateWeeks(startMonday.value, rows)
+        weeks.value = generateWeeks(startMonday.value, props.rows)
         isAnimating = false
       },
     })
 
     const cells = contentEl.querySelectorAll('.date-cell')
-    const newCells = Array.from(cells).slice(0, 7 * rows)
+    const newCells = Array.from(cells).slice(0, 7 * props.rows)
     gsap.from(newCells, {
       opacity: 0,
       scale: 0.5,
@@ -236,7 +241,7 @@ const handlePickerClick = async (unit: DateUnit, direction: number) => {
   startMonday.value = newDate.startOf('isoWeek')
 
   if (oldStart !== startMonday.value.format('YYYY-MM-DD')) {
-    weeks.value = generateWeeks(startMonday.value, rows)
+    weeks.value = generateWeeks(startMonday.value, props.rows)
     await nextTick()
     const contentEl = gridRef.value?.contentRef
     if (contentEl) {
@@ -253,7 +258,8 @@ const handlePickerClick = async (unit: DateUnit, direction: number) => {
 
 <template>
   <div
-    class="flex flex-col p-4 bg-background rounded-2xl shadow-lg border border-border select-none w-[360px] relative"
+    class="flex flex-col p-4 bg-background rounded-2xl select-none w-[360px] relative"
+    :class="props.bordered ? 'border border-border shadow-lg' : ''"
   >
     <!-- Click-outside overlay for pickers -->
     <div v-if="pickingMode" class="fixed inset-0 z-40" @click="pickingMode = null"></div>
@@ -277,7 +283,7 @@ const handlePickerClick = async (unit: DateUnit, direction: number) => {
       :weeks="weeks"
       :current-date="currentDate"
       :selected-date="selectedDate"
-      :rows="rows"
+      :rows="props.rows"
       @select="handleSelect"
       @wheel="handleWheel"
     />

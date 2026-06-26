@@ -224,12 +224,12 @@ async function toggleCompletion(doc: DocumentItem) {
       isArchived: newCompleted,
       deadline: doc.category === '需求' && doc.deadline ? new Date(doc.deadline) : null,
     })
-    
+
     doc.completed = newCompleted
     if (newCompleted && appStore.selectedDocumentId === doc.id) {
       appStore.selectDocument(null)
     }
-    
+
     appStore.lastSavedTime = new Date().toLocaleTimeString()
     selectDefaultDocument()
   } catch (error) {
@@ -298,6 +298,9 @@ onMounted(async () => {
           id: 'date',
           label: '日期',
           submenuComponent: DatePicker,
+          submenuComponentProps: {
+            bordered: true,
+          },
         },
         {
           id: 'complete',
@@ -317,7 +320,10 @@ onMounted(async () => {
                   })
                   if (itemDoc) itemDoc.completed = true
                 }
-                if (appStore.selectedDocumentId && listSelectedIds.value.includes(appStore.selectedDocumentId)) {
+                if (
+                  appStore.selectedDocumentId &&
+                  listSelectedIds.value.includes(appStore.selectedDocumentId)
+                ) {
                   appStore.selectDocument(null)
                 }
               } else {
@@ -361,19 +367,24 @@ onMounted(async () => {
                 if (isMultiSelect) {
                   const idsToDelete = [...listSelectedIds.value]
                   await apiBatchDelete(idsToDelete)
-                  
+
                   documents.value = documents.value.filter((d) => !idsToDelete.includes(d.id))
-                  listSelectedIds.value = listSelectedIds.value.filter((id) => !idsToDelete.includes(id))
-                  
-                  if (appStore.selectedDocumentId && idsToDelete.includes(appStore.selectedDocumentId)) {
+                  listSelectedIds.value = listSelectedIds.value.filter(
+                    (id) => !idsToDelete.includes(id),
+                  )
+
+                  if (
+                    appStore.selectedDocumentId &&
+                    idsToDelete.includes(appStore.selectedDocumentId)
+                  ) {
                     appStore.selectDocument(null)
                   }
                 } else {
                   await apiDelete(doc.id)
-                  
+
                   documents.value = documents.value.filter((d) => d.id !== doc.id)
                   listSelectedIds.value = listSelectedIds.value.filter((id) => id !== doc.id)
-                  
+
                   if (appStore.selectedDocumentId === doc.id) {
                     appStore.selectDocument(null)
                   }
