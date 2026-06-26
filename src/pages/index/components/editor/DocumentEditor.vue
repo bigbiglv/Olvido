@@ -15,9 +15,18 @@ const isSaving = ref(false)
 // Reset isSaving if selected document changes
 watch(
   () => appStore.selectedDocument?.id,
-  () => {
+  (newId, oldId) => {
     if (saveTimeout) {
       clearTimeout(saveTimeout)
+      saveTimeout = null
+      
+      // Flush pending save for the previous document
+      if (oldId) {
+        const oldDoc = appStore.documents.find(d => d.id === oldId)
+        if (oldDoc) {
+          saveDocument(oldId, { content: oldDoc.content, title: oldDoc.title })
+        }
+      }
     }
     isSaving.value = false
   },
@@ -26,7 +35,7 @@ watch(
 // Helper function to save document changes directly to database
 async function saveDocument(docId: string, updates: Partial<DocumentItem>) {
   try {
-    const doc = appStore.selectedDocument
+    const doc = appStore.documents.find(d => d.id === docId)
     if (!doc) return
     Object.assign(doc, updates)
 
@@ -46,6 +55,7 @@ async function saveDocument(docId: string, updates: Partial<DocumentItem>) {
 // Handle content and title updates with auto-save
 function handleContentUpdate(newContent: string) {
   if (!appStore.selectedDocument) return
+  if (appStore.selectedDocument.content === newContent) return
 
   // Set temporary local value
   appStore.selectedDocument.content = newContent
