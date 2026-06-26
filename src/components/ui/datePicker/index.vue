@@ -10,7 +10,7 @@ dayjs.extend(isoWeek)
 const props = defineProps({
   rows: {
     type: Number,
-    default: 2
+    default: 3
   }
 })
 
@@ -149,12 +149,12 @@ const diffWorkdays = computed(() => {
 
 const diffData = computed(() => {
   const diff = selectedDate.value.startOf('day').diff(currentDate.startOf('day'), 'day')
-  
+
   let mainType: 'word' | 'number' = 'word'
   let mainText = ''
   let mainNumber = 0
   let mainSuffix = ''
-  
+
   if (diff === 0) mainText = '今天'
   else if (diff === 1) mainText = '明天'
   else if (diff === 2) mainText = '后天'
@@ -165,7 +165,7 @@ const diffData = computed(() => {
     mainNumber = Math.abs(diff)
     mainSuffix = diff > 0 ? '天后' : '天前'
   }
-  
+
   return {
     diff,
     mainType,
@@ -188,28 +188,28 @@ watch(selectedDate, (newVal, oldVal) => {
   if (!oldVal) return
   let d = 0
   const step = 0.08 // 80ms stagger
-  
+
   if (newVal.year() !== oldVal.year()) {
     delays.value.year = d
     d += step
   } else {
     delays.value.year = 0
   }
-  
+
   if (newVal.month() !== oldVal.month()) {
     delays.value.month = d
     d += step
   } else {
     delays.value.month = 0
   }
-  
+
   if (newVal.date() !== oldVal.date()) {
     delays.value.day = d
     d += step
   } else {
     delays.value.day = 0
   }
-  
+
   const newDiff = newVal.startOf('day').diff(currentDate.startOf('day'), 'day')
   const oldDiff = oldVal.startOf('day').diff(currentDate.startOf('day'), 'day')
   if (newDiff !== oldDiff) {
@@ -218,7 +218,7 @@ watch(selectedDate, (newVal, oldVal) => {
   } else {
     delays.value.diff = 0
   }
-  
+
   // To compute old workdays, calculate from oldVal
   let oldWdCount = 0
   if (!currentDate.startOf('day').isSame(oldVal.startOf('day'), 'day')) {
@@ -236,38 +236,169 @@ watch(selectedDate, (newVal, oldVal) => {
     delays.value.workdays = 0
   }
 })
+
+type PickMode = 'year' | 'month' | 'day' | null
+const pickingMode = ref<PickMode>(null)
+const pickerDirection = ref(1)
+
+const getAdjacentDate = (unit: 'year' | 'month' | 'day', dir: number) => {
+  return selectedDate.value.add(dir, unit)
+}
+
+const isPickerDisabled = (unit: 'year' | 'month' | 'day', dir: number) => {
+  return getAdjacentDate(unit, dir).isBefore(currentDate, 'day')
+}
+
+const handlePickerWheel = (e: WheelEvent, unit: 'year' | 'month' | 'day') => {
+  const direction = e.deltaY > 0 ? 1 : -1
+  handlePickerClick(unit, direction)
+}
+
+const handlePickerClick = async (unit: 'year' | 'month' | 'day', direction: number) => {
+  if (direction === -1 && isPickerDisabled(unit, -1)) return
+
+  pickerDirection.value = direction
+
+  let newDate = selectedDate.value.add(direction, unit)
+  if (newDate.isBefore(currentDate, 'day')) newDate = currentDate.clone()
+
+  const oldStart = startMonday.value.format('YYYY-MM-DD')
+
+  selectedDate.value = newDate
+  startMonday.value = newDate.startOf('isoWeek')
+
+  if (oldStart !== startMonday.value.format('YYYY-MM-DD')) {
+    weeks.value = generateWeeks(startMonday.value, props.rows)
+
+    await nextTick()
+    if (contentRef.value) {
+      gsap.killTweensOf(contentRef.value)
+      gsap.fromTo(contentRef.value,
+        { opacity: 0, scale: 0.98, y: direction > 0 ? 15 : -15 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+      )
+    }
+  }
+}
 </script>
 
 <template>
-  <div class="flex flex-col p-4 bg-background rounded-2xl shadow-lg border border-border select-none w-[360px]">
-    <div class="flex justify-between items-center mb-4">
-      <div class="flex items-center ml-1 text-base font-semibold text-foreground">
+  <div class="flex flex-col p-4 bg-background rounded-2xl shadow-lg border border-border select-none w-[360px] relative">
+    <!-- Click-outside overlay for pickers -->
+    <div v-if="pickingMode" class="fixed inset-0 z-40" @click="pickingMode = null"></div>
+
+    <div class="flex justify-between items-center mb-4 relative z-50">
+      <div class="flex items-center ml-1 text-base font-semibold text-foreground relative z-50">
+
         <!-- Year -->
-        <div class="relative w-[44px] h-8 flex items-center overflow-hidden">
-          <Transition name="date-slide">
-            <span :key="selectedDate.format('YYYY')" class="absolute w-full text-center tracking-wide" :style="{ '--enter-delay': `${delays.year}s` }">
-              {{ selectedDate.format('YYYY') }}
-            </span>
+        <div class="relative flex justify-center items-center">
+          <div class="relative w-[44px] h-8 flex items-center justify-center overflow-hidden cursor-pointer hover:text-primary transition-colors" @click="pickingMode = 'year'">
+            <Transition name="date-slide">
+              <span :key="selectedDate.format('YYYY')" class="absolute w-full text-center tracking-wide" :style="{ '--enter-delay': `${delays.year}s` }">
+                {{ selectedDate.format('YYYY') }}
+              </span>
+            </Transition>
+          </div>
+          <Transition name="fade-scale">
+            <div v-if="pickingMode === 'year'" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+              <div class="bg-background/80 backdrop-blur-xl shadow-2xl border border-border/40 rounded-2xl flex flex-col p-1 select-none origin-center w-[72px] gap-0.5" @wheel.prevent.stop="handlePickerWheel($event, 'year')">
+                <div class="relative flex items-center justify-center h-[26px] w-full transition-colors rounded-lg overflow-hidden"
+                     :class="isPickerDisabled('year', -1) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-secondary cursor-pointer'"
+                     @click.stop="handlePickerClick('year', -1)">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="getAdjacentDate('year', -1).format('YYYY')" class="absolute w-full text-center text-[12px] font-medium text-muted-foreground/60 transition-colors" :class="!isPickerDisabled('year', -1) && 'hover:text-foreground'">{{ getAdjacentDate('year', -1).format('YYYY') }}</span>
+                  </Transition>
+                </div>
+                <div class="relative flex items-center justify-center h-[30px] w-full bg-primary/10 rounded-lg overflow-hidden">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="selectedDate.format('YYYY')" class="absolute w-full text-center text-[14px] font-bold text-primary">{{ selectedDate.format('YYYY') }}</span>
+                  </Transition>
+                </div>
+                <div class="relative flex items-center justify-center h-[26px] w-full transition-colors rounded-lg overflow-hidden hover:bg-secondary cursor-pointer"
+                     @click.stop="handlePickerClick('year', 1)">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="getAdjacentDate('year', 1).format('YYYY')" class="absolute w-full text-center text-[12px] font-medium text-muted-foreground/60 transition-colors hover:text-foreground">{{ getAdjacentDate('year', 1).format('YYYY') }}</span>
+                  </Transition>
+                </div>
+              </div>
+            </div>
           </Transition>
         </div>
+
         <span class="text-zinc-400 mx-0.5">-</span>
+
         <!-- Month -->
-        <div class="relative w-[24px] h-8 flex items-center overflow-hidden">
-          <Transition name="date-slide">
-            <span :key="selectedDate.format('MM')" class="absolute w-full text-center tracking-wide" :style="{ '--enter-delay': `${delays.month}s` }">
-              {{ selectedDate.format('MM') }}
-            </span>
+        <div class="relative flex justify-center items-center">
+          <div class="relative w-[24px] h-8 flex items-center justify-center overflow-hidden cursor-pointer hover:text-primary transition-colors" @click="pickingMode = 'month'">
+            <Transition name="date-slide">
+              <span :key="selectedDate.format('MM')" class="absolute w-full text-center tracking-wide" :style="{ '--enter-delay': `${delays.month}s` }">
+                {{ selectedDate.format('MM') }}
+              </span>
+            </Transition>
+          </div>
+          <Transition name="fade-scale">
+            <div v-if="pickingMode === 'month'" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+              <div class="bg-background/80 backdrop-blur-xl shadow-2xl border border-border/40 rounded-2xl flex flex-col p-1 select-none origin-center w-[56px] gap-0.5" @wheel.prevent.stop="handlePickerWheel($event, 'month')">
+                <div class="relative flex items-center justify-center h-[26px] w-full transition-colors rounded-lg overflow-hidden"
+                     :class="isPickerDisabled('month', -1) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-secondary cursor-pointer'"
+                     @click.stop="handlePickerClick('month', -1)">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="getAdjacentDate('month', -1).format('MM')" class="absolute w-full text-center text-[12px] font-medium text-muted-foreground/60 transition-colors" :class="!isPickerDisabled('month', -1) && 'hover:text-foreground'">{{ getAdjacentDate('month', -1).format('MM') }}</span>
+                  </Transition>
+                </div>
+                <div class="relative flex items-center justify-center h-[30px] w-full bg-primary/10 rounded-lg overflow-hidden">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="selectedDate.format('MM')" class="absolute w-full text-center text-[14px] font-bold text-primary">{{ selectedDate.format('MM') }}</span>
+                  </Transition>
+                </div>
+                <div class="relative flex items-center justify-center h-[26px] w-full transition-colors rounded-lg overflow-hidden hover:bg-secondary cursor-pointer"
+                     @click.stop="handlePickerClick('month', 1)">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="getAdjacentDate('month', 1).format('MM')" class="absolute w-full text-center text-[12px] font-medium text-muted-foreground/60 transition-colors hover:text-foreground">{{ getAdjacentDate('month', 1).format('MM') }}</span>
+                  </Transition>
+                </div>
+              </div>
+            </div>
           </Transition>
         </div>
+
         <span class="text-zinc-400 mx-0.5">-</span>
+
         <!-- Day -->
-        <div class="relative w-[24px] h-8 flex items-center overflow-hidden">
-          <Transition name="date-slide">
-            <span :key="selectedDate.format('DD')" class="absolute w-full text-center tracking-wide" :style="{ '--enter-delay': `${delays.day}s` }">
-              {{ selectedDate.format('DD') }}
-            </span>
+        <div class="relative flex justify-center items-center">
+          <div class="relative w-[24px] h-8 flex items-center justify-center overflow-hidden cursor-pointer hover:text-primary transition-colors" @click="pickingMode = 'day'">
+            <Transition name="date-slide">
+              <span :key="selectedDate.format('DD')" class="absolute w-full text-center tracking-wide" :style="{ '--enter-delay': `${delays.day}s` }">
+                {{ selectedDate.format('DD') }}
+              </span>
+            </Transition>
+          </div>
+          <Transition name="fade-scale">
+            <div v-if="pickingMode === 'day'" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+              <div class="bg-background/80 backdrop-blur-xl shadow-2xl border border-border/40 rounded-2xl flex flex-col p-1 select-none origin-center w-[56px] gap-0.5" @wheel.prevent.stop="handlePickerWheel($event, 'day')">
+                <div class="relative flex items-center justify-center h-[26px] w-full transition-colors rounded-lg overflow-hidden"
+                     :class="isPickerDisabled('day', -1) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-secondary cursor-pointer'"
+                     @click.stop="handlePickerClick('day', -1)">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="getAdjacentDate('day', -1).format('DD')" class="absolute w-full text-center text-[12px] font-medium text-muted-foreground/60 transition-colors" :class="!isPickerDisabled('day', -1) && 'hover:text-foreground'">{{ getAdjacentDate('day', -1).format('DD') }}</span>
+                  </Transition>
+                </div>
+                <div class="relative flex items-center justify-center h-[30px] w-full bg-primary/10 rounded-lg overflow-hidden">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="selectedDate.format('DD')" class="absolute w-full text-center text-[14px] font-bold text-primary">{{ selectedDate.format('DD') }}</span>
+                  </Transition>
+                </div>
+                <div class="relative flex items-center justify-center h-[26px] w-full transition-colors rounded-lg overflow-hidden hover:bg-secondary cursor-pointer"
+                     @click.stop="handlePickerClick('day', 1)">
+                  <Transition :name="pickerDirection > 0 ? 'picker-slide-up' : 'picker-slide-down'">
+                    <span :key="getAdjacentDate('day', 1).format('DD')" class="absolute w-full text-center text-[12px] font-medium text-muted-foreground/60 transition-colors hover:text-foreground">{{ getAdjacentDate('day', 1).format('DD') }}</span>
+                  </Transition>
+                </div>
+              </div>
+            </div>
           </Transition>
         </div>
+
       </div>
       <div class="flex items-center gap-2">
         <div class="flex items-center text-xs font-medium h-6" :class="diffData.diff === 0 ? 'text-primary' : 'text-muted-foreground'">
@@ -304,7 +435,7 @@ watch(selectedDate, (newVal, oldVal) => {
       </div>
     </div>
 
-    <div class="overflow-hidden rounded-lg relative transition-all duration-300" :style="{ height: `${props.rows * 80}px` }" @wheel.prevent="handleWheel">
+    <div class="overflow-hidden rounded-lg relative transition-all duration-300 z-10" :style="{ height: `${props.rows * 80}px` }" @wheel.prevent="handleWheel">
       <!-- Gradient masks for smooth top/bottom edge scrolling -->
       <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none"></div>
       <div class="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none"></div>
@@ -359,4 +490,35 @@ watch(selectedDate, (newVal, oldVal) => {
   opacity: 0;
   transform: translateY(-15px);
 }
+
+.fade-scale-enter-active,
+.fade-scale-leave-active,
+.fade-scale-enter-active > div,
+.fade-scale-leave-active > div {
+  transition: opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+  opacity: 0;
+}
+
+.fade-scale-enter-from > div,
+.fade-scale-leave-to > div {
+  transform: scale(0.8);
+}
+
+/* Directional Picker Animations */
+.picker-slide-up-enter-active,
+.picker-slide-up-leave-active,
+.picker-slide-down-enter-active,
+.picker-slide-down-leave-active {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.picker-slide-up-enter-from { transform: translateY(15px); opacity: 0; }
+.picker-slide-up-leave-to { transform: translateY(-15px); opacity: 0; }
+
+.picker-slide-down-enter-from { transform: translateY(-15px); opacity: 0; }
+.picker-slide-down-leave-to { transform: translateY(15px); opacity: 0; }
 </style>
