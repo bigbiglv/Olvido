@@ -49,7 +49,7 @@ async function handleMouseEnter(item: any) {
   // 2. 切换当前悬浮项
   hoveredItemId.value = item.id
 
-  if (item.children || item.submenuComponent) {
+  if (item.children || item.panelComponent) {
     // 初始化布局计算参数
     submenuAlignLeft.value[item.id] = false
     submenuAlignTopAdjust.value[item.id] = 0
@@ -178,7 +178,7 @@ function onSubmenuLeave(el: Element, done: () => void) {
       >
         <span>{{ (item as any).label }}</span>
         <ChevronRight
-          v-if="(item as any).children || (item as any).submenuComponent"
+          v-if="(item as any).children || (item as any).panelComponent"
           class="w-4 h-4 ml-2 opacity-60 group-hover:opacity-100 transition-opacity"
         />
       </button>
@@ -190,7 +190,7 @@ function onSubmenuLeave(el: Element, done: () => void) {
         :css="false"
       >
         <div
-          v-if="hoveredItemId === (item as any).id && ((item as any).children || (item as any).submenuComponent)"
+          v-if="hoveredItemId === (item as any).id && ((item as any).children || (item as any).panelComponent)"
           :ref="(el) => setSubmenuRef((item as any).id, el)"
           class="absolute z-[10000] min-w-[180px] bg-popover/90 backdrop-blur-md text-popover-foreground rounded-lg border border-border/80 shadow-lg p-1.5 outline-none select-none"
           :style="getSubmenuStyle((item as any).id)"
@@ -205,9 +205,9 @@ function onSubmenuLeave(el: Element, done: () => void) {
 
           <!-- 自定义悬浮面板组件 -->
           <component
-            v-else-if="(item as any).submenuComponent"
-            :is="(item as any).submenuComponent"
-            v-bind="(item as any).submenuComponentProps"
+            v-else-if="(item as any).panelComponent"
+            :is="(item as any).panelComponent"
+            v-bind="(item as any).panelProps"
             :close-menu="handleClose"
             @close="handleClose"
           />

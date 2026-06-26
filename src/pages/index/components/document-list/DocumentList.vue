@@ -27,28 +27,6 @@ import { mapNoteToDocument } from '@/apis/note-mapper'
 import { isElectron } from '@/utils/env'
 import DatePicker from '@/components/ui/datePicker/index.vue'
 
-const TestCustomComponent = defineComponent({
-  props: {
-    title: String,
-  },
-  emits: ['close'],
-  setup(props, { emit }) {
-    return () =>
-      h('div', { class: 'p-3 text-xs w-[160px] flex flex-col gap-2 bg-popover rounded-md' }, [
-        h('span', { class: 'font-semibold text-foreground' }, props.title),
-        h(
-          'button',
-          {
-            class:
-              'w-full bg-primary text-primary-foreground py-1 rounded text-center cursor-pointer hover:opacity-90',
-            onClick: () => emit('close'),
-          },
-          '关闭菜单',
-        ),
-      ])
-  },
-})
-
 const appStore = useAppStore()
 
 /** 本地自持的文档列表数据 */
@@ -251,53 +229,8 @@ onMounted(async () => {
 
       const menus: ContextMenuItem[] = [
         {
-          id: 'test-submenu',
-          label: '测试二级菜单',
-          children: [
-            {
-              id: 'sub-item-1',
-              label: '动态可见项',
-              visible: () => true,
-              onClick: () => {
-                console.log('Sub item 1 clicked')
-              },
-            },
-            {
-              id: 'sub-item-2',
-              label: '动态隐藏项',
-              visible: () => false,
-              onClick: () => {
-                console.log('Sub item 2 clicked')
-              },
-            },
-            {
-              id: 'sub-item-3',
-              label: '动态禁用项',
-              disabled: () => true,
-              onClick: () => {
-                console.log('Sub item 3 clicked')
-              },
-            },
-            {
-              id: 'sub-item-4',
-              label: '正常子选项',
-              disabled: () => false,
-              onClick: () => {
-                console.log('Sub item 4 clicked')
-              },
-            },
-          ],
-        },
-        {
-          id: 'test-custom',
-          label: '测试自定义面板',
-          submenuComponent: TestCustomComponent,
-          submenuComponentProps: { title: '自定义提示标题' },
-        },
-
-        {
           id: 'complete',
-          label: isMultiSelect ? `完成已选 (${listSelectedIds.value.length} 篇)` : '完成',
+          label: isMultiSelect ? `完成(${listSelectedIds.value.length})` : '完成',
           onClick: async () => {
             try {
               if (isMultiSelect) {
@@ -339,7 +272,7 @@ onMounted(async () => {
         },
         {
           id: 'delete',
-          label: isMultiSelect ? `删除已选 (${listSelectedIds.value.length} 篇)` : '删除',
+          label: isMultiSelect ? `删除(${listSelectedIds.value.length})` : '删除',
           onClick: async () => {
             try {
               const count = listSelectedIds.value.length
@@ -395,9 +328,9 @@ onMounted(async () => {
       if (doc.category !== '需求') {
         menus.push({
           id: 'convert',
-          label: isMultiSelect ? `转为需求 (${listSelectedIds.value.length} 篇)` : '转为需求',
-          submenuComponent: DatePicker,
-          submenuComponentProps: {
+          label: isMultiSelect ? `转需求(${listSelectedIds.value.length})` : '转需求',
+          panelComponent: DatePicker,
+          panelProps: {
             bordered: false,
             onConfirm: async (date: any) => {
               contextMenuManager.hide()

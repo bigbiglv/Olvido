@@ -1,3 +1,5 @@
+import type { Component } from 'vue'
+
 /**
  * 菜单项行为接口定义
  */
@@ -33,14 +35,14 @@ export interface MenuAction {
   children?: ContextMenuItem[]
 
   /**
-   * 自定义悬浮组件，鼠标悬停时用于展示的自定义 Vue 组件
+   * 自定义面板组件，鼠标悬停时用于展示的自定义 Vue 组件
    */
-  submenuComponent?: any
+  panelComponent?: Component
 
   /**
-   * 自定义悬浮组件的传入属性 (props)
+   * 自定义面板组件的传入属性 (props)
    */
-  submenuComponentProps?: Record<string, any>
+  panelProps?: Record<string, any>
 }
 
 /**

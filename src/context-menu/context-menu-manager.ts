@@ -135,7 +135,7 @@ class ContextMenuManager {
       const wrappedAction = {
         ...action,
         disabled,
-        submenuComponent: action.submenuComponent ? markRaw(action.submenuComponent) : undefined,
+        panelComponent: action.panelComponent ? markRaw(action.panelComponent) : undefined,
       }
 
       if (action.children) {
