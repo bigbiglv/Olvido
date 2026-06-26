@@ -299,7 +299,7 @@ onMounted(async () => {
           label: '日期',
           submenuComponent: DatePicker,
           submenuComponentProps: {
-            bordered: true,
+            bordered: false,
           },
         },
         {

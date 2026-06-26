@@ -239,7 +239,11 @@ const getAdjacentDate = (unit: DateUnit, dir: number) => selectedDate.value.add(
 const isPickerDisabled = (unit: DateUnit, dir: number) =>
   getAdjacentDate(unit, dir).isBefore(currentDate, 'day')
 
+let lastPickerWheelTime = 0
 const handlePickerWheel = (e: WheelEvent, unit: DateUnit) => {
+  const now = Date.now()
+  if (now - lastPickerWheelTime < 120) return
+  lastPickerWheelTime = now
   handlePickerClick(unit, e.deltaY > 0 ? 1 : -1)
 }
 
