@@ -6,13 +6,20 @@
  * 负责维护核心日期状态、处理跨组件的 GSAP 滑动动效、以及复杂的日期差值计算。
  * 具体的 UI 展现已被拆分至 DatePickerHeader 和 DatePickerGrid。
  */
-import { ref, nextTick, computed, watch } from 'vue'
+import { ref, nextTick, computed, watch, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import gsap from 'gsap'
 import DatePickerHeader from './DatePickerHeader.vue'
 import DatePickerGrid from './DatePickerGrid.vue'
 import type { DateUnit } from './types'
+import { HolidayUtil } from 'lunar-javascript'
+
+onMounted(() => {
+  const currentYear = new Date().getFullYear()
+  const holidays = HolidayUtil.getHolidays(currentYear)
+  console.log(`今年的节假日信息 (${currentYear}):`, holidays)
+})
 
 dayjs.extend(isoWeek)
 interface Props {
@@ -140,6 +147,13 @@ const handleSelect = (date: dayjs.Dayjs) => {
 // ==========================================
 // Computed: Date Differences
 // ==========================================
+const isWorkday = (date: dayjs.Dayjs) => {
+  const h = HolidayUtil.getHoliday(date.format('YYYY-MM-DD'))
+  if (h) return h.isWork()
+  const d = date.day()
+  return d !== 0 && d !== 6
+}
+
 const diffWorkdays = computed(() => {
   let count = 0
   const start = currentDate.startOf('day')
@@ -150,7 +164,7 @@ const diffWorkdays = computed(() => {
   const step = end.isAfter(start) ? 1 : -1
   while (!temp.isSame(end, 'day')) {
     temp = temp.add(step, 'day')
-    if (temp.day() !== 0 && temp.day() !== 6) count++
+    if (isWorkday(temp)) count++
   }
   return count
 })
@@ -209,7 +223,7 @@ watch(selectedDate, (newVal, oldVal) => {
     const stp = oldVal.startOf('day').isAfter(currentDate.startOf('day')) ? 1 : -1
     while (!t.isSame(oldVal.startOf('day'), 'day')) {
       t = t.add(stp, 'day')
-      if (t.day() !== 0 && t.day() !== 6) oldWdCount++
+      if (isWorkday(t)) oldWdCount++
     }
   }
   updateDelay('workdays', diffWorkdays.value !== oldWdCount)
