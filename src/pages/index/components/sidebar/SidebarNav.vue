@@ -2,9 +2,10 @@
 import { useAppStore } from '@/stores/app'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, BookOpen } from 'lucide-vue-next'
+import { Plus, BookOpen, Folder } from 'lucide-vue-next'
 import DraggableList from '@/components/ui/draggableList/DraggableList.vue'
 import ProjectItem from './ProjectItem.vue'
+import ActiveItemBackground from './ActiveItemBackground.vue'
 import { useProjectList } from '../../composables/useProjectList'
 
 const appStore = useAppStore()
@@ -22,6 +23,9 @@ const {
   handleGlobalDblClick
 } = useProjectList()
 
+const vFocus = {
+  mounted: (el: HTMLElement) => el.focus()
+}
 </script>
 
 <template>
@@ -35,23 +39,35 @@ const {
       </div>
       <Button
         variant="ghost"
-        class="w-full justify-start gap-3 px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left border-0"
+        class="relative w-full h-auto justify-start gap-3 px-3 py-2.5 text-sm font-semibold transition-all text-left border-0 group overflow-hidden"
         :class="[
           appStore.currentProject === null
-            ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-700/50'
+            ? 'text-indigo-600 dark:text-indigo-400'
             : '',
           listSelectedIds.includes('global') && appStore.currentProject !== null
-            ? 'bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
+            ? 'text-indigo-600 dark:text-indigo-400'
             : '',
           appStore.currentProject !== null && !listSelectedIds.includes('global')
-            ? 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
+            ? 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100 rounded-xl'
             : ''
         ]"
         @click="handleGlobalClick"
         @dblclick="handleGlobalDblClick"
       >
-        <BookOpen class="size-4.5" />
-        <span>笔记本</span>
+        <!-- 设计感动态背景 -->
+        <transition
+          enter-active-class="transition-all duration-300 ease-out"
+          leave-active-class="transition-all duration-200 ease-in"
+          enter-from-class="opacity-0 scale-95"
+          enter-to-class="opacity-100 scale-100"
+          leave-from-class="opacity-100 scale-100"
+          leave-to-class="opacity-0 scale-95"
+        >
+          <ActiveItemBackground v-if="appStore.currentProject === null || listSelectedIds.includes('global')" />
+        </transition>
+
+        <BookOpen class="size-4.5 relative z-10" />
+        <span class="relative z-10">笔记本</span>
       </Button>
     </div>
 
@@ -75,16 +91,24 @@ const {
       </div>
 
       <!-- Inline Add Project Form -->
-      <div v-if="showAddProject" class="px-3 py-1 space-y-2">
-        <Input
-          v-model="newProjectName"
-          type="text"
-          placeholder="项目名称"
-          class="h-8 text-xs bg-white dark:bg-zinc-800 focus-visible:ring-indigo-500 border-indigo-200 dark:border-zinc-700"
-          autofocus
-          @keyup.enter="handleAddProject"
-          @blur="handleAddProject"
-        />
+      <div v-if="showAddProject" class="px-0 py-1">
+        <div
+          class="relative h-auto flex items-center w-full justify-start gap-3 px-3 py-2.5 text-sm font-semibold transition-all text-left overflow-hidden text-indigo-600 dark:text-indigo-400"
+        >
+          <!-- 设计感动态背景 -->
+          <ActiveItemBackground />
+          <Folder class="size-4.5 opacity-70 shrink-0 relative z-10" />
+          <input
+            ref="addProjectInput"
+            v-model="newProjectName"
+            type="text"
+            placeholder="项目名称"
+            class="relative z-10 w-full bg-transparent border-0 p-0 h-5 text-sm font-semibold focus:outline-none focus:ring-0 text-indigo-600 dark:text-indigo-400 placeholder:text-indigo-400/70 dark:placeholder:text-indigo-500"
+            v-focus
+            @keyup.enter="handleAddProject"
+            @blur="handleAddProject"
+          />
+        </div>
       </div>
 
       <!-- Project List -->
@@ -106,3 +130,5 @@ const {
     </div>
   </nav>
 </template>
+
+

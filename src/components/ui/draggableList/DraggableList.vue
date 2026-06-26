@@ -129,10 +129,11 @@ function handleItemMouseLeave() {
 <template>
   <div ref="containerRef" class="dl-container" @click.self="emit('selection-change', [])">
     <div
-      v-for="item in items"
+      v-for="(item, index) in items"
       :key="String(item[itemKey as keyof T])"
       :data-id="String(item[itemKey as keyof T])"
-      class="dl-item"
+      class="dl-item animate-list-enter"
+      :style="{ animationDelay: `${Math.min(index, 15) * 40}ms` }"
       :class="{
         'dl-selected': selectedIds.includes(String(item[itemKey as keyof T])),
       }"
@@ -177,5 +178,20 @@ function handleItemMouseLeave() {
 
 .dl-drag {
   cursor: grabbing !important;
+}
+
+.animate-list-enter {
+  animation: list-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes list-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 </style>

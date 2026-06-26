@@ -148,7 +148,13 @@ export function useProjectList() {
    */
   async function handleAddProject() {
     const name = newProjectName.value.trim()
-    if (!name || isAdding.value) return
+    if (!name) {
+      showAddProject.value = false
+      newProjectName.value = ''
+      return
+    }
+
+    if (isAdding.value) return
 
     isAdding.value = true
 
