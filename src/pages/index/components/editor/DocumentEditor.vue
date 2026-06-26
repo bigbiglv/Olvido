@@ -55,16 +55,7 @@ function handleContentUpdate(newContent: string) {
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
     if (appStore.selectedDocument) {
-      // Auto-extract first header as title if user writes one
       let title = appStore.selectedDocument.title
-      if (newContent.trim().startsWith('# ')) {
-        const firstLine = newContent.split('\n')[0]
-        const extracted = firstLine.replace(/^#\s+/, '').trim()
-        if (extracted) {
-          title = extracted
-          appStore.selectedDocument.title = title
-        }
-      }
 
       try {
         await saveDocument(appStore.selectedDocument.id, {
