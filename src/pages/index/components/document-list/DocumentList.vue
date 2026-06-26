@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { confirm } from '@/components/confirm'
 import CompletedDocsDialog from './CompletedDocsDialog.vue'
 import QuickAddDialog from './QuickAddDialog.vue'
-import ConvertToRequirementDialog from './ConvertToRequirementDialog.vue'
+
 import { contextMenuManager } from '@/context-menu/context-menu-manager'
 import type { ContextMenuItem } from '@/context-menu/context-menu-types'
 import DailyDocItem from './DailyDocItem.vue'
@@ -294,14 +294,7 @@ onMounted(async () => {
           submenuComponent: TestCustomComponent,
           submenuComponentProps: { title: '自定义提示标题' },
         },
-        {
-          id: 'date',
-          label: '日期',
-          submenuComponent: DatePicker,
-          submenuComponentProps: {
-            bordered: false,
-          },
-        },
+
         {
           id: 'complete',
           label: isMultiSelect ? `完成已选 (${listSelectedIds.value.length} 篇)` : '完成',
@@ -399,13 +392,48 @@ onMounted(async () => {
         },
       ]
 
-      if (!isMultiSelect && doc.category !== '需求') {
+      if (doc.category !== '需求') {
         menus.push({
           id: 'convert',
-          label: '转为需求',
-          onClick: async () => {
-            await handleConvertToRequirement(doc)
-          },
+          label: isMultiSelect ? `转为需求 (${listSelectedIds.value.length} 篇)` : '转为需求',
+          submenuComponent: DatePicker,
+          submenuComponentProps: {
+            bordered: false,
+            onConfirm: async (date: any) => {
+              contextMenuManager.hide()
+              try {
+                if (isMultiSelect) {
+                  const idsToConvert = [...listSelectedIds.value]
+                  for (const id of idsToConvert) {
+                    await apiUpdate({
+                      id,
+                      deadline: date.toDate()
+                    })
+                  }
+                  listSelectedIds.value = []
+                  if (
+                    appStore.selectedDocumentId &&
+                    idsToConvert.includes(appStore.selectedDocumentId)
+                  ) {
+                    await appStore.selectDocument(null)
+                  }
+                } else {
+                  await apiUpdate({
+                    id: doc.id,
+                    deadline: date.toDate()
+                  })
+                  listSelectedIds.value = listSelectedIds.value.filter(id => id !== doc.id)
+                  if (appStore.selectedDocumentId === doc.id) {
+                    await appStore.selectDocument(null)
+                  }
+                }
+                appStore.lastSavedTime = new Date().toLocaleTimeString()
+                selectDefaultDocument()
+              } catch (error) {
+                console.error('Failed to convert to requirement:', error)
+              }
+            }
+          }
         })
       }
 
@@ -422,21 +450,7 @@ function handleContextMenu(event: MouseEvent, doc: DocumentItem) {
   contextMenuManager.show(event, doc)
 }
 
-async function handleConvertToRequirement(doc: DocumentItem) {
-  try {
-    const date = await Dialog.show<string>(ConvertToRequirementDialog)
-    if (date) {
-      await apiUpdate({
-        id: doc.id,
-        deadline: new Date(date),
-      })
-      appStore.lastSavedTime = new Date().toLocaleTimeString()
-      selectDefaultDocument()
-    }
-  } catch {
-    // Dialog cancelled
-  }
-}
+
 
 function handleSelectionChange(ids: string[]) {
   listSelectedIds.value = ids
