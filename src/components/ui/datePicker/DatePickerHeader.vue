@@ -8,44 +8,39 @@
  */
 import { Button } from '@/components/ui/button'
 import dayjs from 'dayjs'
-import { PropType } from 'vue'
 
-type DateUnit = 'year' | 'month' | 'day'
+import type { DateUnit, DiffData, PickerConfig } from './types'
 
-interface DiffData {
-  diff: number
-  mainType: 'word' | 'number'
-  mainText: string
-  mainNumber: number
-  mainSuffix: string
-  workdays: number
-}
-
-interface PickerConfig {
-  unit: DateUnit
-  format: string
-  displayWidth: string
-  popupWidth: string
-}
-
-const props = defineProps({
+interface Props {
   /** 当前选中的目标日期 */
-  selectedDate: { type: Object as PropType<dayjs.Dayjs>, required: true },
+  selectedDate: dayjs.Dayjs
   /** 系统当前日期 (今天) */
-  currentDate: { type: Object as PropType<dayjs.Dayjs>, required: true },
+  currentDate: dayjs.Dayjs
   /** 计算好的时间差数据对象 */
-  diffData: { type: Object as PropType<DiffData>, required: true },
+  diffData: DiffData
   /** 动画交错延迟数据对象 */
-  delays: { type: Object as PropType<Record<string, number>>, required: true },
+  delays: Record<string, number>
   /** 当前激活的微型选择器模式 */
-  pickingMode: { type: String as PropType<DateUnit | null>, default: null },
+  pickingMode?: DateUnit | null
   /** 微型选择器的滚动方向标识 (1: 向下/未来, -1: 向上/过去) */
-  pickerDirection: { type: Number, default: 1 },
+  pickerDirection?: number
   /** 选择器结构渲染配置 */
-  pickersConfig: { type: Array as PropType<PickerConfig[]>, required: true }
+  pickersConfig: PickerConfig[]
+}
+
+interface Emits {
+  (e: 'update:pickingMode', mode: DateUnit | null): void
+  (e: 'pickerClick', unit: DateUnit, direction: number): void
+  (e: 'pickerWheel', event: WheelEvent, unit: DateUnit): void
+  (e: 'confirm'): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  pickingMode: null,
+  pickerDirection: 1
 })
 
-const emit = defineEmits(['update:pickingMode', 'pickerClick', 'pickerWheel', 'confirm'])
+const emit = defineEmits<Emits>()
 
 /** 获取相邻的日期用于展示在滚轮上下方 */
 const getAdjacentDate = (unit: DateUnit, dir: number) => props.selectedDate.add(dir, unit)

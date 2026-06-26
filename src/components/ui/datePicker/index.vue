@@ -12,10 +12,9 @@ import isoWeek from 'dayjs/plugin/isoWeek'
 import gsap from 'gsap'
 import DatePickerHeader from './DatePickerHeader.vue'
 import DatePickerGrid from './DatePickerGrid.vue'
+import type { DateUnit } from './types'
 
 dayjs.extend(isoWeek)
-
-type DateUnit = 'year' | 'month' | 'day'
 interface Props {
   rows?: number
 }

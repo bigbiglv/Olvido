@@ -10,18 +10,27 @@ import { ref, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import gsap from 'gsap'
 
-const props = defineProps({
+interface Props {
   /** 当前可见的日历周数据 */
-  weeks: { type: Array as () => dayjs.Dayjs[][], required: true },
+  weeks: dayjs.Dayjs[][]
   /** 系统当前日期 (今天) */
-  currentDate: { type: Object as () => dayjs.Dayjs, required: true },
+  currentDate: dayjs.Dayjs
   /** 用户选中的目标日期 */
-  selectedDate: { type: Object as () => dayjs.Dayjs, required: true },
+  selectedDate: dayjs.Dayjs
   /** 渲染的行数 */
-  rows: { type: Number, default: 2 }
+  rows?: number
+}
+
+interface Emits {
+  (e: 'select', date: dayjs.Dayjs): void
+  (e: 'wheel', event: WheelEvent): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  rows: 2
 })
 
-const emit = defineEmits(['select', 'wheel'])
+const emit = defineEmits<Emits>()
 
 const contentRef = ref<HTMLElement | null>(null)
 
