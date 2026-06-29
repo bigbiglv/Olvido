@@ -14,18 +14,15 @@ const isSaving = ref(false)
 
 // Reset isSaving if selected document changes
 watch(
-  () => appStore.selectedDocument?.id,
-  (newId, oldId) => {
+  () => appStore.selectedDocument,
+  (newDoc, oldDoc) => {
     if (saveTimeout) {
       clearTimeout(saveTimeout)
       saveTimeout = null
       
       // Flush pending save for the previous document
-      if (oldId) {
-        const oldDoc = appStore.documents.find(d => d.id === oldId)
-        if (oldDoc) {
-          saveDocument(oldId, { content: oldDoc.content, title: oldDoc.title })
-        }
+      if (oldDoc) {
+        saveDocument(oldDoc, { content: oldDoc.content, title: oldDoc.title })
       }
     }
     isSaving.value = false
@@ -33,14 +30,13 @@ watch(
 )
 
 // Helper function to save document changes directly to database
-async function saveDocument(docId: string, updates: Partial<DocumentItem>) {
+async function saveDocument(doc: DocumentItem, updates: Partial<DocumentItem>) {
+  if (!doc) return
   try {
-    const doc = appStore.documents.find(d => d.id === docId)
-    if (!doc) return
     Object.assign(doc, updates)
 
     await apiUpdate({
-      id: docId,
+      id: doc.id,
       title: doc.title,
       content: doc.content,
       isArchived: doc.completed,
@@ -63,18 +59,17 @@ function handleContentUpdate(newContent: string) {
 
   // Debounce save to database
   if (saveTimeout) clearTimeout(saveTimeout)
+  const docToSave = appStore.selectedDocument
   saveTimeout = setTimeout(async () => {
-    if (appStore.selectedDocument) {
-      let title = appStore.selectedDocument.title
+    let title = docToSave.title
 
-      try {
-        await saveDocument(appStore.selectedDocument.id, {
-          content: newContent,
-          title: title,
-        })
-      } finally {
-        isSaving.value = false
-      }
+    try {
+      await saveDocument(docToSave, {
+        content: newContent,
+        title: title,
+      })
+    } finally {
+      isSaving.value = false
     }
   }, 500)
 }
@@ -87,15 +82,14 @@ function handleTitleUpdate(event: Event) {
   isSaving.value = true
 
   if (saveTimeout) clearTimeout(saveTimeout)
+  const docToSave = appStore.selectedDocument
   saveTimeout = setTimeout(async () => {
-    if (appStore.selectedDocument) {
-      try {
-        await saveDocument(appStore.selectedDocument.id, {
-          title: newTitle,
-        })
-      } finally {
-        isSaving.value = false
-      }
+    try {
+      await saveDocument(docToSave, {
+        title: newTitle,
+      })
+    } finally {
+      isSaving.value = false
     }
   }, 500)
 }
