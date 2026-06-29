@@ -35,6 +35,7 @@ const appStore = useAppStore()
 
     <DraggableList
       v-else
+      :key="appStore.currentCategory"
       :items="filteredDocuments"
       item-key="id"
       :selected-ids="listSelectedIds"

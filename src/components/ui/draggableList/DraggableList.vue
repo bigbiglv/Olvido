@@ -32,6 +32,12 @@ const anchorId = ref<string | null>(null)
 const hoverId = ref<string | null>(null)
 /** 列表容器 DOM 引用 */
 const containerRef = ref<HTMLElement | null>(null)
+/** 已播放过入场动画的项标识集合，防止拖拽时重复播放 */
+const animatedIds = ref(new Set<string>())
+
+function onAnimationEnd(item: T) {
+  animatedIds.value.add(String(item[itemKey as keyof T]))
+}
 
 // 挂载 Sortable 逻辑
 useSortable<T>(
@@ -132,11 +138,13 @@ function handleItemMouseLeave() {
       v-for="(item, index) in items"
       :key="String(item[itemKey as keyof T])"
       :data-id="String(item[itemKey as keyof T])"
-      class="dl-item animate-list-enter"
-      :style="{ animationDelay: `${Math.min(index, 15) * 40}ms` }"
+      class="dl-item"
       :class="{
+        'animate-list-enter': !animatedIds.has(String(item[itemKey as keyof T])),
         'dl-selected': selectedIds.includes(String(item[itemKey as keyof T])),
       }"
+      :style="{ animationDelay: !animatedIds.has(String(item[itemKey as keyof T])) ? `${Math.min(index, 15) * 40}ms` : '0ms' }"
+      @animationend="onAnimationEnd(item)"
       @click="handleItemClick(item, $event)"
       @dblclick="handleItemDblClick(item)"
       @contextmenu="handleItemContextMenu(item, $event)"
