@@ -177,7 +177,7 @@ function onSubmenuLeave(el: Element, done: () => void) {
         @click="handleActionClick(item)"
       >
         <div class="flex items-center gap-2">
-          <component :is="(item as any).icon" v-if="(item as any).icon" class="size-4 opacity-70" />
+          <component :is="(item as any).icon" v-if="(item as any).icon" class="size-4 opacity-70 menu-icon" />
           <span>{{ (item as any).label }}</span>
         </div>
         <ChevronRight
@@ -220,4 +220,31 @@ function onSubmenuLeave(el: Element, done: () => void) {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.group:hover .menu-icon :deep(path),
+.group:hover .menu-icon :deep(circle),
+.group:hover .menu-icon :deep(line),
+.group:hover .menu-icon :deep(polyline),
+.group:hover .menu-icon :deep(polygon),
+.group:hover .menu-icon :deep(rect) {
+  stroke-dasharray: 100;
+  animation: smooth-draw 0.5s linear forwards;
+}
+
+@keyframes smooth-draw {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    stroke-dashoffset: 76;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+</style>
