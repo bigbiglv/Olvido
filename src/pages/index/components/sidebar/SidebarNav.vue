@@ -14,13 +14,17 @@ const {
   showAddProject,
   newProjectName,
   listSelectedIds,
+  renamingProjectId,
   handleAddProject,
+  cancelAddProject,
   handleSelectProject,
   handleProjectSelectionChange,
   handleReorderProjects,
   handleContextMenu,
   handleGlobalClick,
-  handleGlobalDblClick
+  handleGlobalDblClick,
+  submitRenameProject,
+  cancelRenameProject
 } = useProjectList()
 
 const vFocus = {
@@ -106,6 +110,7 @@ const vFocus = {
             class="relative z-10 w-full bg-transparent border-0 p-0 h-5 text-sm font-semibold focus:outline-none focus:ring-0 text-indigo-600 dark:text-indigo-400 placeholder:text-indigo-400/70 dark:placeholder:text-indigo-500"
             v-focus
             @keyup.enter="handleAddProject"
+            @keydown.esc="cancelAddProject"
             @blur="handleAddProject"
           />
         </div>
@@ -124,7 +129,14 @@ const vFocus = {
         @context-menu="(proj: any, event: MouseEvent) => handleContextMenu(event, proj)"
       >
         <template #item="{ item: proj, selected, opened }">
-          <ProjectItem :project="proj" :selected="selected" :opened="opened" />
+          <ProjectItem 
+            :project="proj" 
+            :selected="selected" 
+            :opened="opened" 
+            :is-renaming="renamingProjectId === proj.id"
+            @submit-rename="(newName) => submitRenameProject(proj.id, newName)"
+            @cancel-rename="cancelRenameProject"
+          />
         </template>
       </DraggableList>
     </div>

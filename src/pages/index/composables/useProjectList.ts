@@ -5,6 +5,7 @@ import {
   apiCreate,
   apiUpdate,
   apiDelete,
+  apiDeletes,
   apiReorder,
 } from '@/apis/project'
 import { Dialog } from '@/components/dialog'
@@ -25,6 +26,9 @@ export function useProjectList() {
   const showAddProject = ref(false)
   const newProjectName = ref('')
   const listSelectedIds = ref<string[]>([])
+  
+  /** 正在重命名的项目 ID */
+  const renamingProjectId = ref<string | null>(null)
 
   /** 是否处于创建项目的请求过程中（防重锁） */
   const isAdding = ref(false)
@@ -39,30 +43,61 @@ export function useProjectList() {
       type: 'project',
       getMenus: (context) => {
         const proj = context.data as ProjectDto
-        return [
-          {
+        const isMultiSelected = listSelectedIds.value.includes(proj.id) && listSelectedIds.value.length > 1
+        
+        const menus = []
+        
+        if (!isMultiSelected) {
+          menus.push({
             id: 'rename',
             label: '重命名',
             onClick: () => {
               handleRenameProject(proj)
             },
+          })
+        }
+        
+        menus.push({
+          id: 'delete',
+          label: '删除',
+          onClick: () => {
+            handleDeleteProject(proj)
           },
-          {
-            id: 'delete',
-            label: '删除',
-            onClick: () => {
-              handleDeleteProject(proj)
-            },
-          },
-        ]
+        })
+        
+        return menus
       },
     })
+    
+    window.addEventListener('keydown', handleGlobalKeydown)
   })
 
-  // 卸载时注销右键菜单
+  // 卸载时注销右键菜单和事件监听
   onUnmounted(() => {
     contextMenuManager.unregister('project')
+    window.removeEventListener('keydown', handleGlobalKeydown)
   })
+
+  function handleGlobalKeydown(e: KeyboardEvent) {
+    if (e.key === 'F2') {
+      // 如果当前焦点在输入框或可编辑区域，则忽略快捷键
+      const target = e.target as HTMLElement
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return
+      }
+
+      if (listSelectedIds.value.length === 1) {
+        const selectedId = listSelectedIds.value[0]
+        if (selectedId !== 'global') {
+          const proj = projects.value.find((p) => p.id === selectedId)
+          if (proj) {
+            e.preventDefault()
+            handleRenameProject(proj)
+          }
+        }
+      }
+    }
+  }
 
   /**
    * 处理项目右键菜单展示
@@ -170,7 +205,7 @@ export function useProjectList() {
       try {
         const newId = crypto.randomUUID()
         const newProj = await apiCreate({ id: newId, name })
-        projects.value.push(newProj)
+        projects.value.unshift(newProj)
         newProjectName.value = ''
         showAddProject.value = false
         handleSelectProject(newProj.id)
@@ -188,7 +223,7 @@ export function useProjectList() {
         // 网页预览模式下的 Mock 回退机制
         const newId = Math.random().toString(36).substr(2, 9)
         const newProj = { id: newId, name }
-        projects.value.push(newProj)
+        projects.value.unshift(newProj)
         newProjectName.value = ''
         showAddProject.value = false
         handleSelectProject(newId)
@@ -203,31 +238,68 @@ export function useProjectList() {
   }
 
   /**
-   * 重命名项目操作
+   * 取消新建项目
    */
-  async function handleRenameProject(proj: ProjectDto) {
-    try {
-      const newName = await Dialog.show<string>(RenameProjectDialog, { initialName: proj.name })
-      if (newName) {
+  function cancelAddProject() {
+    newProjectName.value = ''
+    showAddProject.value = false
+  }
+
+  /**
+   * 重命名项目操作 (仅触发状态)
+   */
+  function handleRenameProject(proj: ProjectDto) {
+    renamingProjectId.value = proj.id
+  }
+
+  /**
+   * 提交项目重命名
+   */
+  async function submitRenameProject(id: string, newName: string) {
+    renamingProjectId.value = null
+    const proj = projects.value.find(p => p.id === id)
+    if (!proj) return
+    
+    newName = newName.trim()
+    if (newName && newName !== proj.name) {
+      try {
         if (isElectron) {
-          await apiUpdate({ id: proj.id, name: newName })
+          await apiUpdate({ id, name: newName })
         }
         proj.name = newName
-      }
-    } catch (error) {
-      if (error !== 'cancel') {
+      } catch (error) {
         console.error('Failed to rename project:', error)
       }
     }
   }
 
   /**
+   * 取消重命名
+   */
+  function cancelRenameProject() {
+    renamingProjectId.value = null
+  }
+
+  /**
    * 删除项目操作
    */
   async function handleDeleteProject(proj: ProjectDto) {
+    const isMultiDelete = listSelectedIds.value.includes(proj.id) && listSelectedIds.value.length > 1
+    const idsToDelete = isMultiDelete ? [...listSelectedIds.value] : [proj.id]
+    
+    // 如果是多选删除，且其中包含 global，我们需要过滤掉 global
+    const validIdsToDelete = idsToDelete.filter(id => id !== 'global')
+
+    if (validIdsToDelete.length === 0) return
+
+    const title = isMultiDelete ? '批量删除项目' : '删除项目'
+    const description = isMultiDelete
+      ? `确定要删除选中的 ${validIdsToDelete.length} 个项目吗？此操作无法撤销，这些项目下的所有笔记也将被一并删除。`
+      : `确定要删除项目 "${proj.name}" 吗？此操作无法撤销，该项目下的所有笔记也将被一并删除。`
+
     const isConfirmed = await confirm({
-      title: '删除项目',
-      description: `确定要删除项目 "${proj.name}" 吗？此操作无法撤销，该项目下的所有笔记也将被一并删除。`,
+      title,
+      description,
       destructive: true,
       okText: '确定删除',
       cancelText: '取消',
@@ -236,16 +308,22 @@ export function useProjectList() {
     if (isConfirmed) {
       try {
         if (isElectron) {
-          await apiDelete(proj.id)
+          if (isMultiDelete) {
+            await apiDeletes(validIdsToDelete)
+          } else {
+            await apiDelete(proj.id)
+          }
         }
         // 从本地列表移除
-        projects.value = projects.value.filter((p: ProjectDto) => p.id !== proj.id)
-        // 如果被删除的是当前选中的项目，重置为全局记事本
-        if (appStore.currentProject === proj.id) {
+        projects.value = projects.value.filter((p: ProjectDto) => !validIdsToDelete.includes(p.id))
+        
+        // 如果当前打开的项目在被删除的列表中，重置为全局记事本
+        if (appStore.currentProject && validIdsToDelete.includes(appStore.currentProject)) {
           handleSelectProject(null)
         }
-        // 从多选中移除
-        listSelectedIds.value = listSelectedIds.value.filter((id) => id !== proj.id)
+        
+        // 从多选中移除这些已删除的项
+        listSelectedIds.value = listSelectedIds.value.filter((id) => !validIdsToDelete.includes(id))
       } catch (error) {
         console.error('Failed to delete project:', error)
       }
@@ -257,12 +335,16 @@ export function useProjectList() {
     showAddProject,
     newProjectName,
     listSelectedIds,
+    renamingProjectId,
     handleAddProject,
+    cancelAddProject,
     handleSelectProject,
     handleProjectSelectionChange,
     handleReorderProjects,
     handleContextMenu,
     handleGlobalClick,
-    handleGlobalDblClick
+    handleGlobalDblClick,
+    submitRenameProject,
+    cancelRenameProject
   }
 }
