@@ -277,14 +277,14 @@ export function useDocumentList() {
                 const count = listSelectedIds.value.length
                 const title = isMultiSelect ? '批量删除文档' : '删除文档'
                 const description = isMultiSelect
-                  ? `确定要删除这 ${count} 篇文档吗？此操作无法撤销。`
-                  : '确定要删除此文档吗？此操作无法撤销。'
+                  ? `将删除这 ${count} 篇文档，不可恢复。`
+                  : '将删除此文档，不可恢复。'
 
                 const isConfirmed = await confirm({
                   title,
                   description,
                   destructive: true,
-                  okText: '确定删除',
+                  okText: '删除',
                   cancelText: '取消',
                 })
 

@@ -77,9 +77,9 @@ async function handleDelete(docId: string, event: Event) {
   try {
     const isConfirmed = await confirm({
       title: '永久删除文档',
-      description: '确定要永久删除此文档吗？此操作无法撤销。',
+      description: '将永久删除此文档，不可恢复。',
       destructive: true,
-      okText: '确定删除',
+      okText: '删除',
       cancelText: '取消',
     })
 

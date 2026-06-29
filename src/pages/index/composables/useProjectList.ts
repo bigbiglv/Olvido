@@ -330,14 +330,14 @@ export function useProjectList() {
 
     const title = isMultiDelete ? '批量删除项目' : '删除项目'
     const description = isMultiDelete
-      ? `确定要删除选中的 ${validIdsToDelete.length} 个项目吗？此操作无法撤销，这些项目下的所有笔记也将被一并删除。`
-      : `确定要删除项目 "${proj.name}" 吗？此操作无法撤销，该项目下的所有笔记也将被一并删除。`
+      ? `将删除选定的 ${validIdsToDelete.length} 个项目及其笔记，不可恢复。`
+      : `将删除 "${proj.name}" 及其笔记，不可恢复。`
 
     const isConfirmed = await confirm({
       title,
       description,
       destructive: true,
-      okText: '确定删除',
+      okText: '删除',
       cancelText: '取消',
     })
 
