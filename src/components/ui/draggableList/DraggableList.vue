@@ -21,6 +21,7 @@ interface Emits<T> {
   (e: 'open', item: T): void
   (e: 'selection-change', ids: string[]): void
   (e: 'context-menu', item: T, event: MouseEvent): void
+  (e: 'background-context-menu', event: MouseEvent): void
   (e: 'reorder', event: ReorderEvent<T>): void
 }
 
@@ -139,7 +140,7 @@ function handleItemMouseLeave() {
 </script>
 
 <template>
-  <div ref="containerRef" class="dl-container" @click.self="emit('selection-change', [])">
+  <div ref="containerRef" class="dl-container" @click.self="emit('selection-change', [])" @contextmenu.self.prevent="emit('background-context-menu', $event)">
     <div
       v-for="(item, index) in items"
       :key="String(item[itemKey as keyof T])"

@@ -20,6 +20,7 @@ import {
 } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 import { isElectron } from '@/utils/env'
+import { CheckCircle, Trash2, ArrowRightLeft, FilePlus, RefreshCw } from 'lucide-vue-next'
 
 
 export function useDocumentList() {
@@ -227,6 +228,7 @@ export function useDocumentList() {
           {
             id: 'complete',
             label: isMultiSelect ? `完成(${listSelectedIds.value.length})` : '完成',
+            icon: CheckCircle,
             onClick: async () => {
               try {
                 if (isMultiSelect) {
@@ -269,6 +271,7 @@ export function useDocumentList() {
           {
             id: 'delete',
             label: isMultiSelect ? `删除(${listSelectedIds.value.length})` : '删除',
+            icon: Trash2,
             onClick: async () => {
               try {
                 const count = listSelectedIds.value.length
@@ -325,6 +328,7 @@ export function useDocumentList() {
           menus.push({
             id: 'convert',
             label: isMultiSelect ? `转需求(${listSelectedIds.value.length})` : '转需求',
+            icon: ArrowRightLeft,
             panelComponent: DatePicker,
             panelProps: {
               bordered: false,
@@ -370,14 +374,44 @@ export function useDocumentList() {
         return menus
       },
     })
+
+    contextMenuManager.register({
+      type: 'document-background',
+      priority: 100,
+      getMenus: () => {
+        return [
+          {
+            id: 'add-document',
+            label: '新建',
+            icon: FilePlus,
+            onClick: () => {
+              handleQuickAdd()
+            },
+          },
+          {
+            id: 'refresh',
+            label: '刷新',
+            icon: RefreshCw,
+            onClick: () => {
+              loadDocuments()
+            },
+          },
+        ]
+      },
+    })
   })
 
   onUnmounted(() => {
     contextMenuManager.unregister('document')
+    contextMenuManager.unregister('document-background')
   })
 
   function handleContextMenu(event: MouseEvent, doc: DocumentItem) {
     contextMenuManager.show(event, doc)
+  }
+
+  function handleBackgroundContextMenu(event: MouseEvent) {
+    contextMenuManager.show(event, { type: 'document-background' }, 'document-background')
   }
 
   function handleSelectionChange(ids: string[]) {
@@ -421,6 +455,7 @@ export function useDocumentList() {
     handleQuickAdd,
     toggleCompletion,
     handleContextMenu,
+    handleBackgroundContextMenu,
     handleSelectionChange,
     handleOpen,
     handleReorder

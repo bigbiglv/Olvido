@@ -15,6 +15,11 @@ export interface MenuAction {
   label: string
 
   /**
+   * 菜单项前缀图标组件
+   */
+  icon?: Component
+
+  /**
    * 是否禁用，支持布尔值或动态计算函数
    */
   disabled?: boolean | (() => boolean)

@@ -18,13 +18,14 @@ const emit = defineEmits<{
   (e: 'context-menu', event: MouseEvent, doc: DocumentItem): void
   (e: 'toggle-completion', doc: DocumentItem): void
   (e: 'clear-selection'): void
+  (e: 'background-context-menu', event: MouseEvent): void
 }>()
 
 const appStore = useAppStore()
 </script>
 
 <template>
-  <div class="flex-1 overflow-y-auto p-4" @click.self="emit('clear-selection')">
+  <div class="flex-1 overflow-y-auto p-4" data-context-region="document-background" @click.self="emit('clear-selection')" @contextmenu.self.prevent="emit('background-context-menu', $event)">
     <div
       v-if="filteredDocuments.length === 0"
       class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4"
@@ -45,6 +46,7 @@ const appStore = useAppStore()
       @open="(item) => emit('open', item)"
       @reorder="(event) => emit('reorder', event)"
       @context-menu="(item, event) => emit('context-menu', event, item)"
+      @background-context-menu="(event) => emit('background-context-menu', event)"
     >
       <template #item="{ item: doc, selected, opened, hover }">
         <component

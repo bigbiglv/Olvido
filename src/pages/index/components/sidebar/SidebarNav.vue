@@ -21,6 +21,7 @@ const {
   handleProjectSelectionChange,
   handleReorderProjects,
   handleContextMenu,
+  handleBackgroundContextMenu,
   handleGlobalClick,
   handleGlobalDblClick,
   submitRenameProject,
@@ -33,7 +34,7 @@ const vFocus = {
 </script>
 
 <template>
-  <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-7" @click.self="listSelectedIds = []">
+  <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-7" data-context-region="project-background" @click.self="listSelectedIds = []" @contextmenu.self.prevent="handleBackgroundContextMenu">
     <!-- 全局 Group -->
     <div class="space-y-2" @click.self="listSelectedIds = []">
       <div
@@ -76,8 +77,8 @@ const vFocus = {
     </div>
 
     <!-- 项目 Group -->
-    <div class="space-y-2" @click.self="listSelectedIds = []">
-      <div class="flex items-center justify-between px-3" @click.self="listSelectedIds = []">
+    <div class="space-y-2 flex-1" @click.self="listSelectedIds = []" @contextmenu.self.prevent="handleBackgroundContextMenu">
+      <div class="flex items-center justify-between px-3" @click.self="listSelectedIds = []" @contextmenu.self.prevent="handleBackgroundContextMenu">
         <span
           class="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
         >
@@ -128,6 +129,7 @@ const vFocus = {
         @open="(proj: any) => handleSelectProject(proj.id)"
         @reorder="handleReorderProjects"
         @context-menu="(proj: any, event: MouseEvent) => handleContextMenu(event, proj)"
+        @background-context-menu="handleBackgroundContextMenu"
       >
         <template #item="{ item: proj, selected, opened }">
           <ProjectItem 

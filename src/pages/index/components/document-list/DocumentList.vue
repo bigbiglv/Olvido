@@ -11,6 +11,7 @@ const {
   handleQuickAdd,
   toggleCompletion,
   handleContextMenu,
+  handleBackgroundContextMenu,
   handleSelectionChange,
   handleOpen,
   handleReorder
@@ -36,6 +37,7 @@ function handleClearSelection() {
       @open="handleOpen"
       @reorder="handleReorder"
       @context-menu="handleContextMenu"
+      @background-context-menu="handleBackgroundContextMenu"
       @toggle-completion="toggleCompletion"
       @clear-selection="handleClearSelection"
     />

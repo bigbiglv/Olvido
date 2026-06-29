@@ -176,7 +176,10 @@ function onSubmenuLeave(el: Element, done: () => void) {
         :class="{ 'bg-accent text-accent-foreground': hoveredItemId === (item as any).id }"
         @click="handleActionClick(item)"
       >
-        <span>{{ (item as any).label }}</span>
+        <div class="flex items-center gap-2">
+          <component :is="(item as any).icon" v-if="(item as any).icon" class="size-4 opacity-70" />
+          <span>{{ (item as any).label }}</span>
+        </div>
         <ChevronRight
           v-if="(item as any).children || (item as any).panelComponent"
           class="w-4 h-4 ml-2 opacity-60 group-hover:opacity-100 transition-opacity"

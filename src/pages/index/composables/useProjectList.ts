@@ -15,6 +15,7 @@ import type { ProjectDto } from '../../../../electron/types/project'
 import type { ReorderEvent } from '@/components/ui/draggableList/types'
 import { isElectron } from '@/utils/env'
 import { contextMenuManager } from '@/context-menu/context-menu-manager'
+import { Edit, Trash2, FolderPlus, RefreshCw } from 'lucide-vue-next'
 
 export function useProjectList() {
   const appStore = useAppStore()
@@ -51,6 +52,7 @@ export function useProjectList() {
           menus.push({
             id: 'rename',
             label: '重命名',
+            icon: Edit,
             onClick: () => {
               handleRenameProject(proj)
             },
@@ -60,12 +62,38 @@ export function useProjectList() {
         menus.push({
           id: 'delete',
           label: '删除',
+          icon: Trash2,
           onClick: () => {
             handleDeleteProject(proj)
           },
         })
         
         return menus
+      },
+    })
+
+    contextMenuManager.register({
+      type: 'project-background',
+      priority: 100,
+      getMenus: () => {
+        return [
+          {
+            id: 'add-project',
+            label: '新建',
+            icon: FolderPlus,
+            onClick: () => {
+              showAddProject.value = true
+            },
+          },
+          {
+            id: 'refresh',
+            label: '刷新',
+            icon: RefreshCw,
+            onClick: () => {
+              fetchProjects()
+            },
+          },
+        ]
       },
     })
     
@@ -75,6 +103,7 @@ export function useProjectList() {
   // 卸载时注销右键菜单和事件监听
   onUnmounted(() => {
     contextMenuManager.unregister('project')
+    contextMenuManager.unregister('project-background')
     window.removeEventListener('keydown', handleGlobalKeydown)
   })
 
@@ -104,6 +133,13 @@ export function useProjectList() {
    */
   function handleContextMenu(event: MouseEvent, proj: ProjectDto) {
     contextMenuManager.show(event, proj)
+  }
+
+  /**
+   * 处理项目列表背景右键菜单展示
+   */
+  function handleBackgroundContextMenu(event: MouseEvent) {
+    contextMenuManager.show(event, { type: 'project-background' }, 'project-background')
   }
 
   /**
@@ -342,6 +378,7 @@ export function useProjectList() {
     handleProjectSelectionChange,
     handleReorderProjects,
     handleContextMenu,
+    handleBackgroundContextMenu,
     handleGlobalClick,
     handleGlobalDblClick,
     submitRenameProject,
