@@ -38,6 +38,7 @@ const appStore = useAppStore()
       :key="appStore.currentCategory"
       :items="filteredDocuments"
       item-key="id"
+      group="documents"
       :selected-ids="listSelectedIds"
       :opened-id="appStore.selectedDocumentId"
       @selection-change="(ids) => emit('selection-change', ids)"

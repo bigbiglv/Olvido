@@ -12,6 +12,8 @@ interface Props<T> {
   selectedIds?: string[]
   /** 当前处于“打开”状态的项的唯一标识符 */
   openedId?: string | null
+  /** 拖拽分组名称，用于隔离不同列表的拖拽状态和多选，防止跨列表的多选拖拽串车 */
+  group?: string
 }
 
 interface Emits<T> {
@@ -22,7 +24,7 @@ interface Emits<T> {
   (e: 'reorder', event: ReorderEvent<T>): void
 }
 
-const { items, itemKey = 'id', selectedIds = [], openedId = null } = defineProps<Props<T>>()
+const { items, itemKey = 'id', selectedIds = [], openedId = null, group = 'default' } = defineProps<Props<T>>()
 
 const emit = defineEmits<Emits<T>>()
 
@@ -34,6 +36,8 @@ const hoverId = ref<string | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
 /** 已播放过入场动画的项标识集合，防止拖拽时重复播放 */
 const animatedIds = ref(new Set<string>())
+/** 独一无二的选中样式类名，避免跨列表多选互相干扰 */
+const uniqueSelectedClass = `dl-selected-${group}`
 
 function onAnimationEnd(item: T) {
   animatedIds.value.add(String(item[itemKey as keyof T]))
@@ -46,6 +50,8 @@ useSortable<T>(
     getItems: () => items,
     getItemKey: () => itemKey,
     getSelectedIds: () => selectedIds,
+    selectedClass: uniqueSelectedClass,
+    group: group,
   },
   emit,
 )
@@ -139,10 +145,11 @@ function handleItemMouseLeave() {
       :key="String(item[itemKey as keyof T])"
       :data-id="String(item[itemKey as keyof T])"
       class="dl-item"
-      :class="{
-        'animate-list-enter': !animatedIds.has(String(item[itemKey as keyof T])),
-        'dl-selected': selectedIds.includes(String(item[itemKey as keyof T])),
-      }"
+      :class="[
+        !animatedIds.has(String(item[itemKey as keyof T])) ? 'animate-list-enter' : '',
+        selectedIds.includes(String(item[itemKey as keyof T])) ? uniqueSelectedClass : '',
+        selectedIds.includes(String(item[itemKey as keyof T])) ? 'dl-selected' : ''
+      ]"
       :style="{ animationDelay: !animatedIds.has(String(item[itemKey as keyof T])) ? `${Math.min(index, 15) * 40}ms` : '0ms' }"
       @animationend="onAnimationEnd(item)"
       @click="handleItemClick(item, $event)"

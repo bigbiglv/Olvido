@@ -121,6 +121,7 @@ const vFocus = {
         class="space-y-1"
         :items="projects"
         item-key="id"
+        group="projects"
         :selected-ids="listSelectedIds"
         :opened-id="appStore.currentProject || ''"
         @selection-change="handleProjectSelectionChange"

@@ -1,10 +1,16 @@
-import { onMounted, onUnmounted, type Ref, watch } from 'vue'
+import { onMounted, onUnmounted, type Ref, watch, ref } from 'vue'
 import Sortable from 'sortablejs'
 import { MultiDrag } from 'sortablejs'
 import type { ReorderEvent } from './types'
 
 // 向 SortableJS 挂载 MultiDrag 插件
 Sortable.mount(new MultiDrag())
+
+/** 
+ * 全局单例状态：记录当前处于鼠标/触摸交互激活状态的拖拽组
+ * 用于解决 SortableJS MultiDrag 插件全局跨列表拖拽的 Bug
+ */
+const activeSortableGroupId = ref<string | null>(null)
 
 /**
  * 拖拽排序逻辑配置接口
@@ -16,6 +22,10 @@ export interface SortableConfig<T> {
   getItemKey: () => string
   /** 获取当前选中项唯一标识符集合的函数 */
   getSelectedIds: () => string[]
+  /** 拖拽分组特定的选中样式名 */
+  selectedClass?: string
+  /** 拖拽分组名称 */
+  group?: string
 }
 
 /**
@@ -49,9 +59,10 @@ export function useSortable<T>(
     if (!containerRef.value) return
 
     sortableInstance = new Sortable(containerRef.value, {
+      group: config.group || 'default',
       animation: 150,
       multiDrag: true,
-      selectedClass: 'dl-selected',
+      selectedClass: config.selectedClass || 'dl-selected',
       ghostClass: 'dl-ghost',
       chosenClass: 'dl-chosen',
       dragClass: 'dl-drag',
@@ -134,18 +145,33 @@ export function useSortable<T>(
       },
     })
 
+    const groupId = config.group || 'default'
+
+    const handleInteraction = () => {
+      activeSortableGroupId.value = groupId
+    }
+    
+    containerRef.value.addEventListener('mousedown', handleInteraction, { capture: true })
+    containerRef.value.addEventListener('touchstart', handleInteraction, { capture: true })
+
     stopWatch = watch(
-      () => config.getSelectedIds(),
-      (newIds) => {
+      [() => config.getSelectedIds(), activeSortableGroupId],
+      ([newIds, activeGroup]) => {
         if (!containerRef.value) return
         const children = Array.from(containerRef.value.children)
+        const sClass = config.selectedClass || 'dl-selected'
+        const isActive = activeGroup === groupId
+
         children.forEach((child) => {
           const id = child.getAttribute('data-id')
           if (!id) return
-          if (newIds.includes(id)) {
+          // 仅当该列表是当前活跃列表时，才将选中状态同步给 Sortable 引擎
+          if (isActive && newIds.includes(id)) {
             Sortable.utils.select(child as HTMLElement)
+            child.classList.add(sClass)
           } else {
             Sortable.utils.deselect(child as HTMLElement)
+            child.classList.remove(sClass)
           }
         })
       },
@@ -154,6 +180,10 @@ export function useSortable<T>(
   })
 
   onUnmounted(() => {
+    if (containerRef.value) {
+      containerRef.value.removeEventListener('mousedown', handleInteraction, { capture: true } as any)
+      containerRef.value.removeEventListener('touchstart', handleInteraction, { capture: true } as any)
+    }
     if (stopWatch) {
       stopWatch()
       stopWatch = null
