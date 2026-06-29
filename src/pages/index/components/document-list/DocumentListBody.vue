@@ -9,6 +9,7 @@ import RequirementDocItem from './RequirementDocItem.vue'
 defineProps<{
   filteredDocuments: DocumentItem[]
   listSelectedIds: string[]
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -42,6 +43,7 @@ const appStore = useAppStore()
       group="documents"
       :selected-ids="listSelectedIds"
       :opened-id="appStore.selectedDocumentId"
+      :disabled="disabled"
       @selection-change="(ids) => emit('selection-change', ids)"
       @open="(item) => emit('open', item)"
       @reorder="(event) => emit('reorder', event)"

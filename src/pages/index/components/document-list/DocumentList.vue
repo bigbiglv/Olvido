@@ -1,11 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useAppStore } from '@/stores/app'
 import DocumentListHeader from './DocumentListHeader.vue'
 import DocumentListBody from './DocumentListBody.vue'
 import { useDocumentList } from '../../composables/useDocumentList'
 
+const appStore = useAppStore()
+
 const {
   listSelectedIds,
   categoryTabs,
+  requirementSortMode,
   filteredDocuments,
   handleOpenCompleted,
   handleQuickAdd,
@@ -16,6 +21,8 @@ const {
   handleOpen,
   handleReorder
 } = useDocumentList()
+
+const disableDrag = computed(() => appStore.currentCategory === '需求' && requirementSortMode.value === 'date')
 
 function handleClearSelection() {
   listSelectedIds.value = []
@@ -33,6 +40,7 @@ function handleClearSelection() {
     <DocumentListBody
       :filtered-documents="filteredDocuments"
       :list-selected-ids="listSelectedIds"
+      :disabled="disableDrag"
       @selection-change="handleSelectionChange"
       @open="handleOpen"
       @reorder="handleReorder"

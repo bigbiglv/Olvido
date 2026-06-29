@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CheckCircle2 } from 'lucide-vue-next'
 import { formatDocTime } from '@/utils/date'
 
 interface Props {
@@ -13,64 +12,65 @@ interface Props {
   isHovered?: boolean
 }
 
-interface Emits {
-  /** 触发切换文档完成状态 */
-  (e: 'toggle', doc: DocumentItem, event: Event): void
-}
-
-const { doc, isSelected = false, isOpened = false, isHovered = false } = defineProps<Props>()
-
-const emit = defineEmits<Emits>()
-
-/**
- * 切换文档完成状态事件处理
- */
-function handleToggle(event: Event) {
-  event.stopPropagation()
-  emit('toggle', doc, event)
-}
+const props = withDefaults(defineProps<Props>(), {
+  isSelected: false,
+  isOpened: false,
+  isHovered: false
+})
 </script>
 
 <template>
   <div
-    class="w-full text-left py-2 px-3 rounded-xl transition-all border flex items-center gap-3 cursor-pointer"
+    class="relative w-full text-left flex flex-col cursor-pointer group py-2.5 px-3 rounded-xl my-0.5 transition-all duration-200 border border-transparent"
     :class="[
-      isSelected
-        ? 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700/60 shadow-sm'
-        : isHovered
-          ? 'bg-slate-50/50 dark:bg-zinc-800/30 border-slate-100/50 dark:border-zinc-800/20'
-          : 'bg-transparent border-transparent',
+      props.isOpened
+        ? 'bg-white dark:bg-zinc-800/90 shadow-[0_2px_10px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.2)] ring-1 ring-slate-200/50 dark:ring-zinc-700/50 z-20'
+        : props.isSelected
+          ? 'bg-slate-200/60 dark:bg-zinc-700/60 z-10'
+          : props.isHovered
+            ? 'bg-slate-100/60 dark:bg-zinc-800/50 z-10'
+            : 'bg-transparent z-0',
     ]"
     data-context-region="document"
   >
-    <!-- Completion checkbox -->
-    <button
-      class="size-5 rounded-md flex items-center justify-center border transition-all cursor-pointer shrink-0"
-      :class="
-        doc.completed
-          ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-sm shadow-emerald-100 dark:shadow-none'
-          : 'border-slate-300 dark:border-zinc-700 text-transparent hover:border-slate-400 dark:hover:border-zinc-500 hover:text-slate-300 dark:hover:text-zinc-600'
-      "
-      @click="handleToggle"
-    >
-      <CheckCircle2 class="size-3.5 fill-current" />
-    </button>
+    <!-- Opened state left indicator -->
+    <div 
+      class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300 bg-indigo-500 dark:bg-indigo-400"
+      :class="props.isOpened ? 'h-3/5 opacity-100' : 'h-0 opacity-0'"
+    ></div>
 
-    <!-- Title and Time -->
-    <div class="flex items-center justify-between gap-3 min-w-0 flex-1">
-      <span
-        class="font-semibold text-sm truncate transition-colors"
+    <div class="flex items-center justify-between gap-3 min-w-0 w-full relative z-10">
+         
+      <!-- Title -->
+      <div class="flex-1 min-w-0">
+        <div
+          class="text-[13.5px] transition-colors duration-200 truncate pr-4"
+          :title="doc.title || '无标题文档'"
+          :class="[
+            props.isOpened
+              ? 'text-indigo-600 dark:text-indigo-400 font-semibold'
+              : props.isSelected
+                ? 'text-slate-900 dark:text-slate-100 font-medium'
+                : 'text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 font-medium',
+          ]"
+        >
+          {{ doc.title || '无标题文档' }}
+        </div>
+      </div>
+      
+      <!-- Time -->
+      <div 
+        class="text-[11px] font-medium whitespace-nowrap transition-colors duration-200 shrink-0"
         :class="[
-          isOpened
-            ? 'text-indigo-600 dark:text-indigo-400 font-bold'
-            : 'text-slate-700 dark:text-zinc-200',
+          props.isOpened
+            ? 'text-indigo-400 dark:text-indigo-500'
+            : props.isSelected
+              ? 'text-slate-500 dark:text-slate-400'
+              : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:group-hover:text-slate-400'
         ]"
       >
-        {{ doc.title || '无标题文档' }}
-      </span>
-      <span class="text-xs text-slate-400 dark:text-zinc-500 font-medium whitespace-nowrap">
         {{ formatDocTime(doc.updatedAt) }}
-      </span>
+      </div>
     </div>
   </div>
 </template>

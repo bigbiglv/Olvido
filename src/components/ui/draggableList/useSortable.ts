@@ -26,6 +26,8 @@ export interface SortableConfig<T> {
   selectedClass?: string
   /** 拖拽分组名称 */
   group?: string
+  /** 是否禁用拖拽 */
+  disabled?: () => boolean
 }
 
 /**
@@ -60,6 +62,7 @@ export function useSortable<T>(
 
     sortableInstance = new Sortable(containerRef.value, {
       group: config.group || 'default',
+      disabled: config.disabled ? config.disabled() : false,
       animation: 150,
       multiDrag: true,
       selectedClass: config.selectedClass || 'dl-selected',
@@ -155,8 +158,12 @@ export function useSortable<T>(
     containerRef.value.addEventListener('touchstart', handleInteraction, { capture: true })
 
     stopWatch = watch(
-      [() => config.getSelectedIds(), activeSortableGroupId],
-      ([newIds, activeGroup]) => {
+      [() => config.getSelectedIds(), activeSortableGroupId, () => config.disabled ? config.disabled() : false],
+      ([newIds, activeGroup, disabled]) => {
+        if (sortableInstance) {
+          sortableInstance.option('disabled', disabled as boolean)
+        }
+        
         if (!containerRef.value) return
         const children = Array.from(containerRef.value.children)
         const sClass = config.selectedClass || 'dl-selected'

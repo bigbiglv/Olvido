@@ -25,6 +25,7 @@ dayjs.extend(isoWeek)
 interface Props {
   rows?: number
   bordered?: boolean
+  initialDate?: string | Date | dayjs.Dayjs | null
 }
 
 interface Emits {
@@ -33,7 +34,8 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   rows: 3,
-  bordered: true
+  bordered: true,
+  initialDate: null
 })
 
 const emits = defineEmits<Emits>()
@@ -48,8 +50,8 @@ const pickersConfig = [
 // State: Core Dates & Grid
 // ==========================================
 const currentDate = dayjs()
-const selectedDate = ref<dayjs.Dayjs>(currentDate)
-const startMonday = ref(currentDate.startOf('isoWeek'))
+const selectedDate = ref<dayjs.Dayjs>(props.initialDate ? dayjs(props.initialDate) : currentDate)
+const startMonday = ref(selectedDate.value.startOf('isoWeek'))
 const weeks = ref<dayjs.Dayjs[][]>([])
 
 const generateWeeks = (start: dayjs.Dayjs, numRows: number) => {

@@ -14,6 +14,8 @@ interface Props<T> {
   openedId?: string | null
   /** 拖拽分组名称，用于隔离不同列表的拖拽状态和多选，防止跨列表的多选拖拽串车 */
   group?: string
+  /** 是否禁用拖拽 */
+  disabled?: boolean
 }
 
 interface Emits<T> {
@@ -25,7 +27,7 @@ interface Emits<T> {
   (e: 'reorder', event: ReorderEvent<T>): void
 }
 
-const { items, itemKey = 'id', selectedIds = [], openedId = null, group = 'default' } = defineProps<Props<T>>()
+const { items, itemKey = 'id', selectedIds = [], openedId = null, group = 'default', disabled = false } = defineProps<Props<T>>()
 
 const emit = defineEmits<Emits<T>>()
 
@@ -53,6 +55,7 @@ useSortable<T>(
     getSelectedIds: () => selectedIds,
     selectedClass: uniqueSelectedClass,
     group: group,
+    disabled: () => disabled,
   },
   emit,
 )

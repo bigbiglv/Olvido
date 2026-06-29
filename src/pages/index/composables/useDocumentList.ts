@@ -20,7 +20,7 @@ import {
 } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 import { isElectron } from '@/utils/env'
-import { CheckCircle, Trash2, ArrowRightLeft, FilePlus, RefreshCw } from 'lucide-vue-next'
+import { CheckCircle, Trash2, ArrowRightLeft, FilePlus, RefreshCw, CalendarDays, ArrowUpDown } from 'lucide-vue-next'
 
 
 export function useDocumentList() {
@@ -33,6 +33,14 @@ export function useDocumentList() {
   const listSelectedIds = ref<string[]>([])
 
   const categoryTabs: Array<'日常' | '需求'> = ['日常', '需求']
+
+  const requirementSortMode = ref<'custom' | 'date'>(
+    (localStorage.getItem('olvido-requirement-sort-mode') as 'custom' | 'date') || 'date'
+  )
+
+  watch(requirementSortMode, (newVal) => {
+    localStorage.setItem('olvido-requirement-sort-mode', newVal)
+  })
 
   /**
    * 加载当前项目/分类下的文档列表
@@ -77,7 +85,7 @@ export function useDocumentList() {
   }
 
   /**
-   * 过滤分类与完成状态
+   * 过滤分类与完成状态，并支持按日期排序
    */
   const filteredDocuments = computed(() => {
     let docs = documents.value
@@ -85,6 +93,15 @@ export function useDocumentList() {
       if (d.id === appStore.selectedDocumentId) return true
       return !d.completed && d.category === appStore.currentCategory
     })
+
+    if (appStore.currentCategory === '需求' && requirementSortMode.value === 'date') {
+      docs.sort((a, b) => {
+        const timeA = a.deadline ? new Date(a.deadline).getTime() : Infinity
+        const timeB = b.deadline ? new Date(b.deadline).getTime() : Infinity
+        return timeA - timeB
+      })
+    }
+
     return docs
   })
 
@@ -369,6 +386,45 @@ export function useDocumentList() {
               }
             }
           })
+        } else {
+          // 是需求，提供修改截止日期的菜单
+          menus.push({
+            id: 'modify-deadline',
+            label: '日期',
+            icon: CalendarDays,
+            panelComponent: DatePicker,
+            panelProps: {
+              bordered: false,
+              initialDate: doc.deadline,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onConfirm: async (date: any) => {
+                contextMenuManager.hide()
+                try {
+                  if (isMultiSelect) {
+                    const idsToUpdate = [...listSelectedIds.value]
+                    for (const id of idsToUpdate) {
+                      await apiUpdate({
+                        id,
+                        deadline: date.toDate()
+                      })
+                      const itemDoc = documents.value.find((d) => d.id === id)
+                      if (itemDoc) itemDoc.deadline = date.toDate()
+                    }
+                  } else {
+                    await apiUpdate({
+                      id: doc.id,
+                      deadline: date.toDate()
+                    })
+                    const itemDoc = documents.value.find((d) => d.id === doc.id)
+                    if (itemDoc) itemDoc.deadline = date.toDate()
+                  }
+                  appStore.lastSavedTime = new Date().toLocaleTimeString()
+                } catch (error) {
+                  console.error('Failed to modify deadline:', error)
+                }
+              }
+            }
+          })
         }
 
         return menus
@@ -379,24 +435,54 @@ export function useDocumentList() {
       type: 'document-background',
       priority: 100,
       getMenus: () => {
-        return [
-          {
+        const isRequirement = appStore.currentCategory === '需求'
+        const menus: ContextMenuItem[] = []
+
+        if (!isRequirement) {
+          menus.push({
             id: 'add-document',
             label: '新建',
             icon: FilePlus,
             onClick: () => {
               handleQuickAdd()
             },
+          })
+        }
+
+        menus.push({
+          id: 'refresh',
+          label: '刷新',
+          icon: RefreshCw,
+          onClick: () => {
+            loadDocuments()
           },
-          {
-            id: 'refresh',
-            label: '刷新',
-            icon: RefreshCw,
-            onClick: () => {
-              loadDocuments()
-            },
-          },
-        ]
+        })
+
+        if (isRequirement) {
+          menus.push({
+            id: 'sort',
+            label: '排序',
+            icon: ArrowUpDown,
+            children: [
+              {
+                id: 'sort-date',
+                label: requirementSortMode.value === 'date' ? '• 截止日期' : '截止日期',
+                onClick: () => {
+                  requirementSortMode.value = 'date'
+                }
+              },
+              {
+                id: 'sort-custom',
+                label: requirementSortMode.value === 'custom' ? '• 自定义' : '自定义',
+                onClick: () => {
+                  requirementSortMode.value = 'custom'
+                }
+              }
+            ]
+          })
+        }
+
+        return menus
       },
     })
   })
@@ -450,6 +536,7 @@ export function useDocumentList() {
     documents,
     listSelectedIds,
     categoryTabs,
+    requirementSortMode,
     filteredDocuments,
     handleOpenCompleted,
     handleQuickAdd,
