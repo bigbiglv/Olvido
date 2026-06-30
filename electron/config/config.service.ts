@@ -96,9 +96,9 @@ class ConfigService {
     }
   }
 
-  public get(): Readonly<AppConfig> {
-    // 返回深拷贝的只读对象
-    return Object.freeze(JSON.parse(JSON.stringify(this.config)))
+  public get(): AppConfig {
+    // 返回深拷贝，防止外部直接修改内部状态
+    return JSON.parse(JSON.stringify(this.config))
   }
 
   public set<K extends keyof AppConfig>(key: K, value: AppConfig[K]): void {
