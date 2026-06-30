@@ -5,70 +5,86 @@ import Editor from '@/components/Editor/index.vue'
 
 defineOptions({
   dialogOptions: {
-    title: '快速批量新增日常文档',
+    title: '新增日常文档',
     width: 550,
     height: 420,
   } as DialogOptions,
 })
 
-const dialog = useDialog<string[]>()
+const dialog = useDialog<QuickAddDocument[]>()
 const markdownContent = ref('1. ')
 
-function parseTitlesFromMarkdown(markdown: string): string[] {
+export interface QuickAddDocument {
+  title: string
+  content: string
+}
+
+function parseDocumentsFromMarkdown(markdown: string): QuickAddDocument[] {
   const lines = markdown.split('\n')
-  const titles: string[] = []
+  const docs: (QuickAddDocument & { baseIndent: number })[] = []
+  let currentDoc: (QuickAddDocument & { baseIndent: number }) | null = null
 
   for (const line of lines) {
-    // 预处理行：替换常见的 HTML 实体和标签（&nbsp;, &#x20;, <br />, <br> 等），并统一 Unicode 空格后 trim
-    const processedLine = line
+    // Clean HTML entities sometimes produced by Milkdown
+    const cleanLine = line
       .replace(/&nbsp;/g, ' ')
       .replace(/&#x20;/g, ' ')
       .replace(/<br\s*\/?>/gi, '')
-      .replace(/[\s\u00A0]+/g, ' ')
-      .trim()
+    
+    const leadingSpaces = cleanLine.match(/^ */)?.[0].length || 0
+    const processedLine = cleanLine.replace(/[\s\u00A0]+/g, ' ').trim()
 
     if (!processedLine) continue
 
-    // 忽略仅有列表前缀的行
+    // Ignore empty list items (e.g. just "1." or "-")
     if (/^\d+[.)]$/.test(processedLine) || /^[-*+]$/.test(processedLine)) {
       continue
     }
 
-    // 匹配有序列表
-    const orderedMatch = processedLine.match(/^\d+[.)]\s+(.+)$/)
-    if (orderedMatch) {
-      const title = orderedMatch[1].trim()
-      if (title) titles.push(title)
-      continue
-    }
+    // First-level items usually have 0-1 spaces. Nested items have >= 2.
+    if (leadingSpaces < 2) {
+      let title = processedLine
+      const orderedMatch = processedLine.match(/^\d+[.)]\s+(.+)$/)
+      const bulletMatch = processedLine.match(/^[-*+]\s+(.+)$/)
+      
+      if (orderedMatch) {
+        title = orderedMatch[1].trim()
+      } else if (bulletMatch) {
+        title = bulletMatch[1].trim()
+      } else if (title.startsWith('#') || title.startsWith('>') || title.startsWith('`')) {
+        continue // Ignore non-list formatting lines at top level
+      }
 
-    // 匹配无序列表
-    const bulletMatch = processedLine.match(/^[-*+]\s+(.+)$/)
-    if (bulletMatch) {
-      const title = bulletMatch[1].trim()
-      if (title) titles.push(title)
-      continue
-    }
-
-    // 非列表格式的非空行
-    if (
-      !processedLine.startsWith('#') &&
-      !processedLine.startsWith('>') &&
-      !processedLine.startsWith('`')
-    ) {
-      titles.push(processedLine)
+      currentDoc = { title, content: '', baseIndent: -1 }
+      docs.push(currentDoc)
+    } else {
+      // Nested content
+      if (currentDoc) {
+        if (currentDoc.baseIndent === -1) {
+          currentDoc.baseIndent = leadingSpaces
+        }
+        // Preserve relative nesting by removing the base indentation
+        const spacesToRemove = Math.min(leadingSpaces, currentDoc.baseIndent)
+        const unindentedLine = cleanLine.slice(spacesToRemove)
+        
+        if (currentDoc.content) {
+          currentDoc.content += '\n' + unindentedLine
+        } else {
+          currentDoc.content = unindentedLine
+        }
+      }
     }
   }
 
-  return titles
+  return docs.map(d => ({ title: d.title, content: d.content }))
 }
 
 dialog.onConfirm(() => {
   const content = markdownContent.value.trim()
   if (!content || content === '1.') return false
-  const titles = parseTitlesFromMarkdown(content)
-  if (titles.length === 0) return false
-  return titles
+  const docs = parseDocumentsFromMarkdown(content)
+  if (docs.length === 0) return false
+  return docs
 })
 </script>
 

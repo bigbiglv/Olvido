@@ -14,7 +14,7 @@ class ContextMenuManager {
     this.regions.delete(type)
   }
 
-  show(event: MouseEvent, data?: any): void {
+  show(event: MouseEvent, data?: any, p0?: string): void {
     // 1. 自动处理默认行为和阻止冒泡
     event.preventDefault()
     event.stopPropagation()
@@ -112,9 +112,8 @@ class ContextMenuManager {
     const visibleItems = items.filter((item) => {
       if ('type' in item && item.type === 'separator') return true
       const action = item as any
-      const isVisible = typeof action.visible === 'function'
-        ? action.visible()
-        : action.visible !== false
+      const isVisible =
+        typeof action.visible === 'function' ? action.visible() : action.visible !== false
       return isVisible
     })
 
@@ -128,9 +127,7 @@ class ContextMenuManager {
       }
 
       const action = item as any
-      const disabled = typeof action.disabled === 'function'
-        ? action.disabled()
-        : !!action.disabled
+      const disabled = typeof action.disabled === 'function' ? action.disabled() : !!action.disabled
 
       const wrappedAction = {
         ...action,

@@ -187,11 +187,11 @@ export function useDocumentList() {
 
   async function handleQuickAdd() {
     try {
-      const titles = await Dialog.show<string[]>(QuickAddDialog)
-      if (titles && titles.length > 0) {
+      const docs = await Dialog.show<{title: string, content: string}[]>(QuickAddDialog)
+      if (docs && docs.length > 0) {
         let firstDocId: string | null = null
-        for (const title of [...titles].reverse()) {
-          const created = await createDocument(title, '', '日常')
+        for (const doc of [...docs].reverse()) {
+          const created = await createDocument(doc.title, doc.content, '日常')
           if (created) {
             firstDocId = created.id
           }
