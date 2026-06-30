@@ -12,9 +12,5 @@
   },
   "sidebarWidth": 256,
   "docListWidth": 320,
-  "checkUpdateOnStartup": true,
-  "language": "zh-CN",
-  "lastOpenProjectId": null,
-  "lastOpenNoteId": null,
-  "autoLaunch": false
+  "checkUpdateOnStartup": true
 }
