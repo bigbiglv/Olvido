@@ -1,3 +1,4 @@
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { type DialogOptions } from '@/components/dialog'
 import { Button } from '@/components/ui/button'

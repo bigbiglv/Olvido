@@ -45,3 +45,10 @@ export const UPDATER_CHANNELS = {
   ON_UPDATE_DOWNLOADED: 'updater:update-downloaded',
   ON_ERROR: 'updater:error',
 } as const
+
+/** Config IPC 频道常量 */
+export const CONFIG_CHANNELS = {
+  GET: 'config:get',
+  UPDATE: 'config:update',
+  RESET: 'config:reset',
+} as const

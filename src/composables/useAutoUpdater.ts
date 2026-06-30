@@ -1,10 +1,8 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { confirm } from '@/components/confirm'
 import { Dialog } from '@/components/dialog'
-import { useLocalStorage } from '@vueuse/core'
 import UpdateProgressDialog from '@/components/dialogs/UpdateProgressDialog.vue'
-
-export const autoUpdateEnabled = useLocalStorage('olvido-auto-update', true)
+import { useConfigStore } from '@/stores/config'
 
 const isCheckingUpdate = ref(false)
 const downloadProgress = ref(0)
@@ -12,6 +10,13 @@ const isDownloading = ref(false)
 let initialized = false
 
 export function useAutoUpdater() {
+  const configStore = useConfigStore()
+  
+  const autoUpdateEnabled = computed({
+    get: () => configStore.config.checkUpdateOnStartup,
+    set: (val) => configStore.updateConfig({ checkUpdateOnStartup: val })
+  })
+
   const cancelDownload = async () => {
     isDownloading.value = false
     downloadProgress.value = 0

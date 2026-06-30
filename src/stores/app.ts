@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useConfigStore } from './config'
 import { applyTheme, isThemeMode, isThemeName, subscribeSystemThemeChange } from '@/theme'
 import type { ThemeMode, ThemeName } from '@/theme'
 import { isElectron } from '@/utils/env'
@@ -38,15 +39,21 @@ export const useAppStore = defineStore('app', {
     setThemeName(themeName: ThemeName) {
       this.themeName = themeName
       this.applyTheme()
+      const configStore = useConfigStore()
+      configStore.updateConfig({ themeName })
     },
     setThemeMode(themeMode: ThemeMode) {
       this.themeMode = themeMode
       this.setupThemeSync()
+      const configStore = useConfigStore()
+      configStore.updateConfig({ theme: themeMode })
     },
     setTheme(themeName: ThemeName, themeMode: ThemeMode) {
       this.themeName = themeName
       this.themeMode = themeMode
       this.setupThemeSync()
+      const configStore = useConfigStore()
+      configStore.updateConfig({ themeName, theme: themeMode })
     },
     applyTheme() {
       applyTheme(this.themeName, this.themeMode)

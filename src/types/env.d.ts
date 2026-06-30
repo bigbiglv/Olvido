@@ -6,6 +6,7 @@ declare global {
 import type { ProjectDto, CreateProjectDto, UpdateProjectDto } from '../../electron/types/project'
 import type { NoteDto, CreateNoteDto, UpdateNoteDto, NoteType } from '../../electron/types/note'
 import type { SearchRequest, SearchResult } from '../features/search/types/search'
+import type { AppConfig } from '../../electron/config/config.types'
 
 declare global {
   interface ImportMetaEnv {
@@ -103,6 +104,11 @@ declare global {
         onUpdateDownloaded: (callback: (info: any) => void) => void
         onError: (callback: (err: string) => void) => void
         removeAllListeners: () => void
+      }
+      config: {
+        get: () => Promise<AppConfig>
+        update: (partial: Partial<AppConfig>) => Promise<AppConfig>
+        reset: () => Promise<AppConfig>
       }
       /** 当前运行平台 */
       platform: string

@@ -7,6 +7,13 @@ import electron from 'vite-plugin-electron/simple'
 
 import pkg from './package.json'
 
+import { builtinModules } from 'node:module'
+
+const builtins = [
+  ...builtinModules,
+  ...builtinModules.map((m) => `node:${m}`),
+]
+
 // https://vite.dev/config/
 export default defineConfig({
   define: {
@@ -21,7 +28,12 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ['@prisma/client', '.prisma/client'],
+              external: [
+                ...builtins,
+                ...Object.keys(pkg.dependencies || {}),
+                '@prisma/client', 
+                '.prisma/client'
+              ],
             },
           },
         },

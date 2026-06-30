@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useStorage } from '@vueuse/core'
+import { computed } from 'vue'
 import { useAppStore } from '@/stores/app'
 import Sidebar from './components/sidebar/Sidebar.vue'
 import ResizeHandle from '@/components/common/ResizeHandle/index.vue'
@@ -8,14 +8,20 @@ import DocumentList from './components/document-list/DocumentList.vue'
 import DocumentEditor from './components/editor/DocumentEditor.vue'
 import EmptyState from './components/EmptyState.vue'
 import { useKeyboardShortcuts } from './composables/use-keyboard-shortcuts'
+import { useConfigStore } from '@/stores/config'
 
 const appStore = useAppStore()
+const configStore = useConfigStore()
 
-// 侧边栏宽度持久化 (默认 256px)
-const sidebarWidth = useStorage('olvido-sidebar-width', 256)
+const sidebarWidth = computed({
+  get: () => configStore.config.sidebarWidth,
+  set: (val) => configStore.updateConfig({ sidebarWidth: val })
+})
 
-// 文档栏宽度持久化 (默认 320px)
-const docListWidth = useStorage('olvido-doclist-width', 320)
+const docListWidth = computed({
+  get: () => configStore.config.docListWidth,
+  set: (val) => configStore.updateConfig({ docListWidth: val })
+})
 
 // 注册全局键盘快捷键
 useKeyboardShortcuts()
