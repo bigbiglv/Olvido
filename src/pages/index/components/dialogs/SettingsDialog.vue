@@ -85,7 +85,7 @@ onMounted(async () => {
               <div class="text-sm font-medium text-slate-900 dark:text-zinc-200">自动检查更新</div>
               <div class="text-[13px] text-slate-500 dark:text-zinc-450 mt-0.5">每次启动应用时自动检查并提示新版本</div>
             </div>
-            <Switch :checked="autoUpdateEnabled" @update:checked="val => autoUpdateEnabled = val" />
+            <Switch :checked="autoUpdateEnabled" @update:checked="autoUpdateEnabled = $event" />
           </div>
         </div>
       </section>

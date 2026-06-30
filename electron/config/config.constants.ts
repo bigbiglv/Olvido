@@ -5,7 +5,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   dataDir: '',
   theme: 'system',
   themeName: 'violet',
-  language: 'zh-CN',
   windowBounds: {
     width: 1400,
     height: 900,
@@ -13,8 +12,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   },
   sidebarWidth: 256,
   docListWidth: 320,
-  lastOpenProjectId: null,
-  lastOpenNoteId: null,
-  autoLaunch: false,
   checkUpdateOnStartup: true
 }

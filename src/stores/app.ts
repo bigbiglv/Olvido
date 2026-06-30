@@ -7,10 +7,6 @@ import { apiDetail } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 
 interface AppState {
-  /** 界面颜色主题名称，如 'violet' */
-  themeName: ThemeName
-  /** 界面色彩模式，支持 'light'、'dark' 或跟随系统的 'system' */
-  themeMode: ThemeMode
   /** 当前选中的项目 ID，null 表示全局记事本（无项目） */
   currentProject: string | null
   /** 当前选中的笔记分类：日常、需求或已完成 */
@@ -27,46 +23,44 @@ let stopSystemThemeSync: (() => void) | undefined
 
 export const useAppStore = defineStore('app', {
   state: (): AppState => ({
-    themeName: 'violet',
-    themeMode: 'system',
     currentProject: null,
     currentCategory: '日常',
     selectedDocumentId: null,
     selectedDocument: null,
     lastSavedTime: '',
   }),
+  getters: {
+    themeName(): ThemeName {
+      const configStore = useConfigStore()
+      const name = configStore.config.themeName
+      return isThemeName(name) ? name : 'violet'
+    },
+    themeMode(): ThemeMode {
+      const configStore = useConfigStore()
+      const mode = configStore.config.theme
+      return isThemeMode(mode) ? mode : 'system'
+    },
+  },
   actions: {
     setThemeName(themeName: ThemeName) {
-      this.themeName = themeName
-      this.applyTheme()
       const configStore = useConfigStore()
       configStore.updateConfig({ themeName })
+      this.applyTheme()
     },
     setThemeMode(themeMode: ThemeMode) {
-      this.themeMode = themeMode
-      this.setupThemeSync()
       const configStore = useConfigStore()
       configStore.updateConfig({ theme: themeMode })
+      this.setupThemeSync()
     },
     setTheme(themeName: ThemeName, themeMode: ThemeMode) {
-      this.themeName = themeName
-      this.themeMode = themeMode
-      this.setupThemeSync()
       const configStore = useConfigStore()
       configStore.updateConfig({ themeName, theme: themeMode })
+      this.setupThemeSync()
     },
     applyTheme() {
       applyTheme(this.themeName, this.themeMode)
     },
     setupThemeSync() {
-      if (!isThemeName(this.themeName)) {
-        this.themeName = 'violet'
-      }
-
-      if (!isThemeMode(this.themeMode)) {
-        this.themeMode = 'system'
-      }
-
       stopSystemThemeSync?.()
       stopSystemThemeSync = undefined
 

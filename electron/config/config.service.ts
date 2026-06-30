@@ -49,38 +49,38 @@ class ConfigService {
     }
   }
 
-  private validateAndMerge(parsed: any): AppConfig {
+  private validateAndMerge(parsed: unknown): AppConfig {
     const merged: AppConfig = { ...DEFAULT_CONFIG, dataDir: this.config.dataDir }
-    
     if (typeof parsed !== 'object' || parsed === null) {
       return merged
     }
-
-    // 简单类型校验与合并
-    if (typeof parsed.version === 'number') merged.version = parsed.version
-    if (['light', 'dark', 'system'].includes(parsed.theme)) merged.theme = parsed.theme
-    if (['violet', 'blue'].includes(parsed.themeName)) merged.themeName = parsed.themeName
-    if (typeof parsed.language === 'string') merged.language = parsed.language
-    if (typeof parsed.lastOpenProjectId === 'string' || parsed.lastOpenProjectId === null) merged.lastOpenProjectId = parsed.lastOpenProjectId
-    if (typeof parsed.lastOpenNoteId === 'string' || parsed.lastOpenNoteId === null) merged.lastOpenNoteId = parsed.lastOpenNoteId
-    if (typeof parsed.autoLaunch === 'boolean') merged.autoLaunch = parsed.autoLaunch
-    if (typeof parsed.checkUpdateOnStartup === 'boolean') merged.checkUpdateOnStartup = parsed.checkUpdateOnStartup
-    if (typeof parsed.sidebarWidth === 'number') merged.sidebarWidth = parsed.sidebarWidth
-    if (typeof parsed.docListWidth === 'number') merged.docListWidth = parsed.docListWidth
-    
-    if (typeof parsed.windowBounds === 'object' && parsed.windowBounds !== null) {
-      if (typeof parsed.windowBounds.width === 'number') merged.windowBounds.width = parsed.windowBounds.width
-      if (typeof parsed.windowBounds.height === 'number') merged.windowBounds.height = parsed.windowBounds.height
-      if (typeof parsed.windowBounds.x === 'number') merged.windowBounds.x = parsed.windowBounds.x
-      if (typeof parsed.windowBounds.y === 'number') merged.windowBounds.y = parsed.windowBounds.y
-      if (typeof parsed.windowBounds.maximized === 'boolean') merged.windowBounds.maximized = parsed.windowBounds.maximized
+    const source = parsed as Record<string, unknown>
+    for (const key of Object.keys(DEFAULT_CONFIG) as (keyof AppConfig)[]) {
+      if (key === 'dataDir') continue // dataDir 始终由构造器决定
+      const defaultVal = DEFAULT_CONFIG[key]
+      const parsedVal = source[key]
+      if (parsedVal === undefined) continue
+      if (key === 'windowBounds') {
+        // 嵌套对象特殊处理
+        if (typeof parsedVal === 'object' && parsedVal !== null) {
+          const wb = parsedVal as Record<string, unknown>
+          const defaultWb = DEFAULT_CONFIG.windowBounds
+          merged.windowBounds = {
+            width: typeof wb.width === 'number' ? wb.width : defaultWb.width,
+            height: typeof wb.height === 'number' ? wb.height : defaultWb.height,
+            x: typeof wb.x === 'number' ? wb.x : undefined,
+            y: typeof wb.y === 'number' ? wb.y : undefined,
+            maximized: typeof wb.maximized === 'boolean' ? wb.maximized : defaultWb.maximized,
+          }
+        }
+        continue
+      }
+      // 基本类型：类型匹配则采用，否则回退默认值
+      // 允许 null（用于 nullable 字段如 lastOpenProjectId）
+      if (parsedVal === null || typeof parsedVal === typeof defaultVal) {
+        ;(merged as any)[key] = parsedVal
+      }
     }
-
-    // version 自动升级可以在这里处理
-    // if (merged.version < DEFAULT_CONFIG.version) {
-    //   merged.version = DEFAULT_CONFIG.version
-    // }
-
     return merged
   }
 
@@ -107,20 +107,17 @@ class ConfigService {
   }
 
   public update(partial: Partial<AppConfig>): void {
-    // 深度合并
-    if (partial.windowBounds) {
-      this.config.windowBounds = {
-        ...this.config.windowBounds,
-        ...partial.windowBounds,
+    for (const [key, value] of Object.entries(partial)) {
+      if (value !== undefined && key in this.config) {
+        const current = (this.config as any)[key]
+        // 嵌套对象做浅合并，基本类型直接覆盖
+        if (typeof current === 'object' && current !== null && typeof value === 'object' && value !== null && !Array.isArray(current)) {
+          ;(this.config as any)[key] = { ...current, ...value }
+        } else {
+          ;(this.config as any)[key] = value
+        }
       }
     }
-    
-    this.config = {
-      ...this.config,
-      ...partial,
-      windowBounds: this.config.windowBounds // 确保 windowBounds 是合并后的
-    }
-    
     this.save()
   }
 

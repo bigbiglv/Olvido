@@ -16,12 +16,6 @@ async function bootstrap() {
   await configStore.loadConfig()
 
   const appStore = useAppStore()
-  if (configStore.config.theme) {
-    appStore.themeMode = configStore.config.theme as 'light' | 'dark' | 'system'
-  }
-  if (configStore.config.themeName) {
-    appStore.themeName = configStore.config.themeName as 'violet' | 'blue'
-  }
   appStore.setupThemeSync()
 
   app.mount('#app')

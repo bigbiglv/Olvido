@@ -9,12 +9,22 @@ export function registerConfigIpc() {
   })
 
   ipcMain.handle(CONFIG_CHANNELS.UPDATE, (_, partial: Partial<AppConfig>) => {
-    configService.update(partial)
-    return configService.get()
+    try {
+      configService.update(partial)
+      return configService.get()
+    } catch (error) {
+      console.error('Config update failed:', error)
+      return configService.get() // 返回当前值，不崩溃
+    }
   })
 
   ipcMain.handle(CONFIG_CHANNELS.RESET, () => {
-    configService.reset()
-    return configService.get()
+    try {
+      configService.reset()
+      return configService.get()
+    } catch (error) {
+      console.error('Config reset failed:', error)
+      return configService.get()
+    }
   })
 }

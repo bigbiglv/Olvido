@@ -3,16 +3,18 @@
   "dataDir": "D:\\Olvido\\prisma",
   "theme": "system",
   "themeName": "violet",
-  "language": "zh-CN",
   "windowBounds": {
     "width": 1400,
     "height": 900,
-    "maximized": false
+    "maximized": false,
+    "x": 221,
+    "y": 49
   },
   "sidebarWidth": 256,
   "docListWidth": 320,
+  "checkUpdateOnStartup": true,
+  "language": "zh-CN",
   "lastOpenProjectId": null,
   "lastOpenNoteId": null,
-  "autoLaunch": false,
-  "checkUpdateOnStartup": true
+  "autoLaunch": false
 }
