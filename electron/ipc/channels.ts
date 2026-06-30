@@ -33,3 +33,15 @@ export const NOTE_CHANNELS = {
   /** 重新排序笔记 */
   REORDER: 'note:reorder',
 } as const
+
+/** 更新器 IPC 频道常量 */
+export const UPDATER_CHANNELS = {
+  CHECK: 'updater:check',
+  DOWNLOAD: 'updater:download',
+  INSTALL: 'updater:install',
+  ON_UPDATE_AVAILABLE: 'updater:update-available',
+  ON_UPDATE_NOT_AVAILABLE: 'updater:update-not-available',
+  ON_DOWNLOAD_PROGRESS: 'updater:download-progress',
+  ON_UPDATE_DOWNLOADED: 'updater:update-downloaded',
+  ON_ERROR: 'updater:error',
+} as const

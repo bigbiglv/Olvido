@@ -26,6 +26,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.21",
+    "electron-updater": "^6.8.9",
     "gsap": "^3.15.0",
     "lucide-vue-next": "^1.0.0",
     "lunar-javascript": "^1.7.7",
@@ -66,6 +67,13 @@
     "appId": "com.olvido.app",
     "productName": "Olvido",
     "icon": "public/logo.png",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "bigbiglv",
+        "repo": "Olvido"
+      }
+    ],
     "asar": true,
     "directories": {
       "output": "release"

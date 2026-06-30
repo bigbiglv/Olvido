@@ -34,5 +34,33 @@ contextBridge.exposeInMainWorld('api', {
   search: {
     list: (request: SearchRequest) => ipcRenderer.invoke('search:list', request),
   },
+  updater: {
+    check: () => ipcRenderer.invoke('updater:check'),
+    download: () => ipcRenderer.invoke('updater:download'),
+    install: () => ipcRenderer.invoke('updater:install'),
+    cancel: () => ipcRenderer.invoke('updater:cancel'),
+    onUpdateAvailable: (callback: (info: any) => void) => {
+      ipcRenderer.on('updater:update-available', (_, info) => callback(info))
+    },
+    onUpdateNotAvailable: (callback: (info: any) => void) => {
+      ipcRenderer.on('updater:update-not-available', (_, info) => callback(info))
+    },
+    onDownloadProgress: (callback: (progress: any) => void) => {
+      ipcRenderer.on('updater:download-progress', (_, progress) => callback(progress))
+    },
+    onUpdateDownloaded: (callback: (info: any) => void) => {
+      ipcRenderer.on('updater:update-downloaded', (_, info) => callback(info))
+    },
+    onError: (callback: (err: string) => void) => {
+      ipcRenderer.on('updater:error', (_, err) => callback(err))
+    },
+    removeAllListeners: () => {
+      ipcRenderer.removeAllListeners('updater:update-available')
+      ipcRenderer.removeAllListeners('updater:update-not-available')
+      ipcRenderer.removeAllListeners('updater:download-progress')
+      ipcRenderer.removeAllListeners('updater:update-downloaded')
+      ipcRenderer.removeAllListeners('updater:error')
+    }
+  },
   platform: process.platform,
 })

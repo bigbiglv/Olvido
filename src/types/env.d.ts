@@ -92,6 +92,18 @@ declare global {
         /** 全文搜索列表 */
         list: (request: SearchRequest) => Promise<SearchResult>
       }
+      updater: {
+        check: () => Promise<any>
+        download: () => Promise<any>
+        install: () => void
+        cancel: () => Promise<void>
+        onUpdateAvailable: (callback: (info: any) => void) => void
+        onUpdateNotAvailable: (callback: (info: any) => void) => void
+        onDownloadProgress: (callback: (progress: any) => void) => void
+        onUpdateDownloaded: (callback: (info: any) => void) => void
+        onError: (callback: (err: string) => void) => void
+        removeAllListeners: () => void
+      }
       /** 当前运行平台 */
       platform: string
     }

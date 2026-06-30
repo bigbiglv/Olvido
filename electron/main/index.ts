@@ -57,6 +57,8 @@ app.on('activate', () => {
   }
 })
 
+import { registerUpdaterIpc } from '../ipc/updater.ipc'
+
 app.whenReady().then(async () => {
   initDatabase()
   await ensureGlobalProject()
@@ -65,4 +67,7 @@ app.whenReady().then(async () => {
   registerNoteIpc()
   registerSearchIpc()
   createWindow()
+  if (win) {
+    registerUpdaterIpc(win)
+  }
 })
