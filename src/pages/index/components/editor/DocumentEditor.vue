@@ -15,7 +15,7 @@ const isSaving = ref(false)
 // Reset isSaving if selected document changes
 watch(
   () => appStore.selectedDocument,
-  (newDoc, oldDoc) => {
+  (_, oldDoc) => {
     if (saveTimeout) {
       clearTimeout(saveTimeout)
       saveTimeout = null

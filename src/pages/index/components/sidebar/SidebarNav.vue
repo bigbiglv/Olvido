@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useAppStore } from '@/stores/app'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Plus, BookOpen, Folder } from 'lucide-vue-next'
 import DraggableList from '@/components/ui/draggableList/DraggableList.vue'
 import ProjectItem from './ProjectItem.vue'

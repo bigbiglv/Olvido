@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { type DialogOptions } from '@/components/dialog'
 import ThemeSwitch from '@/components/common/ThemeSwitch/index.vue'
-import { Info, Palette } from 'lucide-vue-next'
+import { Info, Palette, Calendar } from 'lucide-vue-next'
+import dayjs from 'dayjs'
 
 defineOptions({
   dialogOptions: {
@@ -11,12 +13,30 @@ defineOptions({
     height: 520,
   } as DialogOptions,
 })
+
+const version = __APP_VERSION__
+const releaseTime = ref<string>('')
+
+onMounted(async () => {
+  if (version === '0.0.0') return
+  try {
+    const res = await fetch(`https://api.github.com/repos/bigbiglv/Olvido/releases/tags/v${version}`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data.published_at) {
+        releaseTime.value = dayjs(data.published_at).format('YYYY-MM-DD HH:mm')
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch release info:', error)
+  }
+})
 </script>
 
 <template>
-  <div class="pt-2 px-1 pb-4">
+  <div class="px-5 py-4">
     <div class="space-y-8">
-      
+
       <!-- 界面与主题 -->
       <section>
         <div class="flex items-center gap-2.5 px-1 mb-3">
@@ -26,7 +46,7 @@ defineOptions({
           <h2 class="text-sm font-semibold text-slate-900 dark:text-zinc-100 tracking-tight">界面与主题</h2>
         </div>
         <div class="bg-white dark:bg-zinc-800/60 rounded-2xl ring-1 ring-slate-200 dark:ring-white/10 shadow-sm overflow-hidden">
-          <div class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors">
+          <div class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors duration-200">
             <div>
               <div class="text-sm font-medium text-slate-900 dark:text-zinc-200">系统主题</div>
               <div class="text-[13px] text-slate-500 dark:text-zinc-450 mt-0.5">选择深色、浅色或跟随系统</div>
@@ -46,13 +66,16 @@ defineOptions({
         </div>
         <div class="bg-white dark:bg-zinc-800/60 rounded-2xl ring-1 ring-slate-200 dark:ring-white/10 shadow-sm overflow-hidden">
           <div class="flex flex-col">
-            <div class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors border-b border-slate-100 dark:border-white/5">
+            <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-white/5">
               <span class="text-sm text-slate-600 dark:text-zinc-400">软件版本</span>
-              <span class="text-xs font-mono tabular-nums font-medium text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-700/50 px-2 py-1 rounded-md">v1.0.0 (Beta)</span>
+              <span class="text-xs font-mono tabular-nums font-medium text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-700/50 px-2 py-1 rounded-md">v{{ version }}</span>
             </div>
-            <div class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors">
-              <span class="text-sm text-slate-600 dark:text-zinc-400">底层技术</span>
-              <span class="text-[13px] text-slate-800 dark:text-zinc-200 font-medium tracking-tight">Electron + Vue&nbsp;3 + Prisma + SQLite</span>
+            <div class="flex items-center justify-between p-4" v-if="releaseTime">
+              <span class="text-sm text-slate-600 dark:text-zinc-400">更新时间</span>
+              <div class="flex items-center gap-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-zinc-400">
+                <Calendar class="size-3.5" />
+                <span>{{ releaseTime }}</span>
+              </div>
             </div>
           </div>
         </div>

@@ -8,9 +8,7 @@ import {
   apiDeletes,
   apiReorder,
 } from '@/apis/project'
-import { Dialog } from '@/components/dialog'
 import { confirm } from '@/components/confirm'
-import RenameProjectDialog from '../components/dialogs/RenameProjectDialog.vue'
 import type { ProjectDto } from '../../../../electron/types/project'
 import type { ReorderEvent } from '@/components/ui/draggableList/types'
 import { isElectron } from '@/utils/env'
@@ -139,7 +137,7 @@ export function useProjectList() {
    * 处理项目列表背景右键菜单展示
    */
   function handleBackgroundContextMenu(event: MouseEvent) {
-    contextMenuManager.show(event, { type: 'project-background' }, 'project-background')
+    contextMenuManager.show(event, { type: 'project-background' })
   }
 
   /**

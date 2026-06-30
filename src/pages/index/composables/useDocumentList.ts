@@ -497,7 +497,7 @@ export function useDocumentList() {
   }
 
   function handleBackgroundContextMenu(event: MouseEvent) {
-    contextMenuManager.show(event, { type: 'document-background' }, 'document-background')
+    contextMenuManager.show(event, { type: 'document-background' })
   }
 
   function handleSelectionChange(ids: string[]) {

@@ -188,8 +188,7 @@ export function useSortable<T>(
 
   onUnmounted(() => {
     if (containerRef.value) {
-      containerRef.value.removeEventListener('mousedown', handleInteraction, { capture: true } as any)
-      containerRef.value.removeEventListener('touchstart', handleInteraction, { capture: true } as any)
+      // previously had undefined handleInteraction listener removal
     }
     if (stopWatch) {
       stopWatch()

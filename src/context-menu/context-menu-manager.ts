@@ -14,7 +14,7 @@ class ContextMenuManager {
     this.regions.delete(type)
   }
 
-  show(event: MouseEvent, data?: any, p0?: string): void {
+  show(event: MouseEvent, data?: any): void {
     // 1. 自动处理默认行为和阻止冒泡
     event.preventDefault()
     event.stopPropagation()

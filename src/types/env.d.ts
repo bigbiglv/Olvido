@@ -1,4 +1,7 @@
 /// <reference types="vite/client" />
+declare global {
+  const __APP_VERSION__: string
+}
 
 import type { ProjectDto, CreateProjectDto, UpdateProjectDto } from '../../electron/types/project'
 import type { NoteDto, CreateNoteDto, UpdateNoteDto, NoteType } from '../../electron/types/note'
