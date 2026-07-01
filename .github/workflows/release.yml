@@ -106,4 +106,5 @@ jobs:
             release/*.exe
             release/*.dmg
             release/*.zip
+            release/*.yml
           token: ${{ secrets.GITHUB_TOKEN }}
