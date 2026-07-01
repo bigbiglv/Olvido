@@ -22,7 +22,7 @@ const props = defineProps<{
 }>()
 
 const confirmInstance = props.instance
-const baseZIndex = computed(() => 70 + props.index * 2)
+const baseZIndex = computed(() => 2000 + props.index * 2)
 const overlayStyle = computed(() => ({ zIndex: baseZIndex.value }))
 const contentStyle = computed(() => ({ zIndex: baseZIndex.value + 1 }))
 const confirmVariant = computed(() =>
