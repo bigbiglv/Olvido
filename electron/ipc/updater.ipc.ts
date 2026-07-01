@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import pkg from 'electron-updater'
-const { autoUpdater } = pkg
+const { autoUpdater, CancellationToken } = pkg
 import { UPDATER_CHANNELS } from './channels'
 
 export function registerUpdaterIpc(win: Electron.BrowserWindow) {
@@ -50,12 +50,6 @@ export function registerUpdaterIpc(win: Electron.BrowserWindow) {
   ipcMain.handle(UPDATER_CHANNELS.DOWNLOAD, async () => {
     try {
       // electron-updater provides a CancellationToken we can mock or use directly.
-      // A simpler way is to require 'builder-util-runtime' but if it's not installed, we can just use autoUpdater.downloadUpdate()
-      // Wait, we can just call downloadUpdate and there's no native cancel without CancellationToken. 
-      // I'll import it dynamically or just ignore cancel for the backend and only hide UI. 
-      // Actually, let's just do a simple cancel by throwing error if we have a token.
-      // @ts-ignore
-      const { CancellationToken } = await import('builder-util-runtime')
       cancellationToken = new CancellationToken()
       await autoUpdater.downloadUpdate(cancellationToken)
     } catch (e: any) {
