@@ -20,6 +20,7 @@ interface Props {
   selectedDate: dayjs.Dayjs
   /** 渲染的行数 */
   rows?: number
+  size?: 'default' | 'large'
 }
 
 interface Emits {
@@ -28,7 +29,8 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  rows: 2
+  rows: 2,
+  size: 'default'
 })
 
 const emit = defineEmits<Emits>()
@@ -85,15 +87,31 @@ const weeksWithData = computed(() => {
     const isVisualStart = isHolidayStart || date.day() === 1
     const isVisualEnd = isHolidayEnd || date.day() === 0
     let bgClass = ''
+    let bgStyle: any = {}
+    
     if (isHoliday) {
+      bgStyle.top = '50%'
+      bgStyle.transform = 'translateY(-50%)'
+      bgStyle.height = 'var(--bg-h)'
+
       if (isVisualStart && isVisualEnd) {
-        bgClass = 'rounded-xl left-1/2 -translate-x-1/2 w-11'
+        // 单天节假日保持原有大小（胶囊形状）
+        bgStyle.left = 'calc(50% - var(--half-w))'
+        bgStyle.right = 'calc(50% - var(--half-w))'
+        bgClass = 'rounded-xl'
       } else if (isVisualStart) {
-        bgClass = 'rounded-l-xl left-1/2 -translate-x-[22px] w-[calc(50%+22px)]'
+        // 在两个格子的中间开始（即占据到左侧边缘）
+        bgStyle.left = '0'
+        bgStyle.right = '0'
+        bgClass = 'rounded-l-xl'
       } else if (isVisualEnd) {
-        bgClass = 'rounded-r-xl left-0 w-[calc(50%+22px)]'
+        // 占据到右侧边缘
+        bgStyle.left = '0'
+        bgStyle.right = '0'
+        bgClass = 'rounded-r-xl'
       } else {
-        bgClass = 'w-full left-0'
+        bgStyle.left = '0'
+        bgStyle.right = '0'
       }
     }
 
@@ -103,31 +121,41 @@ const weeksWithData = computed(() => {
       holidayName,
       isWork: h ? h.isWork() : false,
       isHoliday,
-      bgClass
+      bgClass,
+      bgStyle
     }
   }))
 })
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-lg relative transition-all duration-300 z-10" :style="{ height: `${props.rows * 80}px` }" @wheel.prevent="emit('wheel', $event)">
+  <div class="overflow-hidden rounded-lg relative transition-all duration-300 z-10" 
+       :class="props.size === 'large' ? 'flex-1 flex flex-col' : ''" 
+       :style="{ 
+         height: props.size === 'large' ? '100%' : `${props.rows * 80}px`,
+         '--half-w': props.size === 'large' ? 'min(42.5%, 60px)' : '22px',
+         '--bg-h': props.size === 'large' ? '80%' : '64px'
+       }" 
+       @wheel.prevent="emit('wheel', $event)">
     <!-- 顶部与底部的滚动模糊遮罩 -->
     <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none"></div>
     <div class="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none"></div>
 
-    <div ref="contentRef" class="flex flex-col">
-      <div v-for="(week, weekIndex) in weeksWithData" :key="weekIndex" class="grid grid-cols-7 text-center h-20 items-center">
-        <div v-for="cell in week" :key="cell.date.format('YYYY-MM-DD')" class="relative flex justify-center h-full items-center">
+    <div ref="contentRef" class="flex flex-col" :class="props.size === 'large' ? 'h-full' : ''">
+      <div v-for="(week, weekIndex) in weeksWithData" :key="weekIndex" class="grid grid-cols-7 text-center items-center" :class="props.size === 'large' ? 'flex-1 min-h-0' : 'h-20'">
+        <div v-for="cell in week" :key="cell.date.format('YYYY-MM-DD')" class="relative flex justify-center h-full items-center" :class="props.size === 'large' ? 'w-full py-1 px-1' : ''">
           
           <!-- 节假日连线背景 -->
           <div v-if="cell.isHoliday" 
-               class="absolute h-16 pointer-events-none bg-sky-500/15 dark:bg-sky-400/15"
-               :class="cell.bgClass">
+               class="absolute pointer-events-none bg-sky-500/15 dark:bg-sky-400/15"
+               :class="cell.bgClass"
+               :style="cell.bgStyle">
           </div>
 
           <div
-            class="date-cell relative z-10 w-11 h-16 flex flex-col items-center justify-center rounded-xl cursor-pointer text-sm transition-colors duration-200"
+            class="date-cell relative z-10 flex flex-col items-center justify-center rounded-xl cursor-pointer transition-colors duration-200"
             :class="[
+              props.size === 'large' ? 'w-[85%] h-[85%] text-lg max-w-[120px] max-h-[120px]' : 'w-11 h-16 text-sm',
               cell.date.isBefore(props.currentDate, 'day') ? 'opacity-40 cursor-not-allowed' : 'hover:-translate-y-0.5',
               cell.date.isSame(props.selectedDate, 'day')
                 ? 'bg-primary text-primary-foreground shadow-md font-bold'
@@ -157,8 +185,9 @@ const weeksWithData = computed(() => {
             </div>
 
             <!-- 日期数字 -->
-            <span class="text-base font-medium z-10 transition-colors" 
+            <span class="font-medium z-10 transition-colors" 
                   :class="[
+                    props.size === 'large' ? 'text-3xl' : 'text-base',
                     {'mt-1': cell.indicatorType !== 'none'},
                     cell.date.isSame(props.selectedDate, 'day') 
                       ? '' 

@@ -26,6 +26,8 @@ interface Props {
   pickerDirection?: number
   /** 选择器结构渲染配置 */
   pickersConfig: PickerConfig[]
+  /** 是否隐藏确认按钮 */
+  hideConfirm?: boolean
 }
 
 interface Emits {
@@ -37,7 +39,8 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   pickingMode: null,
-  pickerDirection: 1
+  pickerDirection: 1,
+  hideConfirm: false
 })
 
 const emit = defineEmits<Emits>()
@@ -149,7 +152,7 @@ class="relative flex items-center justify-center h-[26px] w-full transition-colo
         </template>
 
       </div>
-      <Button size="sm" class="h-8 text-xs rounded-lg px-4 ml-1" @click="emit('confirm')">确认</Button>
+      <Button v-if="!props.hideConfirm" size="sm" class="h-8 text-xs rounded-lg px-4 ml-1" @click="emit('confirm')">确认</Button>
     </div>
   </div>
 </template>

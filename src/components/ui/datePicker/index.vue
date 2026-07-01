@@ -26,6 +26,8 @@ interface Props {
   rows?: number
   bordered?: boolean
   initialDate?: string | Date | dayjs.Dayjs | null
+  size?: 'default' | 'large'
+  hideConfirm?: boolean
 }
 
 interface Emits {
@@ -35,7 +37,9 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   rows: 3,
   bordered: true,
-  initialDate: null
+  initialDate: null,
+  size: 'default',
+  hideConfirm: false
 })
 
 const emits = defineEmits<Emits>()
@@ -75,9 +79,10 @@ const handleWheel = async (e: WheelEvent) => {
   isAnimating = true
 
   const direction = e.deltaY > 0 ? 1 : -1
-  const weekHeight = 80 // h-20 is 80px
-  const distance = weekHeight * props.rows
   const contentEl = gridRef.value.contentRef
+  const rowEl = contentEl?.firstElementChild
+  const weekHeight = rowEl ? rowEl.clientHeight : 80
+  const distance = weekHeight * props.rows
 
   if (direction === 1) {
     // 向下滚动，加载未来周
@@ -278,8 +283,11 @@ const handlePickerClick = async (unit: DateUnit, direction: number) => {
 
 <template>
   <div
-    class="flex flex-col p-4 bg-background rounded-2xl select-none w-[360px] relative"
-    :class="props.bordered ? 'border border-border shadow-lg' : ''"
+    class="flex flex-col bg-background rounded-2xl select-none relative"
+    :class="[
+      props.bordered ? 'border border-border shadow-lg' : '',
+      props.size === 'large' ? 'w-full h-full p-6' : 'w-[360px] p-4'
+    ]"
   >
     <!-- Click-outside overlay for pickers -->
     <div v-if="pickingMode" class="fixed inset-0 z-40" @click="pickingMode = null"></div>
@@ -292,6 +300,7 @@ const handlePickerClick = async (unit: DateUnit, direction: number) => {
       :picking-mode="pickingMode"
       :picker-direction="pickerDirection"
       :pickers-config="pickersConfig"
+      :hide-confirm="props.hideConfirm"
       @update:picking-mode="pickingMode = $event"
       @picker-click="handlePickerClick"
       @picker-wheel="handlePickerWheel"
@@ -304,6 +313,7 @@ const handlePickerClick = async (unit: DateUnit, direction: number) => {
       :current-date="currentDate"
       :selected-date="selectedDate"
       :rows="props.rows"
+      :size="props.size"
       @select="handleSelect"
       @wheel="handleWheel"
     />
