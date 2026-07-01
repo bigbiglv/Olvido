@@ -14,6 +14,8 @@ defineOptions({
     footer: false,
     width: 680,
     height: 520,
+    minWidth: 680,
+    minHeight: 520
   } as DialogOptions,
 })
 
