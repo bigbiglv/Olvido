@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { PROJECT_CHANNELS, NOTE_CHANNELS, CONFIG_CHANNELS } from '../ipc/channels'
+import { PROJECT_CHANNELS, NOTE_CHANNELS, CONFIG_CHANNELS, SYSTEM_CHANNELS } from '../ipc/channels'
 import type { CreateProjectDto, UpdateProjectDto } from '../types/project'
 import type { CreateNoteDto, NoteType, UpdateNoteDto } from '../types/note'
 import type { SearchRequest } from '../types/search'
@@ -67,6 +67,10 @@ contextBridge.exposeInMainWorld('api', {
     get: () => ipcRenderer.invoke(CONFIG_CHANNELS.GET),
     update: (partial: Partial<AppConfig>) => ipcRenderer.invoke(CONFIG_CHANNELS.UPDATE, partial),
     reset: () => ipcRenderer.invoke(CONFIG_CHANNELS.RESET),
+  },
+  system: {
+    getUserDataDir: () => ipcRenderer.invoke(SYSTEM_CHANNELS.GET_USER_DATA_DIR),
+    openUserDataDir: () => ipcRenderer.invoke(SYSTEM_CHANNELS.OPEN_USER_DATA_DIR),
   },
   platform: process.platform,
 })

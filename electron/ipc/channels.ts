@@ -52,3 +52,9 @@ export const CONFIG_CHANNELS = {
   UPDATE: 'config:update',
   RESET: 'config:reset',
 } as const
+
+/** System IPC 频道常量 */
+export const SYSTEM_CHANNELS = {
+  GET_USER_DATA_DIR: 'system:get-user-data-dir',
+  OPEN_USER_DATA_DIR: 'system:open-user-data-dir',
+} as const

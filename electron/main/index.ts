@@ -7,6 +7,7 @@ import { registerNoteIpc } from '../ipc/note.ipc'
 import { registerSearchIpc } from '../ipc/search.ipc'
 import { registerConfigIpc } from '../ipc/config.ipc'
 import { configService } from '../config/config.service'
+import { registerSystemIpc } from '../ipc/system.ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -106,6 +107,7 @@ app.whenReady().then(async () => {
   registerProjectIpc()
   registerNoteIpc()
   registerSearchIpc()
+  registerSystemIpc()
 
   // 4. 创建窗口
   createWindow()

@@ -110,6 +110,10 @@ declare global {
         update: (partial: Partial<AppConfig>) => Promise<AppConfig>
         reset: () => Promise<AppConfig>
       }
+      system: {
+        getUserDataDir: () => Promise<string>
+        openUserDataDir: () => Promise<void>
+      }
       /** 当前运行平台 */
       platform: string
     }

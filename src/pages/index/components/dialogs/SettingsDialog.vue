@@ -4,7 +4,7 @@ import { type DialogOptions } from '@/components/dialog'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import ThemeSwitch from '@/components/common/ThemeSwitch/index.vue'
-import { Info, Palette, Calendar, RefreshCw, Download, Zap } from 'lucide-vue-next'
+import { Info, Palette, Calendar, RefreshCw, Download, Zap, FolderOpen } from 'lucide-vue-next'
 import dayjs from 'dayjs'
 import { useAutoUpdater } from '@/composables/useAutoUpdater'
 
@@ -29,7 +29,13 @@ const handleCheckUpdate = () => {
   checkUpdate(true)
 }
 
+const userDataDir = ref<string>('')
+const handleOpenUserDataDir = () => {
+  window.api.system.openUserDataDir()
+}
+
 onMounted(async () => {
+  userDataDir.value = await window.api.system.getUserDataDir()
   if (version === '0.0.0') return
   try {
     const res = await fetch(
@@ -104,6 +110,31 @@ onMounted(async () => {
               </div>
             </div>
             <Switch v-model="autoUpdateEnabled" />
+          </div>
+
+          <div class="border-t border-slate-100 dark:border-white/5"></div>
+
+          <div
+            class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors duration-200"
+          >
+            <div class="min-w-0 pr-4 flex-1">
+              <div class="text-sm font-medium text-slate-900 dark:text-zinc-200">本地数据目录</div>
+              <div 
+                class="text-[13px] text-slate-500 dark:text-zinc-450 mt-0.5 truncate cursor-help"
+                :title="userDataDir"
+              >
+                {{ userDataDir }}
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              class="h-7 px-2.5 text-xs bg-white dark:bg-zinc-800 shrink-0"
+              @click="handleOpenUserDataDir"
+            >
+              <FolderOpen class="size-3 mr-1.5" />
+              打开
+            </Button>
           </div>
         </div>
       </section>
