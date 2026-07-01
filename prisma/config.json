@@ -4,11 +4,11 @@
   "theme": "system",
   "themeName": "violet",
   "windowBounds": {
-    "width": 1400,
-    "height": 900,
-    "maximized": false,
-    "x": 221,
-    "y": 49
+    "width": 1936,
+    "height": 1048,
+    "x": -8,
+    "y": -8,
+    "maximized": true
   },
   "sidebarWidth": 256,
   "docListWidth": 320,
