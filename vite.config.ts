@@ -19,6 +19,11 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
+  server: {
+    watch: {
+      ignored: ['**/prisma/config.json*', '**/prisma/*.db*'],
+    },
+  },
   plugins: [
     vue(),
     tailwindcss(),

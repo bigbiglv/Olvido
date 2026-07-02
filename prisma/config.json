@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dataDir": "D:\\Olvido\\prisma",
-  "theme": "system",
+  "theme": "light",
   "themeName": "violet",
   "windowBounds": {
     "width": 1936,
