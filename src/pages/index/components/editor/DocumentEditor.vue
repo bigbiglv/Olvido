@@ -124,7 +124,7 @@ onBeforeUnmount(() => {
     />
 
     <!-- Markdown Split Editor Pane -->
-    <div class="flex-1 overflow-hidden p-1 min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
+    <div class="flex-1 overflow-hidden p-1 min-h-0 bg-muted/30 dark:bg-background">
       <MarkdownSplitEditor
         :model-value="appStore.selectedDocument.content"
         @update:model-value="handleContentUpdate"
@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
 
     <!-- Bottom Status Bar -->
     <footer
-      class="h-11 border-t border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 flex items-center px-8 justify-end select-none text-xs text-slate-400 dark:text-zinc-500 font-medium shrink-0"
+      class="h-11 border-t border-border bg-background flex items-center px-8 justify-end select-none text-xs text-muted-foreground font-medium shrink-0"
     >
       <!-- Right side: Characters & Words counts -->
       <div class="flex items-center gap-4">

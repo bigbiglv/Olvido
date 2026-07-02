@@ -111,17 +111,17 @@ function formatDate(dateStr: string | Date) {
   <div class="flex flex-col h-[400px] -mx-6 -my-4">
     <!-- Search Bar -->
     <div
-      class="px-6 py-3 border-b border-slate-100 dark:border-zinc-800/60 flex items-center gap-3 bg-slate-50/50 dark:bg-zinc-900/30"
+      class="px-6 py-3 border-b border-border flex items-center gap-3 bg-muted/50 dark:bg-background"
     >
       <div class="relative w-full">
         <Search
-          class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-zinc-500"
+          class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
         />
         <input
           v-model="searchQuery"
           type="text"
           placeholder="搜索已完成的文档..."
-          class="w-full pl-9 pr-4 py-1.5 text-sm rounded-xl border border-slate-200 dark:border-zinc-700/80 bg-white dark:bg-zinc-800/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-zinc-200 transition"
+          class="w-full pl-9 pr-4 py-1.5 text-sm rounded-xl border border-border bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-foreground transition"
         />
       </div>
     </div>
@@ -130,7 +130,7 @@ function formatDate(dateStr: string | Date) {
     <div class="flex-1 overflow-y-auto px-6 py-4 space-y-2">
       <div
         v-if="completedDocs.length === 0"
-        class="flex flex-col items-center justify-center h-full text-slate-400 dark:text-zinc-500 py-12"
+        class="flex flex-col items-center justify-center h-full text-muted-foreground py-12"
       >
         <Inbox class="size-10 opacity-30 mb-2" />
         <span class="text-sm">没有已完成的文档</span>
@@ -139,30 +139,30 @@ function formatDate(dateStr: string | Date) {
       <div
         v-for="doc in completedDocs"
         :key="doc.id"
-        class="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 hover:shadow-sm transition-all"
+        class="flex items-center justify-between p-3.5 rounded-xl border border-border bg-background hover:shadow-sm transition-all"
       >
         <!-- Info -->
         <div class="flex flex-col gap-1 min-w-0 flex-1 pr-4">
           <div class="flex items-center gap-2">
-            <span class="font-semibold text-sm text-slate-700 dark:text-zinc-200 truncate">
+            <span class="font-semibold text-sm text-foreground truncate">
               {{ doc.title || '无标题文档' }}
             </span>
             <span
               v-if="doc.project"
-              class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-850 text-slate-500 dark:text-zinc-400 font-medium"
+              class="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium"
             >
               {{ doc.project }}
             </span>
             <span
-              class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 font-medium"
+              class="text-[10px] px-1.5 py-0.5 rounded bg-primary/10/20 text-primary font-medium"
             >
               {{ doc.category }}
             </span>
           </div>
-          <span class="text-xs text-slate-400 dark:text-zinc-500 truncate">
+          <span class="text-xs text-muted-foreground truncate">
             {{ doc.content.replace(/[#*`_\-\[\]]/g, '').trim() || '无内容' }}
           </span>
-          <span class="text-[10px] text-slate-300 dark:text-zinc-600">
+          <span class="text-[10px] text-muted-foreground">
             更新时间: {{ formatDate(doc.updatedAt) }}
           </span>
         </div>
@@ -172,7 +172,7 @@ function formatDate(dateStr: string | Date) {
           <Button
             variant="ghost"
             size="sm"
-            class="h-8 px-2 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 cursor-pointer"
+            class="h-8 px-2 hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 cursor-pointer"
             title="恢复文档"
             @click="handleRestore(doc.id, $event)"
           >

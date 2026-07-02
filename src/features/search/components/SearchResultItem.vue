@@ -104,8 +104,8 @@ function splitHighlightText(text: string, keyword: string): TextPart[] {
     :class="[
       'flex items-start gap-4 p-4 rounded-xl border transition-all duration-200 cursor-pointer select-none',
       isActive
-        ? 'bg-slate-50 dark:bg-zinc-800/60 border-indigo-200 dark:border-zinc-700/80 shadow-sm ring-1 ring-indigo-500/20'
-        : 'bg-white dark:bg-zinc-900 border-slate-100 dark:border-zinc-800/50 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 hover:border-slate-200 dark:hover:border-zinc-800',
+        ? 'bg-muted/50 dark:bg-card border-primary dark:border-border shadow-sm ring-1 ring-primary'
+        : 'bg-background border-border hover:bg-muted/50 dark:hover:bg-muted hover:border-border',
     ]"
     :data-search-item-active="isActive ? 'true' : 'false'"
   >
@@ -114,8 +114,8 @@ function splitHighlightText(text: string, keyword: string): TextPart[] {
       :class="[
         'flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors duration-200',
         isActive
-          ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400'
-          : 'bg-slate-50 dark:bg-zinc-800/80 text-slate-400 dark:text-zinc-500',
+          ? 'bg-primary/10/20 text-primary'
+          : 'bg-muted/50 dark:bg-card text-muted-foreground',
       ]"
     >
       <FileText class="size-4.5" />
@@ -125,11 +125,11 @@ function splitHighlightText(text: string, keyword: string): TextPart[] {
     <div class="flex-1 min-w-0 space-y-1.5">
       <div class="flex items-center justify-between gap-4">
         <!-- Title with highlights -->
-        <h4 class="text-sm font-semibold truncate text-slate-800 dark:text-zinc-200">
+        <h4 class="text-sm font-semibold truncate text-foreground">
           <template v-for="(part, idx) in splitHighlightText(item.title, store.keyword)" :key="idx">
             <mark
               v-if="part.isMatch"
-              class="bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold rounded px-0.5"
+              class="bg-primary/20/20 text-primary font-semibold rounded px-0.5"
             >
               {{ part.text }}
             </mark>
@@ -138,7 +138,7 @@ function splitHighlightText(text: string, keyword: string): TextPart[] {
         </h4>
 
         <!-- Relative Time metadata -->
-        <span class="text-xs text-slate-400 dark:text-zinc-500 whitespace-nowrap">
+        <span class="text-xs text-muted-foreground whitespace-nowrap">
           {{ relativeTime }}
         </span>
       </div>
@@ -146,7 +146,7 @@ function splitHighlightText(text: string, keyword: string): TextPart[] {
       <!-- Snippet and Project metadata -->
       <div class="flex items-center justify-between gap-4 text-xs">
         <!-- Snippet if matched in content -->
-        <div class="flex-1 min-w-0 text-slate-500 dark:text-zinc-400 leading-relaxed truncate">
+        <div class="flex-1 min-w-0 text-muted-foreground leading-relaxed truncate">
           <template v-if="item.matchType === 'content' && item.snippet">
             <template
               v-for="(part, idx) in splitHighlightText(item.snippet, store.keyword)"
@@ -154,7 +154,7 @@ function splitHighlightText(text: string, keyword: string): TextPart[] {
             >
               <mark
                 v-if="part.isMatch"
-                class="bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold rounded px-0.5"
+                class="bg-primary/20/20 text-primary font-semibold rounded px-0.5"
               >
                 {{ part.text }}
               </mark>
@@ -162,14 +162,14 @@ function splitHighlightText(text: string, keyword: string): TextPart[] {
             </template>
           </template>
           <template v-else>
-            <span class="text-slate-400 dark:text-zinc-500 italic">匹配标题</span>
+            <span class="text-muted-foreground italic">匹配标题</span>
           </template>
         </div>
 
         <!-- Project Tag (Only shown in global search) -->
         <span
           v-if="showProjectName"
-          class="px-2 py-0.5 rounded-md bg-slate-50 dark:bg-zinc-800/80 border border-slate-100 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 text-[10px] font-medium max-w-[120px] truncate whitespace-nowrap"
+          class="px-2 py-0.5 rounded-md bg-muted/50 dark:bg-card border border-border text-muted-foreground text-[10px] font-medium max-w-[120px] truncate whitespace-nowrap"
           :title="item.projectName"
         >
           {{ item.projectName }}

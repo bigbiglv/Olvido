@@ -36,17 +36,17 @@ useKeyboardShortcuts()
     <ResizeHandle v-model="sidebarWidth" :min-width="200" :max-width="450" />
 
     <!-- Right Container -->
-    <div class="flex-1 flex flex-col min-w-0 bg-white dark:bg-zinc-900 h-full">
+    <div class="flex-1 flex flex-col min-w-0 bg-background h-full">
       <!-- Top Header -->
       <Header />
 
       <!-- Main Content Area -->
-      <div class="flex-1 overflow-hidden min-h-0 bg-slate-50/30 dark:bg-zinc-900/10">
+      <div class="flex-1 overflow-hidden min-h-0 bg-muted/30 dark:bg-background">
         <div class="h-full flex min-w-0 overflow-hidden">
           <DocumentList :style="{ width: `${docListWidth}px` }" class="shrink-0" />
           <ResizeHandle v-model="docListWidth" :min-width="240" :max-width="480" />
           <div
-            class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50/20 dark:bg-zinc-900/10"
+            class="flex-1 flex flex-col h-full overflow-hidden bg-muted/20 dark:bg-background"
           >
             <DocumentEditor v-if="appStore.selectedDocument" />
             <EmptyState v-else />

@@ -18,7 +18,7 @@ const { cancel } = useDialog()
 </script>
 
 <template>
-  <div class="flex justify-center items-center p-4 bg-white dark:bg-zinc-900 w-full h-full">
+  <div class="flex justify-center items-center p-4 bg-background w-full h-full">
     <DatePicker size="large" :hide-confirm="true" :bordered="false" @confirm="cancel" />
   </div>
 </template>

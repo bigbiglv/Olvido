@@ -126,22 +126,22 @@ watch(
 
 <template>
   <div
-    class="flex flex-col h-full bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700/60 shadow-sm overflow-hidden"
+    class="flex flex-col h-full bg-card rounded-2xl border border-border shadow-sm overflow-hidden"
   >
     <!-- Header Control Bar -->
     <div
-      class="flex items-center justify-between border-b border-slate-200 dark:border-zinc-700/60 px-6 py-2 bg-slate-50/50 dark:bg-zinc-900/40"
+      class="flex items-center justify-between border-b border-border px-6 py-2 bg-muted/50 dark:bg-background"
     >
       <div></div>
 
       <!-- Right Side Actions: Toggle Split Source Mode -->
       <div class="flex items-center gap-2">
         <button
-          class="flex items-center justify-center p-1.5 rounded-lg border text-slate-500 dark:text-zinc-400 transition duration-200 shadow-sm cursor-pointer size-8"
+          class="flex items-center justify-center p-1.5 rounded-lg border text-muted-foreground transition duration-200 shadow-sm cursor-pointer size-8"
           :class="
             isSplitMode
-              ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:text-white dark:border-indigo-500 dark:hover:bg-indigo-600'
-              : 'bg-white dark:bg-zinc-800 border-slate-200 dark:border-zinc-700/60 hover:bg-slate-100 dark:hover:bg-zinc-700'
+              ? 'bg-primary text-primary-foreground border-primary hover:bg-primary dark:text-primary-foreground dark:border-primary dark:hover:bg-primary'
+              : 'bg-card border-border hover:bg-muted dark:hover:bg-muted'
           "
           title="源码模式"
           @click="isSplitMode = !isSplitMode"
@@ -152,7 +152,7 @@ watch(
     </div>
 
     <!-- Content Area -->
-    <div class="flex-1 flex overflow-hidden min-h-[300px] bg-white dark:bg-zinc-800">
+    <div class="flex-1 flex overflow-hidden min-h-[300px] bg-card">
       <div class="w-full h-full flex overflow-hidden">
         <!-- Left Side: Milkdown WYSIWYG Editor (default preview mode) -->
         <div
@@ -164,17 +164,17 @@ watch(
 
         <!-- Right Side: Raw Markdown Source Editor -->
         <div
-          class="h-full overflow-hidden bg-slate-50/20 dark:bg-zinc-900/10 transition-all duration-300 ease-in-out flex min-w-0"
+          class="h-full overflow-hidden bg-muted/20 dark:bg-background transition-all duration-300 ease-in-out flex min-w-0"
           :class="
             isSplitMode
-              ? 'w-1/2 opacity-100 p-4 border-l border-slate-200 dark:border-zinc-700/60'
+              ? 'w-1/2 opacity-100 p-4 border-l border-border'
               : 'w-0 opacity-0 pointer-events-none p-0 border-l-0'
           "
         >
           <!-- Line Numbers -->
           <div
             ref="lineNumbersRef"
-            class="line-numbers text-right text-slate-300 dark:text-zinc-600 font-mono text-sm select-none pr-3 border-r border-slate-100 dark:border-zinc-800 mr-4 w-9 overflow-y-hidden"
+            class="line-numbers text-right text-muted-foreground font-mono text-sm select-none pr-3 border-r border-border mr-4 w-9 overflow-y-hidden"
           >
             <div v-for="n in lineCount" :key="n" class="h-6 leading-6">{{ n }}</div>
           </div>
@@ -183,7 +183,7 @@ watch(
             ref="textareaRef"
             :value="modelValue"
             placeholder="在此输入 Markdown 源码..."
-            class="flex-1 resize-none border-0 p-0 text-sm font-mono leading-6 text-slate-800 dark:text-zinc-100 bg-transparent focus:ring-0 focus:outline-none h-full overflow-y-auto"
+            class="flex-1 resize-none border-0 p-0 text-sm font-mono leading-6 text-foreground bg-transparent focus:ring-0 focus:outline-none h-full overflow-y-auto"
             @input="handleTextareaInput"
             @focus="handleTextareaFocus"
             @blur="handleTextareaBlur"

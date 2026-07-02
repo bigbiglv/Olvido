@@ -37,7 +37,7 @@ const vFocus = {
     <!-- 全局 Group -->
     <div class="space-y-2" @click.self="listSelectedIds = []">
       <div
-        class="px-3 text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
+        class="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider"
       >
         全局
       </div>
@@ -46,13 +46,13 @@ const vFocus = {
         class="relative w-full h-auto justify-start gap-3 px-3 py-2.5 text-sm font-semibold transition-all text-left border-0 group overflow-hidden"
         :class="[
           appStore.currentProject === null
-            ? 'text-indigo-600 dark:text-indigo-400'
+            ? 'text-primary'
             : '',
           listSelectedIds.includes('global') && appStore.currentProject !== null
-            ? 'text-indigo-600 dark:text-indigo-400'
+            ? 'text-primary'
             : '',
           appStore.currentProject !== null && !listSelectedIds.includes('global')
-            ? 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100 rounded-xl'
+            ? 'text-muted-foreground hover:bg-muted dark:hover:bg-muted hover:text-foreground dark:hover:text-foreground rounded-xl'
             : ''
         ]"
         @click="handleGlobalClick"
@@ -79,14 +79,14 @@ const vFocus = {
     <div class="space-y-2 flex-1" @click.self="listSelectedIds = []" @contextmenu.self.prevent="handleBackgroundContextMenu">
       <div class="flex items-center justify-between px-3" @click.self="listSelectedIds = []" @contextmenu.self.prevent="handleBackgroundContextMenu">
         <span
-          class="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
+          class="text-xs font-bold text-muted-foreground uppercase tracking-wider"
         >
           项目
         </span>
         <Button
           variant="ghost"
           size="icon"
-          class="size-6 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition bg-transparent"
+          class="size-6 text-muted-foreground hover:text-primary transition bg-transparent"
           title="新建项目"
           @click="showAddProject = !showAddProject"
         >
@@ -97,7 +97,7 @@ const vFocus = {
       <!-- Inline Add Project Form -->
       <div v-if="showAddProject" class="px-0 py-1">
         <div
-          class="relative h-auto flex items-center w-full justify-start gap-3 px-3 py-2.5 text-sm font-semibold transition-all text-left overflow-hidden text-indigo-600 dark:text-indigo-400"
+          class="relative h-auto flex items-center w-full justify-start gap-3 px-3 py-2.5 text-sm font-semibold transition-all text-left overflow-hidden text-primary"
         >
           <!-- 设计感动态背景 -->
           <ActiveItemBackground />
@@ -107,7 +107,7 @@ const vFocus = {
             v-model="newProjectName"
             type="text"
             placeholder="项目名称"
-            class="relative z-10 w-full bg-transparent border-0 p-0 h-5 text-sm font-semibold focus:outline-none focus:ring-0 text-indigo-600 dark:text-indigo-400 placeholder:text-indigo-400/70 dark:placeholder:text-indigo-500"
+            class="relative z-10 w-full bg-transparent border-0 p-0 h-5 text-sm font-semibold focus:outline-none focus:ring-0 text-primary placeholder:text-primary dark:placeholder:text-primary"
             v-focus
             @keyup.enter="handleAddProject"
             @keydown.esc="cancelAddProject"

@@ -30,7 +30,7 @@ function handleClearSelection() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-white dark:bg-zinc-900 select-none">
+  <div class="flex flex-col h-full bg-background select-none">
     <DocumentListHeader
       :category-tabs="categoryTabs"
       @quick-add="handleQuickAdd"

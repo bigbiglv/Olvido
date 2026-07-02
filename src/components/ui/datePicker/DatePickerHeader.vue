@@ -113,7 +113,7 @@ class="relative flex items-center justify-center h-[26px] w-full transition-colo
         </div>
 
         <!-- 破折号分隔符 -->
-        <span v-if="index < pickersConfig.length - 1" class="text-zinc-400 mx-0.5">-</span>
+        <span v-if="index < pickersConfig.length - 1" class="text-muted-foreground mx-0.5">-</span>
       </template>
     </div>
 

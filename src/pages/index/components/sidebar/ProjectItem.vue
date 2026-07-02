@@ -60,13 +60,13 @@ const activeIndex = computed(() => (props.opened ? 1 : 0))
     class="relative w-full h-auto justify-start gap-3 px-3 py-2.5 text-sm font-semibold transition-all text-left border-0 group overflow-hidden"
     :class="[
       opened
-        ? 'text-indigo-600 dark:text-indigo-400'
+        ? 'text-primary'
         : '',
       selected && !opened
-        ? 'text-indigo-600 dark:text-indigo-400'
+        ? 'text-primary'
         : '',
       !opened && !selected
-        ? 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100 rounded-xl'
+        ? 'text-muted-foreground hover:bg-muted dark:hover:bg-muted hover:text-foreground dark:hover:text-foreground rounded-xl'
         : ''
     ]"
   >
@@ -96,7 +96,7 @@ const activeIndex = computed(() => (props.opened ? 1 : 0))
       v-model="editName"
       v-focus
       type="text"
-      class="relative z-10 w-full bg-transparent border-0 p-0 h-5 text-sm font-semibold focus:outline-none focus:ring-0 text-indigo-600 dark:text-indigo-400"
+      class="relative z-10 w-full bg-transparent border-0 p-0 h-5 text-sm font-semibold focus:outline-none focus:ring-0 text-primary"
       @click.stop
       @keyup.enter="handleSubmitRename"
       @keydown.esc="handleCancelRename"

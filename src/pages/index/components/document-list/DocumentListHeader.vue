@@ -18,7 +18,7 @@ const appStore = useAppStore()
 
 <template>
   <div
-    class="px-5 py-3 border-b border-slate-200/80 dark:border-zinc-800/80 flex items-center justify-between"
+    class="px-5 py-3 border-b border-border flex items-center justify-between"
   >
     <Tabs
       :model-value="appStore.currentCategory"
@@ -30,7 +30,7 @@ const appStore = useAppStore()
           v-for="tab in categoryTabs"
           :key="tab"
           :value="tab"
-          class="text-xs h-6 px-3 cursor-pointer data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:font-semibold text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300"
+          class="text-xs h-6 px-3 cursor-pointer data-[state=active]:text-primary dark:data-[state=active]:text-primary data-[state=active]:font-semibold text-muted-foreground hover:text-muted-foreground dark:hover:text-foreground"
         >
           {{ tab }}
         </TabsTrigger>

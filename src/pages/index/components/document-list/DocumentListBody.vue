@@ -29,7 +29,7 @@ const appStore = useAppStore()
   <div class="flex-1 overflow-y-auto p-4" data-context-region="document-background" @click.self="emit('clear-selection')" @contextmenu.self.prevent="emit('background-context-menu', $event)">
     <div
       v-if="filteredDocuments.length === 0"
-      class="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-zinc-500 p-4"
+      class="flex flex-col items-center justify-center h-48 text-muted-foreground p-4"
     >
       <FileX class="size-8 opacity-40 mb-2" />
       <span class="text-xs">未找到文档</span>

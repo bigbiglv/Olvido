@@ -105,22 +105,22 @@ onBeforeUnmount(async () => {
 
 <template>
   <div
-    class="flex flex-col h-full overflow-hidden bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100"
+    class="flex flex-col h-full overflow-hidden bg-background text-foreground"
   >
     <!-- 顶部元信息栏 -->
     <div
-      class="px-6 py-4 border-b border-slate-100 dark:border-zinc-800/60 bg-gradient-to-r from-slate-50/50 to-white dark:from-zinc-900/50 dark:to-zinc-900 flex flex-col gap-2 shrink-0"
+      class="px-6 py-4 border-b border-border bg-gradient-to-r from-slate-50/50 to-white dark:from-zinc-900/50 dark:to-zinc-900 flex flex-col gap-2 shrink-0"
     >
-      <h1 class="text-xl font-bold text-slate-900 dark:text-zinc-50 truncate leading-snug">
+      <h1 class="text-xl font-bold text-foreground truncate leading-snug">
         {{ noteData?.title || item.title }}
       </h1>
 
-      <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-zinc-400">
+      <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         <!-- 所属项目标签 -->
         <div
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 font-medium"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted dark:bg-card text-muted-foreground dark:text-foreground font-medium"
         >
-          <span class="size-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
+          <span class="size-1.5 rounded-full bg-primary"></span>
           <span>{{ item.projectName }}</span>
         </div>
 
@@ -133,7 +133,7 @@ onBeforeUnmount(async () => {
         </div>
 
         <!-- 创建时间 -->
-        <div class="flex items-center gap-1 text-slate-400 dark:text-zinc-500">
+        <div class="flex items-center gap-1 text-muted-foreground">
           <span>创建时间:</span>
           <span>{{ formatDate(noteData?.createdAt || item.createdAt) }}</span>
         </div>
@@ -141,17 +141,17 @@ onBeforeUnmount(async () => {
     </div>
 
     <!-- 中间滚动编辑区 -->
-    <div class="flex-1 overflow-y-auto relative p-6 bg-slate-50/10 dark:bg-zinc-950/10">
+    <div class="flex-1 overflow-y-auto relative p-6 bg-muted/10 dark:bg-background">
       <!-- 优雅的旋转加载动画 -->
       <div
         v-if="loading"
-        class="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-zinc-900/80 z-20 transition-all duration-300"
+        class="absolute inset-0 flex items-center justify-center bg-card/80 dark:bg-background z-20 transition-all duration-300"
       >
         <div class="flex flex-col items-center gap-3">
           <div
-            class="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500/20 border-t-indigo-600 dark:border-indigo-400/20 dark:border-t-indigo-400"
+            class="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-indigo-600 dark:border-primary dark:border-t-indigo-400"
           ></div>
-          <span class="text-sm text-slate-500 dark:text-zinc-400 font-medium">加载内容中...</span>
+          <span class="text-sm text-muted-foreground font-medium">加载内容中...</span>
         </div>
       </div>
 

@@ -24,18 +24,18 @@ const props = withDefaults(defineProps<Props>(), {
     class="relative w-full text-left flex flex-col cursor-pointer group py-2.5 px-3 rounded-xl my-0.5 transition-all duration-200 border border-transparent"
     :class="[
       props.isOpened
-        ? 'bg-white dark:bg-zinc-800/90 shadow-[0_2px_10px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.2)] ring-1 ring-slate-200/50 dark:ring-zinc-700/50 z-20'
+        ? 'bg-card shadow-[0_2px_10px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.2)] ring-1 ring-border z-20'
         : props.isSelected
-          ? 'bg-slate-200/60 dark:bg-zinc-700/60 z-10'
+          ? 'bg-muted z-10'
           : props.isHovered
-            ? 'bg-slate-100/60 dark:bg-zinc-800/50 z-10'
+            ? 'bg-muted/60 dark:bg-card z-10'
             : 'bg-transparent z-0',
     ]"
     data-context-region="document"
   >
     <!-- Opened state left indicator -->
     <div 
-      class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300 bg-indigo-500 dark:bg-indigo-400"
+      class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300 bg-primary"
       :class="props.isOpened ? 'h-3/5 opacity-100' : 'h-0 opacity-0'"
     ></div>
 
@@ -48,10 +48,10 @@ const props = withDefaults(defineProps<Props>(), {
           :title="doc.title || '无标题文档'"
           :class="[
             props.isOpened
-              ? 'text-indigo-600 dark:text-indigo-400 font-semibold'
+              ? 'text-primary font-semibold'
               : props.isSelected
-                ? 'text-slate-900 dark:text-slate-100 font-medium'
-                : 'text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 font-medium',
+                ? 'text-foreground font-medium'
+                : 'text-foreground dark:text-muted-foreground group-hover:text-foreground dark:group-hover:text-foreground font-medium',
           ]"
         >
           {{ doc.title || '无标题文档' }}
@@ -63,10 +63,10 @@ const props = withDefaults(defineProps<Props>(), {
         class="text-[11px] font-medium whitespace-nowrap transition-colors duration-200 shrink-0"
         :class="[
           props.isOpened
-            ? 'text-indigo-400 dark:text-indigo-500'
+            ? 'text-primary'
             : props.isSelected
-              ? 'text-slate-500 dark:text-slate-400'
-              : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:group-hover:text-slate-400'
+              ? 'text-muted-foreground'
+              : 'text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground'
         ]"
       >
         {{ formatDocTime(doc.updatedAt) }}

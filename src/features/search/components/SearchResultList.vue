@@ -35,21 +35,21 @@ watch(
     <!-- 空状态展示 -->
     <div
       v-if="flatResults.length === 0"
-      class="flex flex-col items-center justify-center h-64 text-slate-400 dark:text-zinc-500"
+      class="flex flex-col items-center justify-center h-64 text-muted-foreground"
     >
       <FileX class="size-10 opacity-30 mb-3" />
       <span class="text-sm font-medium">未找到匹配的笔记</span>
-      <span class="text-xs text-slate-400 dark:text-zinc-500 mt-1">请尝试更换其他关键词搜索</span>
+      <span class="text-xs text-muted-foreground mt-1">请尝试更换其他关键词搜索</span>
     </div>
 
     <template v-else>
       <!-- 第一组：标题匹配 -->
       <div v-if="results.titleMatches.length > 0" class="space-y-3">
         <div
-          class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
+          class="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
         >
           <span>标题匹配</span>
-          <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-[10px]">
+          <span class="px-1.5 py-0.5 rounded bg-muted dark:bg-card text-[10px]">
             {{ results.titleMatches.length }}
           </span>
         </div>
@@ -67,10 +67,10 @@ watch(
       <!-- 第二组：内容匹配 -->
       <div v-if="results.contentMatches.length > 0" class="space-y-3">
         <div
-          class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider"
+          class="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
         >
           <span>内容匹配</span>
-          <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-[10px]">
+          <span class="px-1.5 py-0.5 rounded bg-muted dark:bg-card text-[10px]">
             {{ results.contentMatches.length }}
           </span>
         </div>

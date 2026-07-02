@@ -17,22 +17,22 @@ const emit = defineEmits<{
 
 <template>
   <div
-    class="px-8 py-5 border-b border-slate-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900 flex flex-col gap-2 shrink-0"
+    class="px-8 py-5 border-b border-border bg-background flex flex-col gap-2 shrink-0"
   >
     <div class="flex items-center gap-3 w-full">
-      <Edit2 class="size-5 text-indigo-500 select-none shrink-0" />
+      <Edit2 class="size-5 text-primary select-none shrink-0" />
       <input
         type="text"
         :value="title"
         placeholder="无标题文档"
-        class="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-50 border-0 p-0 focus:outline-none focus:ring-0 focus:border-0 bg-transparent flex-1"
+        class="text-2xl font-black tracking-tight text-foreground border-0 p-0 focus:outline-none focus:ring-0 focus:border-0 bg-transparent flex-1"
         @input="emit('update:title', $event)"
       />
     </div>
 
     <!-- Metadata -->
     <div
-      class="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-slate-400 dark:text-zinc-500 font-medium select-none"
+      class="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground font-medium select-none"
     >
       <span class="flex items-center gap-1">
         <Calendar class="size-3.5" />

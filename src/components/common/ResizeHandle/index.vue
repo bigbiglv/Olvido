@@ -81,8 +81,8 @@ onUnmounted(() => {
       class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] transition-all duration-200"
       :class="[
         isDragging
-          ? 'w-[3px] bg-indigo-500 dark:bg-indigo-400'
-          : 'bg-slate-200 dark:bg-zinc-800 group-hover:w-[3px] group-hover:bg-indigo-500/80 dark:group-hover:bg-indigo-400/80',
+          ? 'w-[3px] bg-primary'
+          : 'bg-muted dark:bg-card group-hover:w-[3px] group-hover:bg-primary dark:group-hover:bg-primary',
       ]"
     />
   </div>
