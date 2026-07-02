@@ -34,8 +34,12 @@ const themeModeLabels = computed<Record<ThemeMode, string>>(() => ({
 }))
 
 const themeLabels = computed<Record<ThemeName, string>>(() => ({
-  violet: '紫色',
-  blue: '蓝色',
+  violet: '远山紫',
+  blue: '景泰蓝',
+  emerald: '竹绿',
+  carmine: '胭脂红',
+  amber: '琥珀黄',
+  slate: '水墨灰',
 }))
 
 const localizedThemeModeOptions = computed(() =>
@@ -54,7 +58,7 @@ const localizedThemeOptions = computed(() =>
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
+  <div class="flex flex-col gap-2.5 items-end">
     <div class="flex rounded-lg border border-border bg-card p-1">
       <button
         v-for="option in localizedThemeModeOptions"
@@ -70,35 +74,37 @@ const localizedThemeOptions = computed(() =>
               : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
           )
         "
-        @click="appStore.setThemeMode(option.value)"
+        @click.stop.prevent="appStore.setThemeMode(option.value)"
+        @pointerdown.stop
       >
-        <component :is="option.icon" class="size-4" />
-        <span class="hidden md:inline">{{ option.label }}</span>
+        <component :is="option.icon" class="size-4 pointer-events-none" />
+        <span class="pointer-events-none">{{ option.label }}</span>
       </button>
     </div>
 
-    <div class="flex rounded-lg border border-border bg-card p-1">
+    <div class="flex flex-wrap justify-end gap-1 rounded-lg border border-border bg-card p-1 max-w-[200px]">
       <button
         v-for="option in localizedThemeOptions"
         :key="option.name"
         type="button"
         :aria-label="`切换到 ${option.label}`"
         :aria-pressed="appStore.themeName === option.name"
+        :title="option.label"
         :class="
           cn(
-            'inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors',
+            'inline-flex size-8 items-center justify-center rounded-md transition-colors',
             appStore.themeName === option.name
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+              ? 'bg-primary shadow-sm'
+              : 'hover:bg-accent',
           )
         "
-        @click="appStore.setThemeName(option.name)"
+        @click.stop.prevent="appStore.setThemeName(option.name)"
+        @pointerdown.stop
       >
         <span
-          class="size-3 rounded-full border border-border"
+          class="size-4 rounded-full border border-border/50 pointer-events-none shadow-sm"
           :style="{ backgroundColor: option.previewPrimary }"
         />
-        <span class="hidden lg:inline">{{ option.label }}</span>
       </button>
     </div>
   </div>

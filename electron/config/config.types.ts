@@ -2,7 +2,7 @@ export interface AppConfig {
   version: number
   dataDir: string
   theme: 'light' | 'dark' | 'system'
-  themeName: 'violet' | 'blue'
+  themeName: 'violet' | 'blue' | 'emerald' | 'carmine' | 'amber' | 'slate'
   windowBounds: {
     width: number
     height: number

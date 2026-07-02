@@ -22,4 +22,20 @@ export const themeOptions: ThemeOption[] = [
     name: 'blue',
     previewPrimary: 'hsl(221.2 83.2% 53.3%)',
   },
+  {
+    name: 'emerald',
+    previewPrimary: 'hsl(140 61% 35%)',
+  },
+  {
+    name: 'carmine',
+    previewPrimary: 'hsl(355 58% 39%)',
+  },
+  {
+    name: 'amber',
+    previewPrimary: 'hsl(25 70% 47%)',
+  },
+  {
+    name: 'slate',
+    previewPrimary: 'hsl(205 15% 37%)',
+  },
 ]

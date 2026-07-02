@@ -1,4 +1,4 @@
-export const THEME_NAMES = ['violet', 'blue'] as const
+export const THEME_NAMES = ['violet', 'blue', 'emerald', 'carmine', 'amber', 'slate'] as const
 export const THEME_MODES = ['light', 'dark', 'system'] as const
 export const RESOLVED_THEME_MODES = ['light', 'dark'] as const
 
