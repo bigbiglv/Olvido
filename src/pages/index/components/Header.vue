@@ -32,9 +32,7 @@ function handleOpenDatePicker() {
         class="relative w-full flex items-center justify-between pl-9 pr-3 py-1.5 text-sm rounded-xl border border-border bg-muted/50 dark:bg-card text-muted-foreground hover:border-border transition cursor-pointer text-left focus:outline-none"
         @click="handleOpenSearch"
       >
-        <Search
-          class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
-        />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <span>搜索笔记...</span>
         <span
           class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground select-none"

@@ -30,7 +30,7 @@ function parseDocumentsFromMarkdown(markdown: string): QuickAddDocument[] {
       .replace(/&nbsp;/g, ' ')
       .replace(/&#x20;/g, ' ')
       .replace(/<br\s*\/?>/gi, '')
-    
+
     const leadingSpaces = cleanLine.match(/^ */)?.[0].length || 0
     const processedLine = cleanLine.replace(/[\s\u00A0]+/g, ' ').trim()
 
@@ -46,7 +46,7 @@ function parseDocumentsFromMarkdown(markdown: string): QuickAddDocument[] {
       let title = processedLine
       const orderedMatch = processedLine.match(/^\d+[.)]\s+(.+)$/)
       const bulletMatch = processedLine.match(/^[-*+]\s+(.+)$/)
-      
+
       if (orderedMatch) {
         title = orderedMatch[1].trim()
       } else if (bulletMatch) {
@@ -66,7 +66,7 @@ function parseDocumentsFromMarkdown(markdown: string): QuickAddDocument[] {
         // Preserve relative nesting by removing the base indentation
         const spacesToRemove = Math.min(leadingSpaces, currentDoc.baseIndent)
         const unindentedLine = cleanLine.slice(spacesToRemove)
-        
+
         if (currentDoc.content) {
           currentDoc.content += '\n' + unindentedLine
         } else {
@@ -76,7 +76,7 @@ function parseDocumentsFromMarkdown(markdown: string): QuickAddDocument[] {
     }
   }
 
-  return docs.map(d => ({ title: d.title, content: d.content }))
+  return docs.map((d) => ({ title: d.title, content: d.content }))
 }
 
 dialog.onConfirm(() => {

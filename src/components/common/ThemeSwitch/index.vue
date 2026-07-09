@@ -82,7 +82,9 @@ const localizedThemeOptions = computed(() =>
       </button>
     </div>
 
-    <div class="flex flex-wrap justify-end gap-1 rounded-lg border border-border bg-card p-1 max-w-[200px]">
+    <div
+      class="flex flex-wrap justify-end gap-1 rounded-lg border border-border bg-card p-1 max-w-[200px]"
+    >
       <button
         v-for="option in localizedThemeOptions"
         :key="option.name"
@@ -93,9 +95,7 @@ const localizedThemeOptions = computed(() =>
         :class="
           cn(
             'inline-flex size-8 items-center justify-center rounded-md transition-colors',
-            appStore.themeName === option.name
-              ? 'bg-primary shadow-sm'
-              : 'hover:bg-accent',
+            appStore.themeName === option.name ? 'bg-primary shadow-sm' : 'hover:bg-accent',
           )
         "
         @click.stop.prevent="appStore.setThemeName(option.name)"

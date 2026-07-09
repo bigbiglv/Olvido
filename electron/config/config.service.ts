@@ -35,7 +35,7 @@ class ConfigService {
       if (fs.existsSync(this.configPath)) {
         const raw = fs.readFileSync(this.configPath, 'utf-8')
         const parsed = JSON.parse(raw)
-        
+
         // 类型检查与自动补齐，忽略未知字段
         this.config = this.validateAndMerge(parsed)
       } else {
@@ -111,7 +111,13 @@ class ConfigService {
       if (value !== undefined && key in this.config) {
         const current = (this.config as any)[key]
         // 嵌套对象做浅合并，基本类型直接覆盖
-        if (typeof current === 'object' && current !== null && typeof value === 'object' && value !== null && !Array.isArray(current)) {
+        if (
+          typeof current === 'object' &&
+          current !== null &&
+          typeof value === 'object' &&
+          value !== null &&
+          !Array.isArray(current)
+        ) {
           ;(this.config as any)[key] = { ...current, ...value }
         } else {
           ;(this.config as any)[key] = value

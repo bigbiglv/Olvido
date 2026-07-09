@@ -19,10 +19,12 @@ const {
   handleBackgroundContextMenu,
   handleSelectionChange,
   handleOpen,
-  handleReorder
+  handleReorder,
 } = useDocumentList()
 
-const disableDrag = computed(() => appStore.currentCategory === '需求' && requirementSortMode.value === 'date')
+const disableDrag = computed(
+  () => appStore.currentCategory === '需求' && requirementSortMode.value === 'date',
+)
 
 function handleClearSelection() {
   listSelectedIds.value = []

@@ -19,11 +19,14 @@ const emit = defineEmits<{
 
 const editName = ref('')
 
-watch(() => props.isRenaming, (val) => {
-  if (val) {
-    editName.value = props.project.name
-  }
-})
+watch(
+  () => props.isRenaming,
+  (val) => {
+    if (val) {
+      editName.value = props.project.name
+    }
+  },
+)
 
 let isCanceling = false
 
@@ -42,12 +45,12 @@ function handleCancelRename() {
 }
 
 const vFocus = {
-  mounted: (el: HTMLElement) => el.focus()
+  mounted: (el: HTMLElement) => el.focus(),
 }
 
 const iconPaths = [
   'M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z', // Folder
-  'm6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.5 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2'  // FolderOpen
+  'm6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.5 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2', // FolderOpen
 ]
 
 const activeIndex = computed(() => (props.opened ? 1 : 0))
@@ -59,15 +62,11 @@ const activeIndex = computed(() => (props.opened ? 1 : 0))
     variant="ghost"
     class="relative w-full h-auto justify-start gap-3 px-3 py-2.5 text-sm font-semibold transition-all text-left border-0 group overflow-hidden"
     :class="[
-      opened
-        ? 'text-primary'
-        : '',
-      selected && !opened
-        ? 'text-primary'
-        : '',
+      opened ? 'text-primary' : '',
+      selected && !opened ? 'text-primary' : '',
       !opened && !selected
         ? 'text-muted-foreground hover:bg-muted dark:hover:bg-muted hover:text-foreground dark:hover:text-foreground rounded-xl'
-        : ''
+        : '',
     ]"
   >
     <!-- 不规则动态背景 -->
@@ -82,9 +81,9 @@ const activeIndex = computed(() => (props.opened ? 1 : 0))
       <ActiveItemBackground v-if="opened || selected" />
     </transition>
     <div class="relative size-4.5 shrink-0 opacity-70 flex items-center justify-center z-10">
-      <MorphIcon 
-        :paths="iconPaths" 
-        :active-index="activeIndex" 
+      <MorphIcon
+        :paths="iconPaths"
+        :active-index="activeIndex"
         morph-type="rotational"
         :duration="0.35"
         ease="back.out(1.2)"
@@ -104,5 +103,3 @@ const activeIndex = computed(() => (props.opened ? 1 : 0))
     />
   </Button>
 </template>
-
-

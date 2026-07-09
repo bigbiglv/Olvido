@@ -34,15 +34,15 @@ watch(isDownloading, (val) => {
 
 <template>
   <div class="px-5 py-6 flex flex-col items-center justify-center space-y-4">
-    <div class="flex items-center justify-center size-12 rounded-full bg-primary/20 dark:bg-primary text-primary dark:text-primary">
+    <div
+      class="flex items-center justify-center size-12 rounded-full bg-primary/20 dark:bg-primary text-primary dark:text-primary"
+    >
       <Download class="size-6 animate-bounce" />
     </div>
-    <div class="text-sm text-foreground font-medium">
-      正在下载新版本... {{ downloadProgress }}%
-    </div>
+    <div class="text-sm text-foreground font-medium">正在下载新版本... {{ downloadProgress }}%</div>
     <div class="w-full h-2 bg-muted dark:bg-card rounded-full overflow-hidden mt-2">
-      <div 
-        class="h-full bg-primary transition-all duration-300" 
+      <div
+        class="h-full bg-primary transition-all duration-300"
         :style="{ width: `${downloadProgress}%` }"
       ></div>
     </div>

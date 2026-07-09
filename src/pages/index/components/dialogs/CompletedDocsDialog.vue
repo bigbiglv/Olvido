@@ -59,7 +59,7 @@ async function handleRestore(docId: string, event: Event) {
       await apiUpdate({
         id: docId,
         isArchived: false,
-        deadline: (doc.category === '需求' && doc.deadline) ? new Date(doc.deadline) : null,
+        deadline: doc.category === '需求' && doc.deadline ? new Date(doc.deadline) : null,
       })
       // Remove from local list
       allCompletedDocs.value = allCompletedDocs.value.filter((d) => d.id !== docId)
@@ -114,9 +114,7 @@ function formatDate(dateStr: string | Date) {
       class="px-6 py-3 border-b border-border flex items-center gap-3 bg-muted/50 dark:bg-background"
     >
       <div class="relative w-full">
-        <Search
-          class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
-        />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <input
           v-model="searchQuery"
           type="text"

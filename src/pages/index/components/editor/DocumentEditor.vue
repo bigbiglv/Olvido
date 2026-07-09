@@ -19,7 +19,7 @@ watch(
     if (saveTimeout) {
       clearTimeout(saveTimeout)
       saveTimeout = null
-      
+
       // Flush pending save for the previous document
       if (oldDoc) {
         saveDocument(oldDoc, { content: oldDoc.content, title: oldDoc.title })
@@ -40,7 +40,7 @@ async function saveDocument(doc: DocumentItem, updates: Partial<DocumentItem>) {
       title: doc.title,
       content: doc.content,
       isArchived: doc.completed,
-      deadline: (doc.category === '需求' && doc.deadline) ? new Date(doc.deadline) : null,
+      deadline: doc.category === '需求' && doc.deadline ? new Date(doc.deadline) : null,
     })
     appStore.lastSavedTime = new Date().toLocaleTimeString()
   } catch (err) {

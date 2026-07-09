@@ -24,36 +24,35 @@ const {
   handleGlobalClick,
   handleGlobalDblClick,
   submitRenameProject,
-  cancelRenameProject
+  cancelRenameProject,
 } = useProjectList()
 
 const vFocus = {
-  mounted: (el: HTMLElement) => el.focus()
+  mounted: (el: HTMLElement) => el.focus(),
 }
 </script>
 
 <template>
-  <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-7" data-context-region="project-background" @click.self="listSelectedIds = []" @contextmenu.self.prevent="handleBackgroundContextMenu">
+  <nav
+    class="flex-1 overflow-y-auto px-4 py-6 space-y-7"
+    data-context-region="project-background"
+    @click.self="listSelectedIds = []"
+    @contextmenu.self.prevent="handleBackgroundContextMenu"
+  >
     <!-- 全局 Group -->
     <div class="space-y-2" @click.self="listSelectedIds = []">
-      <div
-        class="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider"
-      >
-        全局
-      </div>
+      <div class="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">全局</div>
       <Button
         variant="ghost"
         class="relative w-full h-auto justify-start gap-3 px-3 py-2.5 text-sm font-semibold transition-all text-left border-0 group overflow-hidden"
         :class="[
-          appStore.currentProject === null
-            ? 'text-primary'
-            : '',
+          appStore.currentProject === null ? 'text-primary' : '',
           listSelectedIds.includes('global') && appStore.currentProject !== null
             ? 'text-primary'
             : '',
           appStore.currentProject !== null && !listSelectedIds.includes('global')
             ? 'text-muted-foreground hover:bg-muted dark:hover:bg-muted hover:text-foreground dark:hover:text-foreground rounded-xl'
-            : ''
+            : '',
         ]"
         @click="handleGlobalClick"
         @dblclick="handleGlobalDblClick"
@@ -67,7 +66,9 @@ const vFocus = {
           leave-from-class="opacity-100 scale-100"
           leave-to-class="opacity-0 scale-95"
         >
-          <ActiveItemBackground v-if="appStore.currentProject === null || listSelectedIds.includes('global')" />
+          <ActiveItemBackground
+            v-if="appStore.currentProject === null || listSelectedIds.includes('global')"
+          />
         </transition>
 
         <BookOpen class="size-4.5 relative z-10" />
@@ -76,13 +77,17 @@ const vFocus = {
     </div>
 
     <!-- 项目 Group -->
-    <div class="space-y-2 flex-1" @click.self="listSelectedIds = []" @contextmenu.self.prevent="handleBackgroundContextMenu">
-      <div class="flex items-center justify-between px-3" @click.self="listSelectedIds = []" @contextmenu.self.prevent="handleBackgroundContextMenu">
-        <span
-          class="text-xs font-bold text-muted-foreground uppercase tracking-wider"
-        >
-          项目
-        </span>
+    <div
+      class="space-y-2 flex-1"
+      @click.self="listSelectedIds = []"
+      @contextmenu.self.prevent="handleBackgroundContextMenu"
+    >
+      <div
+        class="flex items-center justify-between px-3"
+        @click.self="listSelectedIds = []"
+        @contextmenu.self.prevent="handleBackgroundContextMenu"
+      >
+        <span class="text-xs font-bold text-muted-foreground uppercase tracking-wider"> 项目 </span>
         <Button
           variant="ghost"
           size="icon"
@@ -131,10 +136,10 @@ const vFocus = {
         @background-context-menu="handleBackgroundContextMenu"
       >
         <template #item="{ item: proj, selected, opened }">
-          <ProjectItem 
-            :project="proj" 
-            :selected="selected" 
-            :opened="opened" 
+          <ProjectItem
+            :project="proj"
+            :selected="selected"
+            :opened="opened"
             :is-renaming="renamingProjectId === proj.id"
             @submit-rename="(newName) => submitRenameProject(proj.id, newName)"
             @cancel-rename="cancelRenameProject"
@@ -144,5 +149,3 @@ const vFocus = {
     </div>
   </nav>
 </template>
-
-

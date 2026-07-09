@@ -9,10 +9,7 @@ import pkg from './package.json'
 
 import { builtinModules } from 'node:module'
 
-const builtins = [
-  ...builtinModules,
-  ...builtinModules.map((m) => `node:${m}`),
-]
+const builtins = [...builtinModules, ...builtinModules.map((m) => `node:${m}`)]
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -36,8 +33,8 @@ export default defineConfig({
               external: [
                 ...builtins,
                 ...Object.keys(pkg.dependencies || {}),
-                '@prisma/client', 
-                '.prisma/client'
+                '@prisma/client',
+                '.prisma/client',
               ],
             },
           },

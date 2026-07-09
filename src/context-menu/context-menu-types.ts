@@ -110,4 +110,3 @@ export interface ContextMenuRegion {
    */
   getMenus: (context: ContextMenuContext) => ContextMenuItem[]
 }
-

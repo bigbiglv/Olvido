@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
   bordered: true,
   initialDate: null,
   size: 'default',
-  hideConfirm: false
+  hideConfirm: false,
 })
 
 const emits = defineEmits<Emits>()
@@ -286,7 +286,7 @@ const handlePickerClick = async (unit: DateUnit, direction: number) => {
     class="flex flex-col bg-background rounded-2xl select-none relative"
     :class="[
       props.bordered ? 'border border-border shadow-lg' : '',
-      props.size === 'large' ? 'w-full h-full p-6' : 'w-[360px] p-4'
+      props.size === 'large' ? 'w-full h-full p-6' : 'w-[360px] p-4',
     ]"
   >
     <!-- Click-outside overlay for pickers -->

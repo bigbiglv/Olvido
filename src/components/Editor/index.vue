@@ -31,7 +31,7 @@ function focus() {
       const prosemirror = editorRef.value.querySelector('.ProseMirror') as HTMLElement | null
       if (prosemirror) {
         prosemirror.focus()
-        
+
         // Because Crepe uses custom list_item_block nodes, ProseMirror's Selection API
         // can sometimes mistakenly create a NodeSelection on the whole block instead of a TextSelection.
         // To guarantee the cursor is placed exactly where a user would click (inside the text),
@@ -40,7 +40,7 @@ function focus() {
         if (paragraphs.length > 0) {
           const p = paragraphs[0]
           const range = document.createRange()
-          
+
           // If the paragraph ends with a BR (ProseMirror's trailing break for empty paragraphs),
           // placing the cursor after it causes layout/size issues. We must place it before the BR.
           if (p.lastChild && p.lastChild.nodeName === 'BR') {
@@ -50,7 +50,7 @@ function focus() {
             range.selectNodeContents(p)
             range.collapse(false)
           }
-          
+
           const sel = window.getSelection()
           if (sel) {
             sel.removeAllRanges()
@@ -97,44 +97,49 @@ onMounted(async () => {
   })
 
   if (onlyOrderedList) {
-    crepe.editor.use($prose(() => new Plugin({
-      props: {
-        handleKeyDown(view, event) {
-          if (event.key === 'Enter') {
-            const { state } = view
-            const { selection } = state
-            const { $from, empty } = selection
-            if (!empty) return false
-            const parent = $from.parent
-            if (parent.type.name === 'paragraph' && parent.content.size === 0) {
-              const grandparent = $from.node(-1)
-              if (grandparent && grandparent.type.name.includes('list_item')) {
-                return true // Prevent Enter from escaping an empty list item
-              }
-            }
-          }
-          if (event.key === 'Backspace') {
-            const { state } = view
-            const { selection } = state
-            const { $from, empty } = selection
-            if (!empty) return false
-            if ($from.parentOffset === 0) {
-              const grandparent = $from.node(-1)
-              if (grandparent && grandparent.type.name.includes('list_item')) {
-                const listNode = $from.node(-2)
-                if (listNode && listNode.type.name.includes('list')) {
-                  const itemIndex = $from.index(-2)
-                  if (itemIndex === 0) {
-                    return true // Prevent Backspace from breaking the first list item
+    crepe.editor.use(
+      $prose(
+        () =>
+          new Plugin({
+            props: {
+              handleKeyDown(view, event) {
+                if (event.key === 'Enter') {
+                  const { state } = view
+                  const { selection } = state
+                  const { $from, empty } = selection
+                  if (!empty) return false
+                  const parent = $from.parent
+                  if (parent.type.name === 'paragraph' && parent.content.size === 0) {
+                    const grandparent = $from.node(-1)
+                    if (grandparent && grandparent.type.name.includes('list_item')) {
+                      return true // Prevent Enter from escaping an empty list item
+                    }
                   }
                 }
-              }
-            }
-          }
-          return false
-        }
-      }
-    })))
+                if (event.key === 'Backspace') {
+                  const { state } = view
+                  const { selection } = state
+                  const { $from, empty } = selection
+                  if (!empty) return false
+                  if ($from.parentOffset === 0) {
+                    const grandparent = $from.node(-1)
+                    if (grandparent && grandparent.type.name.includes('list_item')) {
+                      const listNode = $from.node(-2)
+                      if (listNode && listNode.type.name.includes('list')) {
+                        const itemIndex = $from.index(-2)
+                        if (itemIndex === 0) {
+                          return true // Prevent Backspace from breaking the first list item
+                        }
+                      }
+                    }
+                  }
+                }
+                return false
+              },
+            },
+          }),
+      ),
+    )
   }
 
   crepe.on((listener) => {

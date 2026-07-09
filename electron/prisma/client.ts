@@ -5,7 +5,9 @@ import { createRequire } from 'node:module'
 import type { PrismaClient as PrismaClientType } from '@prisma/client'
 
 // @prisma/client 是 CJS 模块，在 ESM 环境中需通过 createRequire 加载
-const { PrismaClient } = createRequire(import.meta.url)('@prisma/client') as typeof import('@prisma/client')
+const { PrismaClient } = createRequire(import.meta.url)(
+  '@prisma/client',
+) as typeof import('@prisma/client')
 
 // Global singleton instance
 export let prisma: PrismaClientType

@@ -5,7 +5,6 @@ import { DraggableList, type ReorderEvent } from '@/components/ui/draggableList'
 import DailyDocItem from './DailyDocItem.vue'
 import RequirementDocItem from './RequirementDocItem.vue'
 
-
 defineProps<{
   filteredDocuments: DocumentItem[]
   listSelectedIds: string[]
@@ -26,7 +25,12 @@ const appStore = useAppStore()
 </script>
 
 <template>
-  <div class="flex-1 overflow-y-auto p-4" data-context-region="document-background" @click.self="emit('clear-selection')" @contextmenu.self.prevent="emit('background-context-menu', $event)">
+  <div
+    class="flex-1 overflow-y-auto p-4"
+    data-context-region="document-background"
+    @click.self="emit('clear-selection')"
+    @contextmenu.self.prevent="emit('background-context-menu', $event)"
+  >
     <div
       v-if="filteredDocuments.length === 0"
       class="flex flex-col items-center justify-center h-48 text-muted-foreground p-4"

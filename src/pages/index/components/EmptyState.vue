@@ -44,9 +44,7 @@ async function handleCreate() {
 </script>
 
 <template>
-  <div
-    class="flex-1 flex flex-col items-center justify-center bg-background p-8 select-none"
-  >
+  <div class="flex-1 flex flex-col items-center justify-center bg-background p-8 select-none">
     <div class="flex flex-col items-center max-w-sm text-center">
       <div
         class="size-16 rounded-2xl bg-primary/10 dark:bg-card flex items-center justify-center mb-6 shadow-sm border border-border"
@@ -54,9 +52,7 @@ async function handleCreate() {
         <img src="/logo.png" alt="Logo" class="size-10 object-contain" />
       </div>
       <h2 class="text-xl font-bold text-foreground mb-2">欢迎使用</h2>
-      <p class="text-sm text-muted-foreground leading-relaxed mb-6">
-        选择或创建一个文档开始记录。
-      </p>
+      <p class="text-sm text-muted-foreground leading-relaxed mb-6">选择或创建一个文档开始记录。</p>
       <button
         class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-xl shadow-md shadow-primary/20 dark:shadow-none transition cursor-pointer"
         @click="handleCreate"

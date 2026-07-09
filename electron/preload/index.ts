@@ -61,7 +61,7 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.removeAllListeners('updater:download-progress')
       ipcRenderer.removeAllListeners('updater:update-downloaded')
       ipcRenderer.removeAllListeners('updater:error')
-    }
+    },
   },
   config: {
     get: () => ipcRenderer.invoke(CONFIG_CHANNELS.GET),

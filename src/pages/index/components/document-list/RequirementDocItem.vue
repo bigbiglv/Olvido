@@ -15,7 +15,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   isSelected: false,
   isOpened: false,
-  isHovered: false
+  isHovered: false,
 })
 
 // 计算天数差
@@ -45,9 +45,9 @@ function getRemainingDays(days: number | null): string {
 // 返回视觉类
 function getDeadlineClass(days: number | null, isOpened: boolean): string {
   if (days === null) return isOpened ? 'text-primary' : 'text-muted-foreground'
-  if (days < 0) return 'text-rose-500 dark:text-rose-400 font-bold' 
-  if (days === 0) return 'text-orange-500 dark:text-orange-400 font-semibold' 
-  if (days <= 2) return 'text-amber-500 dark:text-amber-400 font-semibold' 
+  if (days < 0) return 'text-rose-500 dark:text-rose-400 font-bold'
+  if (days === 0) return 'text-orange-500 dark:text-orange-400 font-semibold'
+  if (days <= 2) return 'text-amber-500 dark:text-amber-400 font-semibold'
   return isOpened ? 'text-primary' : 'text-muted-foreground'
 }
 </script>
@@ -67,7 +67,7 @@ function getDeadlineClass(days: number | null, isOpened: boolean): string {
     data-context-region="document"
   >
     <!-- Opened state left indicator -->
-    <div 
+    <div
       class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300 bg-primary"
       :class="props.isOpened ? 'h-3/5 opacity-100' : 'h-0 opacity-0'"
     ></div>
@@ -89,9 +89,9 @@ function getDeadlineClass(days: number | null, isOpened: boolean): string {
           {{ doc.title || '无标题文档' }}
         </div>
       </div>
-      
+
       <!-- Deadline -->
-      <div 
+      <div
         class="text-[11px] whitespace-nowrap transition-colors duration-200 shrink-0"
         :class="getDeadlineClass(diffDays, props.isOpened)"
       >

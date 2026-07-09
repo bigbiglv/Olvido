@@ -116,15 +116,22 @@ function getSubmenuStyle(id: string) {
 function onSubmenuEnter(el: Element, done: () => void) {
   const isLeft = (el as HTMLElement).style.right === '100%'
   const startX = isLeft ? 8 : -8
-  
+
   gsap.set(el, { transformOrigin: isLeft ? 'right top' : 'left top' })
   gsap.fromTo(
     el,
     { opacity: 0, x: startX, scale: 0.96 },
-    { opacity: 1, x: 0, scale: 1, duration: 0.35, ease: 'back.out(1.1)', onComplete: () => {
-      gsap.set(el, { clearProps: 'transform,x,scale' })
-      done()
-    } }
+    {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      duration: 0.35,
+      ease: 'back.out(1.1)',
+      onComplete: () => {
+        gsap.set(el, { clearProps: 'transform,x,scale' })
+        done()
+      },
+    },
   )
 
   // Submenu items stagger
@@ -140,8 +147,8 @@ function onSubmenuEnter(el: Element, done: () => void) {
         stagger: 0.02,
         ease: 'power3.out',
         delay: 0.05,
-        clearProps: 'transform,x,opacity'
-      }
+        clearProps: 'transform,x,opacity',
+      },
     )
   }
 }
@@ -149,7 +156,14 @@ function onSubmenuEnter(el: Element, done: () => void) {
 function onSubmenuLeave(el: Element, done: () => void) {
   const isLeft = (el as HTMLElement).style.right === '100%'
   const endX = isLeft ? 4 : -4
-  gsap.to(el, { opacity: 0, x: endX, scale: 0.98, duration: 0.15, ease: 'power3.inOut', onComplete: done })
+  gsap.to(el, {
+    opacity: 0,
+    x: endX,
+    scale: 0.98,
+    duration: 0.15,
+    ease: 'power3.inOut',
+    onComplete: done,
+  })
 }
 </script>
 
@@ -163,10 +177,7 @@ function onSubmenuLeave(el: Element, done: () => void) {
       @mouseleave="handleMouseLeave(item)"
     >
       <!-- 分隔线 -->
-      <div
-        v-if="'type' in item && item.type === 'separator'"
-        class="h-px bg-border/50 my-1 mx-1"
-      />
+      <div v-if="'type' in item && item.type === 'separator'" class="h-px bg-border/50 my-1 mx-1" />
 
       <!-- 菜单动作按钮 -->
       <button
@@ -177,7 +188,11 @@ function onSubmenuLeave(el: Element, done: () => void) {
         @click="handleActionClick(item)"
       >
         <div class="flex items-center gap-2">
-          <component :is="(item as any).icon" v-if="(item as any).icon" class="size-4 opacity-70 menu-icon" />
+          <component
+            :is="(item as any).icon"
+            v-if="(item as any).icon"
+            class="size-4 opacity-70 menu-icon"
+          />
           <span>{{ (item as any).label }}</span>
         </div>
         <ChevronRight
@@ -187,13 +202,12 @@ function onSubmenuLeave(el: Element, done: () => void) {
       </button>
 
       <!-- 二级菜单/自定义悬浮面板 -->
-      <Transition
-        @enter="onSubmenuEnter"
-        @leave="onSubmenuLeave"
-        :css="false"
-      >
+      <Transition @enter="onSubmenuEnter" @leave="onSubmenuLeave" :css="false">
         <div
-          v-if="hoveredItemId === (item as any).id && ((item as any).children || (item as any).panelComponent)"
+          v-if="
+            hoveredItemId === (item as any).id &&
+            ((item as any).children || (item as any).panelComponent)
+          "
           :ref="(el) => setSubmenuRef((item as any).id, el)"
           class="absolute z-[10000] min-w-[180px] bg-popover/90 backdrop-blur-md text-popover-foreground rounded-lg border border-border/80 shadow-lg p-1.5 outline-none select-none"
           :style="getSubmenuStyle((item as any).id)"

@@ -16,9 +16,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div
-    class="px-8 py-5 border-b border-border bg-background flex flex-col gap-2 shrink-0"
-  >
+  <div class="px-8 py-5 border-b border-border bg-background flex flex-col gap-2 shrink-0">
     <div class="flex items-center gap-3 w-full">
       <Edit2 class="size-5 text-primary select-none shrink-0" />
       <input

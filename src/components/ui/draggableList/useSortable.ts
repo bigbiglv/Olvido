@@ -6,7 +6,7 @@ import type { ReorderEvent } from './types'
 // 向 SortableJS 挂载 MultiDrag 插件
 Sortable.mount(new MultiDrag())
 
-/** 
+/**
  * 全局单例状态：记录当前处于鼠标/触摸交互激活状态的拖拽组
  * 用于解决 SortableJS MultiDrag 插件全局跨列表拖拽的 Bug
  */
@@ -153,17 +153,21 @@ export function useSortable<T>(
     const handleInteraction = () => {
       activeSortableGroupId.value = groupId
     }
-    
+
     containerRef.value.addEventListener('mousedown', handleInteraction, { capture: true })
     containerRef.value.addEventListener('touchstart', handleInteraction, { capture: true })
 
     stopWatch = watch(
-      [() => config.getSelectedIds(), activeSortableGroupId, () => config.disabled ? config.disabled() : false],
+      [
+        () => config.getSelectedIds(),
+        activeSortableGroupId,
+        () => (config.disabled ? config.disabled() : false),
+      ],
       ([newIds, activeGroup, disabled]) => {
         if (sortableInstance) {
           sortableInstance.option('disabled', disabled as boolean)
         }
-        
+
         if (!containerRef.value) return
         const children = Array.from(containerRef.value.children)
         const sClass = config.selectedClass || 'dl-selected'
@@ -182,7 +186,7 @@ export function useSortable<T>(
           }
         })
       },
-      { deep: true, immediate: true }
+      { deep: true, immediate: true },
     )
   })
 

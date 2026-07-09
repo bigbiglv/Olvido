@@ -17,9 +17,7 @@ const appStore = useAppStore()
 </script>
 
 <template>
-  <div
-    class="px-5 py-3 border-b border-border flex items-center justify-between"
-  >
+  <div class="px-5 py-3 border-b border-border flex items-center justify-between">
     <Tabs
       :model-value="appStore.currentCategory"
       class="w-auto"

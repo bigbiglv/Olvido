@@ -6,7 +6,7 @@ import { DEFAULT_CONFIG } from '../../electron/config/config.constants'
 export const useConfigStore = defineStore('config', () => {
   // 缺省配置占位，真实数据会由 loadConfig 覆盖
   const config = ref<AppConfig>(structuredClone(DEFAULT_CONFIG))
-  
+
   const initialized = ref(false)
 
   /**
@@ -53,6 +53,6 @@ export const useConfigStore = defineStore('config', () => {
     initialized,
     loadConfig,
     updateConfig,
-    resetConfig
+    resetConfig,
   }
 })

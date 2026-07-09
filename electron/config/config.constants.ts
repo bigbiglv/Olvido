@@ -8,9 +8,9 @@ export const DEFAULT_CONFIG: AppConfig = {
   windowBounds: {
     width: 1400,
     height: 900,
-    maximized: false
+    maximized: false,
   },
   sidebarWidth: 256,
   docListWidth: 320,
-  checkUpdateOnStartup: true
+  checkUpdateOnStartup: true,
 }

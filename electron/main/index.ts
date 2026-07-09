@@ -50,15 +50,15 @@ function createWindow() {
     if (!win) return
     const isMaximized = win.isMaximized()
     const bounds = win.getBounds()
-    
+
     configService.update({
       windowBounds: {
         width: bounds.width,
         height: bounds.height,
         x: bounds.x,
         y: bounds.y,
-        maximized: isMaximized
-      }
+        maximized: isMaximized,
+      },
     })
   }
 
@@ -111,7 +111,7 @@ app.whenReady().then(async () => {
 
   // 4. 创建窗口
   createWindow()
-  
+
   if (win) {
     registerUpdaterIpc(win)
   }

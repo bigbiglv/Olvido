@@ -1,13 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '@/stores/app'
-import {
-  apiList,
-  apiCreate,
-  apiUpdate,
-  apiDelete,
-  apiDeletes,
-  apiReorder,
-} from '@/apis/project'
+import { apiList, apiCreate, apiUpdate, apiDelete, apiDeletes, apiReorder } from '@/apis/project'
 import { confirm } from '@/components/confirm'
 import type { ProjectDto } from '../../../../electron/types/project'
 import type { ReorderEvent } from '@/components/ui/draggableList/types'
@@ -25,7 +18,7 @@ export function useProjectList() {
   const showAddProject = ref(false)
   const newProjectName = ref('')
   const listSelectedIds = ref<string[]>([])
-  
+
   /** 正在重命名的项目 ID */
   const renamingProjectId = ref<string | null>(null)
 
@@ -42,10 +35,11 @@ export function useProjectList() {
       type: 'project',
       getMenus: (context) => {
         const proj = context.data as ProjectDto
-        const isMultiSelected = listSelectedIds.value.includes(proj.id) && listSelectedIds.value.length > 1
-        
+        const isMultiSelected =
+          listSelectedIds.value.includes(proj.id) && listSelectedIds.value.length > 1
+
         const menus = []
-        
+
         if (!isMultiSelected) {
           menus.push({
             id: 'rename',
@@ -56,7 +50,7 @@ export function useProjectList() {
             },
           })
         }
-        
+
         menus.push({
           id: 'delete',
           label: '删除',
@@ -65,7 +59,7 @@ export function useProjectList() {
             handleDeleteProject(proj)
           },
         })
-        
+
         return menus
       },
     })
@@ -94,7 +88,7 @@ export function useProjectList() {
         ]
       },
     })
-    
+
     window.addEventListener('keydown', handleGlobalKeydown)
   })
 
@@ -109,7 +103,10 @@ export function useProjectList() {
     if (e.key === 'F2') {
       // 如果当前焦点在输入框或可编辑区域，则忽略快捷键
       const target = e.target as HTMLElement
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
         return
       }
 
@@ -291,9 +288,9 @@ export function useProjectList() {
    */
   async function submitRenameProject(id: string, newName: string) {
     renamingProjectId.value = null
-    const proj = projects.value.find(p => p.id === id)
+    const proj = projects.value.find((p) => p.id === id)
     if (!proj) return
-    
+
     newName = newName.trim()
     if (newName && newName !== proj.name) {
       try {
@@ -318,11 +315,12 @@ export function useProjectList() {
    * 删除项目操作
    */
   async function handleDeleteProject(proj: ProjectDto) {
-    const isMultiDelete = listSelectedIds.value.includes(proj.id) && listSelectedIds.value.length > 1
+    const isMultiDelete =
+      listSelectedIds.value.includes(proj.id) && listSelectedIds.value.length > 1
     const idsToDelete = isMultiDelete ? [...listSelectedIds.value] : [proj.id]
-    
+
     // 如果是多选删除，且其中包含 global，我们需要过滤掉 global
-    const validIdsToDelete = idsToDelete.filter(id => id !== 'global')
+    const validIdsToDelete = idsToDelete.filter((id) => id !== 'global')
 
     if (validIdsToDelete.length === 0) return
 
@@ -350,12 +348,12 @@ export function useProjectList() {
         }
         // 从本地列表移除
         projects.value = projects.value.filter((p: ProjectDto) => !validIdsToDelete.includes(p.id))
-        
+
         // 如果当前打开的项目在被删除的列表中，重置为全局记事本
         if (appStore.currentProject && validIdsToDelete.includes(appStore.currentProject)) {
           handleSelectProject(null)
         }
-        
+
         // 从多选中移除这些已删除的项
         listSelectedIds.value = listSelectedIds.value.filter((id) => !validIdsToDelete.includes(id))
       } catch (error) {
@@ -380,6 +378,6 @@ export function useProjectList() {
     handleGlobalClick,
     handleGlobalDblClick,
     submitRenameProject,
-    cancelRenameProject
+    cancelRenameProject,
   }
 }

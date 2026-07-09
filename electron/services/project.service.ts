@@ -83,7 +83,7 @@ export class ProjectService {
         where: {
           id: {
             in: ids,
-          }
+          },
         },
       })
     } catch (error) {

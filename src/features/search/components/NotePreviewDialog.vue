@@ -104,9 +104,7 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div
-    class="flex flex-col h-full overflow-hidden bg-background text-foreground"
-  >
+  <div class="flex flex-col h-full overflow-hidden bg-background text-foreground">
     <!-- 顶部元信息栏 -->
     <div
       class="px-6 py-4 border-b border-border bg-gradient-to-r from-slate-50/50 to-white dark:from-zinc-900/50 dark:to-zinc-900 flex flex-col gap-2 shrink-0"

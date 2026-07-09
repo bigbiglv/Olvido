@@ -20,8 +20,15 @@ import {
 } from '@/apis/note'
 import { mapNoteToDocument } from '@/apis/note-mapper'
 import { isElectron } from '@/utils/env'
-import { CheckCircle, Trash2, ArrowRightLeft, FilePlus, RefreshCw, CalendarDays, ArrowUpDown } from 'lucide-vue-next'
-
+import {
+  CheckCircle,
+  Trash2,
+  ArrowRightLeft,
+  FilePlus,
+  RefreshCw,
+  CalendarDays,
+  ArrowUpDown,
+} from 'lucide-vue-next'
 
 export function useDocumentList() {
   const appStore = useAppStore()
@@ -35,7 +42,7 @@ export function useDocumentList() {
   const categoryTabs: Array<'日常' | '需求'> = ['日常', '需求']
 
   const requirementSortMode = ref<'custom' | 'date'>(
-    (localStorage.getItem('olvido-requirement-sort-mode') as 'custom' | 'date') || 'date'
+    (localStorage.getItem('olvido-requirement-sort-mode') as 'custom' | 'date') || 'date',
   )
 
   watch(requirementSortMode, (newVal) => {
@@ -59,7 +66,10 @@ export function useDocumentList() {
         const list = notes.map(mapNoteToDocument)
 
         // 如果存在当前选中的文档，且不在过滤列表里（如已归档但正在被编辑的文档），且属于当前项目和当前分类，则临时加入列表
-        if (appStore.selectedDocumentId && !list.some((d) => d.id === appStore.selectedDocumentId)) {
+        if (
+          appStore.selectedDocumentId &&
+          !list.some((d) => d.id === appStore.selectedDocumentId)
+        ) {
           try {
             const note = await apiDetail(appStore.selectedDocumentId)
             if (note) {
@@ -187,7 +197,7 @@ export function useDocumentList() {
 
   async function handleQuickAdd() {
     try {
-      const docs = await Dialog.show<{title: string, content: string}[]>(QuickAddDialog)
+      const docs = await Dialog.show<{ title: string; content: string }[]>(QuickAddDialog)
       if (docs && docs.length > 0) {
         let firstDocId: string | null = null
         for (const doc of [...docs].reverse()) {
@@ -271,7 +281,8 @@ export function useDocumentList() {
                   await apiUpdate({
                     id: doc.id,
                     isArchived: true,
-                    deadline: doc.category === '需求' && doc.deadline ? new Date(doc.deadline) : null,
+                    deadline:
+                      doc.category === '需求' && doc.deadline ? new Date(doc.deadline) : null,
                   })
                   doc.completed = true
                   if (appStore.selectedDocumentId === doc.id) {
@@ -358,7 +369,7 @@ export function useDocumentList() {
                     for (const id of idsToConvert) {
                       await apiUpdate({
                         id,
-                        deadline: date.toDate()
+                        deadline: date.toDate(),
                       })
                     }
                     listSelectedIds.value = []
@@ -371,9 +382,9 @@ export function useDocumentList() {
                   } else {
                     await apiUpdate({
                       id: doc.id,
-                      deadline: date.toDate()
+                      deadline: date.toDate(),
                     })
-                    listSelectedIds.value = listSelectedIds.value.filter(id => id !== doc.id)
+                    listSelectedIds.value = listSelectedIds.value.filter((id) => id !== doc.id)
                     if (appStore.selectedDocumentId === doc.id) {
                       await appStore.selectDocument(null)
                     }
@@ -383,8 +394,8 @@ export function useDocumentList() {
                 } catch (error) {
                   console.error('Failed to convert to requirement:', error)
                 }
-              }
-            }
+              },
+            },
           })
         } else {
           // 是需求，提供修改截止日期的菜单
@@ -405,7 +416,7 @@ export function useDocumentList() {
                     for (const id of idsToUpdate) {
                       await apiUpdate({
                         id,
-                        deadline: date.toDate()
+                        deadline: date.toDate(),
                       })
                       const itemDoc = documents.value.find((d) => d.id === id)
                       if (itemDoc) itemDoc.deadline = date.toDate()
@@ -413,7 +424,7 @@ export function useDocumentList() {
                   } else {
                     await apiUpdate({
                       id: doc.id,
-                      deadline: date.toDate()
+                      deadline: date.toDate(),
                     })
                     const itemDoc = documents.value.find((d) => d.id === doc.id)
                     if (itemDoc) itemDoc.deadline = date.toDate()
@@ -422,8 +433,8 @@ export function useDocumentList() {
                 } catch (error) {
                   console.error('Failed to modify deadline:', error)
                 }
-              }
-            }
+              },
+            },
           })
         }
 
@@ -469,16 +480,16 @@ export function useDocumentList() {
                 label: requirementSortMode.value === 'date' ? '• 截止日期' : '截止日期',
                 onClick: () => {
                   requirementSortMode.value = 'date'
-                }
+                },
               },
               {
                 id: 'sort-custom',
                 label: requirementSortMode.value === 'custom' ? '• 自定义' : '自定义',
                 onClick: () => {
                   requirementSortMode.value = 'custom'
-                }
-              }
-            ]
+                },
+              },
+            ],
           })
         }
 
@@ -545,6 +556,6 @@ export function useDocumentList() {
     handleBackgroundContextMenu,
     handleSelectionChange,
     handleOpen,
-    handleReorder
+    handleReorder,
   }
 }

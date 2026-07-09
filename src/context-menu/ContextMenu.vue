@@ -80,7 +80,7 @@ async function onEnter(el: Element, done: () => void) {
         gsap.set(el, { clearProps: 'transform,scale,x,y' })
         done()
       },
-    }
+    },
   )
 
   // 菜单项级联错开进场动画 (Stagger)
@@ -96,8 +96,8 @@ async function onEnter(el: Element, done: () => void) {
         stagger: 0.02,
         ease: 'power3.out',
         delay: 0.05,
-        clearProps: 'transform,x,opacity'
-      }
+        clearProps: 'transform,x,opacity',
+      },
     )
   }
 }
@@ -123,11 +123,7 @@ function onLeave(el: Element, done: () => void) {
 
 <template>
   <Teleport to="body">
-    <Transition
-      @enter="onEnter"
-      @leave="onLeave"
-      :css="false"
-    >
+    <Transition @enter="onEnter" @leave="onLeave" :css="false">
       <div
         v-if="store.visible"
         id="global-context-menu-container"
@@ -149,4 +145,3 @@ function onLeave(el: Element, done: () => void) {
   outline: none;
 }
 </style>
-

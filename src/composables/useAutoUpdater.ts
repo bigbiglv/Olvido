@@ -11,10 +11,10 @@ let initialized = false
 
 export function useAutoUpdater() {
   const configStore = useConfigStore()
-  
+
   const autoUpdateEnabled = computed({
     get: () => configStore.config.checkUpdateOnStartup,
-    set: (val) => configStore.updateConfig({ checkUpdateOnStartup: val })
+    set: (val) => configStore.updateConfig({ checkUpdateOnStartup: val }),
   })
 
   const cancelDownload = async () => {
@@ -31,7 +31,7 @@ export function useAutoUpdater() {
       window.api.updater.onUpdateAvailable(async (info) => {
         const manual = isCheckingUpdate.value
         isCheckingUpdate.value = false
-        
+
         if (manual) {
           const wantsUpdate = await confirm({
             title: '发现新版本',

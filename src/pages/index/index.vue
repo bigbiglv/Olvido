@@ -15,12 +15,12 @@ const configStore = useConfigStore()
 
 const sidebarWidth = computed({
   get: () => configStore.config.sidebarWidth,
-  set: (val) => configStore.updateConfig({ sidebarWidth: val })
+  set: (val) => configStore.updateConfig({ sidebarWidth: val }),
 })
 
 const docListWidth = computed({
   get: () => configStore.config.docListWidth,
-  set: (val) => configStore.updateConfig({ docListWidth: val })
+  set: (val) => configStore.updateConfig({ docListWidth: val }),
 })
 
 // 注册全局键盘快捷键
@@ -45,9 +45,7 @@ useKeyboardShortcuts()
         <div class="h-full flex min-w-0 overflow-hidden">
           <DocumentList :style="{ width: `${docListWidth}px` }" class="shrink-0" />
           <ResizeHandle v-model="docListWidth" :min-width="240" :max-width="480" />
-          <div
-            class="flex-1 flex flex-col h-full overflow-hidden bg-muted/20 dark:bg-background"
-          >
+          <div class="flex-1 flex flex-col h-full overflow-hidden bg-muted/20 dark:bg-background">
             <DocumentEditor v-if="appStore.selectedDocument" />
             <EmptyState v-else />
           </div>

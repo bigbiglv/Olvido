@@ -27,7 +27,14 @@ interface Emits<T> {
   (e: 'reorder', event: ReorderEvent<T>): void
 }
 
-const { items, itemKey = 'id', selectedIds = [], openedId = null, group = 'default', disabled = false } = defineProps<Props<T>>()
+const {
+  items,
+  itemKey = 'id',
+  selectedIds = [],
+  openedId = null,
+  group = 'default',
+  disabled = false,
+} = defineProps<Props<T>>()
 
 const emit = defineEmits<Emits<T>>()
 
@@ -143,7 +150,12 @@ function handleItemMouseLeave() {
 </script>
 
 <template>
-  <div ref="containerRef" class="dl-container" @click.self="emit('selection-change', [])" @contextmenu.self.prevent="emit('background-context-menu', $event)">
+  <div
+    ref="containerRef"
+    class="dl-container"
+    @click.self="emit('selection-change', [])"
+    @contextmenu.self.prevent="emit('background-context-menu', $event)"
+  >
     <div
       v-for="(item, index) in items"
       :key="String(item[itemKey as keyof T])"
@@ -152,9 +164,13 @@ function handleItemMouseLeave() {
       :class="[
         !animatedIds.has(String(item[itemKey as keyof T])) ? 'animate-list-enter' : '',
         selectedIds.includes(String(item[itemKey as keyof T])) ? uniqueSelectedClass : '',
-        selectedIds.includes(String(item[itemKey as keyof T])) ? 'dl-selected' : ''
+        selectedIds.includes(String(item[itemKey as keyof T])) ? 'dl-selected' : '',
       ]"
-      :style="{ animationDelay: !animatedIds.has(String(item[itemKey as keyof T])) ? `${Math.min(index, 15) * 40}ms` : '0ms' }"
+      :style="{
+        animationDelay: !animatedIds.has(String(item[itemKey as keyof T]))
+          ? `${Math.min(index, 15) * 40}ms`
+          : '0ms',
+      }"
       @animationend="onAnimationEnd(item)"
       @click="handleItemClick(item, $event)"
       @dblclick="handleItemDblClick(item)"

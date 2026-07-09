@@ -15,7 +15,7 @@ defineOptions({
     width: 680,
     height: 520,
     minWidth: 680,
-    minHeight: 520
+    minHeight: 520,
   } as DialogOptions,
 })
 
@@ -64,21 +64,15 @@ onMounted(async () => {
           >
             <Palette class="size-4" aria-hidden="true" />
           </div>
-          <h2 class="text-sm font-semibold text-foreground tracking-tight">
-            界面与主题
-          </h2>
+          <h2 class="text-sm font-semibold text-foreground tracking-tight">界面与主题</h2>
         </div>
-        <div
-          class="bg-card rounded-2xl ring-1 ring-border shadow-sm overflow-hidden"
-        >
+        <div class="bg-card rounded-2xl ring-1 ring-border shadow-sm overflow-hidden">
           <div
             class="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors duration-200"
           >
             <div>
               <div class="text-sm font-medium text-foreground">系统主题</div>
-              <div class="text-[13px] text-muted-foreground mt-0.5">
-                选择深色、浅色或跟随系统
-              </div>
+              <div class="text-[13px] text-muted-foreground mt-0.5">选择深色、浅色或跟随系统</div>
             </div>
             <ThemeSwitch />
           </div>
@@ -93,13 +87,9 @@ onMounted(async () => {
           >
             <Zap class="size-4" aria-hidden="true" />
           </div>
-          <h2 class="text-sm font-semibold text-foreground tracking-tight">
-            高级设置
-          </h2>
+          <h2 class="text-sm font-semibold text-foreground tracking-tight">高级设置</h2>
         </div>
-        <div
-          class="bg-card rounded-2xl ring-1 ring-border shadow-sm overflow-hidden"
-        >
+        <div class="bg-card rounded-2xl ring-1 ring-border shadow-sm overflow-hidden">
           <div
             class="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors duration-200"
           >
@@ -119,7 +109,7 @@ onMounted(async () => {
           >
             <div class="min-w-0 pr-4 flex-1">
               <div class="text-sm font-medium text-foreground">本地数据目录</div>
-              <div 
+              <div
                 class="text-[13px] text-muted-foreground mt-0.5 truncate cursor-help"
                 :title="userDataDir"
               >
@@ -147,17 +137,11 @@ onMounted(async () => {
           >
             <Info class="size-4" aria-hidden="true" />
           </div>
-          <h2 class="text-sm font-semibold text-foreground tracking-tight">
-            关于应用
-          </h2>
+          <h2 class="text-sm font-semibold text-foreground tracking-tight">关于应用</h2>
         </div>
-        <div
-          class="bg-card rounded-2xl ring-1 ring-border shadow-sm overflow-hidden"
-        >
+        <div class="bg-card rounded-2xl ring-1 ring-border shadow-sm overflow-hidden">
           <div class="flex flex-col">
-            <div
-              class="flex items-center justify-between p-4 border-b border-border"
-            >
+            <div class="flex items-center justify-between p-4 border-b border-border">
               <span class="text-sm text-muted-foreground">软件版本</span>
               <div class="flex items-center gap-3">
                 <div

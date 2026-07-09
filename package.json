@@ -85,6 +85,10 @@
     ],
     "extraResources": [
       {
+        "from": "prisma/dev.db",
+        "to": "database.db"
+      },
+      {
         "from": "node_modules/.prisma",
         "to": "node_modules/.prisma"
       },

@@ -73,9 +73,7 @@ onUnmounted(() => {
 <template>
   <div class="flex flex-col h-full overflow-hidden bg-background">
     <!-- Top Search Input & Filter area -->
-    <div
-      class="px-6 py-4 border-b border-border flex items-center gap-3 shrink-0"
-    >
+    <div class="px-6 py-4 border-b border-border flex items-center gap-3 shrink-0">
       <!-- Project Filter Select -->
       <select
         v-model="selectedProjectId"
@@ -90,9 +88,7 @@ onUnmounted(() => {
 
       <!-- Keywords input -->
       <div class="relative flex-1">
-        <Search
-          class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
-        />
+        <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <input
           ref="inputRef"
           v-model="store.keyword"
